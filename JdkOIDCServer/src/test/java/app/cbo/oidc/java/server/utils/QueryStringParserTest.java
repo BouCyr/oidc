@@ -22,8 +22,6 @@ class QueryStringParserTest {
         assertThat(result.get("lang"))
                 .hasSize(1);
         assertThat(result.get("lang").iterator().next())
-                .isPresent()
-                .get()
                 .isEqualTo("en");
     }
 
@@ -75,11 +73,9 @@ class QueryStringParserTest {
         assertThat(result.get("one"))
                 .hasSize(1);
         assertThat(result.get("one").iterator().next())
-                .isPresent()
-                .get().isEqualTo("");
+              .isEqualTo("");
         assertThat(result.get("two").iterator().next())
-                .isPresent()
-                .get().isEqualTo("fizz");
+      .isEqualTo("fizz");
 
 
     }
