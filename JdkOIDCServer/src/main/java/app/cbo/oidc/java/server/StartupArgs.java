@@ -22,7 +22,7 @@ public record StartupArgs(int port) {
         final var asMap = new HashMap<String, String>();
         Stream.of(array)
                 .map(s -> s.split("="))
-                .map(split -> new Pair<String, String>(split[0], split[1]))
+                .map(split -> Pair.of(split[0], split[1]))
                 .filter(kv -> ARGS.contains(kv.left()))
                 .forEach(kv -> asMap.put(kv.left(), kv.right()));
 

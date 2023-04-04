@@ -22,7 +22,7 @@ public class ExchangeResponseUtils {
         if(content == null || content.isBlank()) {
             httpExchange.sendResponseHeaders(code.code(), 0);
         }else{
-            httpExchange.sendResponseHeaders(200, content.getBytes(StandardCharsets.UTF_8).length);
+            httpExchange.sendResponseHeaders(code.code(), content.getBytes(StandardCharsets.UTF_8).length);
             httpExchange.getResponseBody().write(content.getBytes(StandardCharsets.UTF_8));
         }
 

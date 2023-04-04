@@ -32,41 +32,12 @@ public class QueryStringParser {
 
         int sepPosition = param.indexOf('=');
         if (sepPosition == -1) {
-            return new Pair<>(param, "");
+            return Pair.of(param, "");
         } else {
-            return new Pair<>(
+            return Pair.of(
                     param.substring(0, sepPosition),
                     param.substring(sepPosition + 1)
             );
         }
-
-
-    }
-
-    public static String toString(Map<String, Collection<String>> params) {
-        var sb = new StringBuilder();
-        params.forEach((k, v) -> {
-            sb.append(k).append(":");
-            if (v.isEmpty() || (v.size() == 1 && v.iterator().next().isEmpty())) {
-                sb.append("[empty]").append(System.lineSeparator());
-            } else if (v.size() == 1) {
-                sb.append(v.iterator().next())
-                        .append(System.lineSeparator());
-            } else {
-                sb.append(System.lineSeparator());
-                v.stream().forEach(entry -> {
-                    if (entry.isEmpty()) {
-                        sb.append("  -[empty]").append(System.lineSeparator());
-                    } else {
-                        sb.append("  -").append(entry).append(System.lineSeparator());
-                    }
-                });
-            }
-        });
-        String body = sb.toString();
-        if (body.isBlank()) {
-            body = "[empty]";
-        }
-        return body;
     }
 }

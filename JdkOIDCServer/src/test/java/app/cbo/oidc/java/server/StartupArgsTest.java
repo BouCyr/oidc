@@ -24,7 +24,7 @@ class StartupArgsTest {
     void test_nominal_3() {
 
         var args = StartupArgs.from("test=foo", "eg=bar");
-        Assertions.assertEquals(args.port(), 8080);
+        Assertions.assertEquals(args.port(), 9451);
     }
 
     @Test

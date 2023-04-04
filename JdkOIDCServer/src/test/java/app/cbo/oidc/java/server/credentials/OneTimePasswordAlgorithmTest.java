@@ -55,12 +55,12 @@ class OneTimePasswordAlgorithmTest {
 
         // check with FreeOTP, GoogleAuthenticator or  https://totp.danhersam.com/
 
-        var asb32 = "UUKKMBQE64DSSAVH";
+        var asb32 = "ALBACORE";
 
         int cpt = 100;
         while(cpt > 0){
 
-            System.out.println(TOTP.get(asb32));
+            System.out.println(String.join(" -> ",TOTP.get(asb32,1,1)));
             Thread.sleep(10_000L);
             cpt--;
         }

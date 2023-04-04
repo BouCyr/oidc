@@ -19,6 +19,8 @@ import java.time.Instant;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
+import java.util.List;
+import java.util.stream.IntStream;
 
 
 /**
@@ -31,23 +33,61 @@ import java.math.BigInteger;
 
 public class TOTP {
 
+    /**
+     * Generate a 6 digits OTP from the current time and the given b32 secret key, using HmacSHA1 and a 30s ttl
+     *
+     * @param b32 secret key
+     *
+     */
     public static String get(String b32){
         var secret = Base32.decode(b32);
         var asHex = bytesToHex(secret);
-        var time = (Instant.now().getEpochSecond()/30);
+        var time = (Instant.now().getEpochSecond())/30;
         var totp = TOTP.generateTOTP(asHex, Long.toHexString(time).toUpperCase(), "6");
         return totp;
     }
 
+    /**
+     * Generate 6 digits OTP from the current time and the given b32 secret key, using HmacSHA1 and a 30s ttl
+     * This method computes previous and next totp as well, to manage time skew/client input delay
+     *
+     * @param b32 secret key
+     * @param skewAfter number of previous TOTP to compute
+     * @param skewBefore number of next TOTP to compute
+     * @returns topts (including previous and next ones)
+     */
+    static List<String> get(String b32, int skewBefore, int skewAfter){
+        var secret = Base32.decode(b32);
+        var asHex = bytesToHex(secret);
 
-    public static boolean confront(String totp, String totpKey) {
+        return IntStream.rangeClosed(-1*skewBefore, +1*skewAfter)
+                .boxed()
+                .map(i -> {
+                    var time = i + ((Instant.now().getEpochSecond()) / 30);
+                    var totp = TOTP.generateTOTP(asHex, Long.toHexString(time).toUpperCase(), "6");
+                    return totp;
+                }).toList();
+    }
+
+
+    /**
+     * Checks a provided totp against the (stored) secretkey
+     * This method will accept the previous, current and next totp to handle time skew/user input delay
+     * @param providedTotp as provided by the user
+     * @param totpKey as stored on the system
+     * @return true if the provided totp matches the last, current or next totp computed from the secret key
+     */
+    public static boolean confront(String providedTotp, String totpKey) {
         if(totpKey == null){
             return false;
         }
-        if(totp == null){
+        if(providedTotp == null){
             return false;
         }
-        return get(totpKey).equals(totp);
+
+        return get(totpKey,1,1)
+                .stream()
+                .anyMatch(t -> t.equals(providedTotp));
 
     }
 
@@ -189,14 +229,16 @@ public class TOTP {
                                       String time,
                                       String returnDigits,
                                       String crypto){
-        int codeDigits = Integer.decode(returnDigits).intValue();
-        String result = null;
+        int codeDigits = Integer.decode(returnDigits);
+        StringBuilder result = null;
 
         // Using the counter
         // First 8 bytes are for the movingFactor
         // Compliant with base RFC 4226 (HOTP)
-        while (time.length() < 16 )
-            time = "0" + time;
+        StringBuilder timeBuilder = new StringBuilder(time);
+        while (timeBuilder.length() < 16 )
+            timeBuilder.insert(0, "0");
+        time = timeBuilder.toString();
 
         // Get the HEX in a Byte[]
         byte[] msg = hexStr2Bytes(time);
@@ -218,11 +260,11 @@ public class TOTP {
 
         int otp = binary % DIGITS_POWER[codeDigits];
 
-        result = Integer.toString(otp);
+        result = new StringBuilder(Integer.toString(otp));
         while (result.length() < codeDigits) {
-            result = "0" + result;
+            result.insert(0, "0");
         }
-        return result;
+        return result.toString();
     }
 
 }

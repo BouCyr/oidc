@@ -60,7 +60,7 @@ public class AuthenticateEndpoint {
             authentications.add(USER_FOUND);
 
             if(!Utils.isBlank(params.password())){
-                if( PasswordEncoder.confront(params.password(), user.pwd())) {
+                if( PasswordEncoder.getInstance().confront(params.password(), user.pwd())) {
                     authentications.add(PASSWORD_OK);
                 }else{
                     //TODO [31/03/2023] same msg for username not found & wrong password

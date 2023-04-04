@@ -3,9 +3,9 @@ package app.cbo.oidc.java.server.datastored;
 import java.util.function.Supplier;
 
 @FunctionalInterface
-public interface UserId extends Supplier<String> {
+public interface Code extends Supplier<String> {
 
-    default String getUserId(){
+    default String getCode(){
         return this.get();
     }
 }

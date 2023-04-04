@@ -5,6 +5,11 @@ public class QueryStringBuilder {
     private boolean has = false;
     private final StringBuilder builder=new StringBuilder();
 
+    /**
+     * Append an item to the querystring
+     * @param fullParam formatted param (with both key & value : 'test=tested'
+     * @return this
+     */
     public QueryStringBuilder add(String fullParam) {
         if(has)
             builder.append("&");

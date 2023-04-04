@@ -23,6 +23,10 @@ public record User(String sub, String pwd, String totpKey, Map<String, Set<Strin
         }
     }
 
+    public UserId getUserId(){
+        return this::sub;
+    }
+
     public User(String sub, String pwd, String totpKey) {
         this(sub, pwd, totpKey, new HashMap<>());
     }

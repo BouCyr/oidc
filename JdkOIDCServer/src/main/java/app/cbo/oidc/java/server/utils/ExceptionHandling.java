@@ -17,6 +17,7 @@ public class ExceptionHandling {
                 var w = new PrintWriter(os)
         ) {
             e.printStackTrace(w);
+            w.flush();
             return os.toString();
         } catch (IOException ioException) {
             LOGGER.info("Unable to read exception stacktrace :( This is an error inside an error");

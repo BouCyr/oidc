@@ -5,6 +5,7 @@ import app.cbo.oidc.java.server.oidc.HttpConstants;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.List;
@@ -34,13 +35,15 @@ public class ParamsHelper {
                 && exchange.getRequestHeaders().get("Content-Type").size() == 1
                 && HttpConstants.TYPE_FORM.equals(exchange.getRequestHeaders().get("Content-Type").get(0))) {
 
-            // TODO [15/03/2023] autocloseable
-            String result = new BufferedReader(new InputStreamReader(exchange.getRequestBody()))
-                    .lines().collect(Collectors.joining("\n"));
-            params = QueryStringParser.from(result);
+            try(var reader =  new BufferedReader(new InputStreamReader(exchange.getRequestBody()))) {
+                String result = reader.lines().collect(Collectors.joining("\n"));
+                params = QueryStringParser.from(result);
+            } catch (IOException e) {
+                throw new AuthError(AuthError.Code.server_error," unable to read body");
+            }
 
         }else{
-            String msg = "POST request on authorization endpoint with wrong contentType";
+            String msg = "POST request with wrong contentType";
             throw new AuthError(AuthError.Code.invalid_request, msg, null, null);
         }
         return params;
@@ -67,6 +70,7 @@ public class ParamsHelper {
     public static List<String> spaceSeparatedList(String spaceSeparatedList){
 
         return Stream.of(spaceSeparatedList.split(" "))
+                .map(String::trim)
                 .filter(s -> !s.isBlank())
                 .toList();
     }

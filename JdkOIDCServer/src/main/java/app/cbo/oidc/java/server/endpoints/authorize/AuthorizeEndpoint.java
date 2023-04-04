@@ -3,6 +3,7 @@ package app.cbo.oidc.java.server.endpoints.authorize;
 import app.cbo.oidc.java.server.backends.Codes;
 import app.cbo.oidc.java.server.backends.Sessions;
 import app.cbo.oidc.java.server.backends.Users;
+import app.cbo.oidc.java.server.datastored.Code;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.endpoints.AuthError;
@@ -144,9 +145,9 @@ public class AuthorizeEndpoint {
             return new AuthError(AuthError.Code.invalid_request, "Missing redirect_uri");
         }
 
-        String code = Codes.getInstance().createFor(user);
+        Code authCode = Codes.getInstance().createFor(user.getUserId(), ()-> originalParams.clientId().orElse(""));
         Map<String, String> params = new HashMap<>();
-        params.put("code", code);
+        params.put("code", authCode.getCode());
         if(originalParams.state().isPresent()){
             params.put("state", originalParams.state().get());
         }

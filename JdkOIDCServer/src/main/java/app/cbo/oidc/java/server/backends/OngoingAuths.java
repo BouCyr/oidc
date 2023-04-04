@@ -9,7 +9,6 @@ import java.util.UUID;
 
 public class OngoingAuths {
 
-    public static final String CARRYON = "carryon";
 
     //TODO [20/03/2023] Cleanup/regular cleanup / max life time before error
 
