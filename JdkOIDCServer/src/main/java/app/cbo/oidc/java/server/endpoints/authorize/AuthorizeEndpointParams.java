@@ -5,6 +5,7 @@ import app.cbo.oidc.java.server.oidc.OIDCDisplayValues;
 import app.cbo.oidc.java.server.oidc.OIDCFlow;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
 import app.cbo.oidc.java.server.utils.EnumValuesHelper;
+import app.cbo.oidc.java.server.utils.QueryStringBuilder;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.util.Collection;
@@ -37,7 +38,8 @@ public record AuthorizeEndpointParams(
 
 
     public AuthorizeEndpointParams(Map<String, Collection<String>> params){
-        this(spaceSeparatedList(singleParam(params.get("scope")).orElse("")),
+        this(
+                spaceSeparatedList(singleParam(params.get("scope")).orElse("")),
                 spaceSeparatedList(singleParam(params.get("response_type")).orElse("")),
                 singleParam(params.get("client_id")),
                 singleParam(params.get("redirect_uri")),
@@ -51,10 +53,10 @@ public record AuthorizeEndpointParams(
                         spaceSeparatedList(singleParam(params.get("prompt")).orElse("")),//split the string to params
                         OIDCPromptValues.values()),
                 singleParam(params.get("max_age")),
-                spaceSeparatedList(singleParam(params.get("ui-locales")).orElse("")),
+                spaceSeparatedList(singleParam(params.get("ui_locales")).orElse("")),
                 singleParam(params.get("id_token_hint")),
                 singleParam(params.get("login_hint")),
-                spaceSeparatedList(singleParam(params.get("acr-values")).orElse(""))
+                spaceSeparatedList(singleParam(params.get("acr_values")).orElse(""))
         );
 
     }
@@ -106,7 +108,49 @@ public record AuthorizeEndpointParams(
     }
 
 
+    public String toQueryString(){
 
+
+        return new QueryStringBuilder()
+                .add(toSpaceSeparated("scope",scope()))
+                .add(toSpaceSeparated("response_type", responseTypes()))
+                .add(toSingle("client_id", clientId()))
+                .add(toSingle("redirect_uri", redirectUri()))
+                .add(toSingle("state",state()))
+                .add(toSingle("response_mode",responseMode()))
+                .add(toSingle("nonce", nonce()))
+                .add(toSingle("display", display().map(OIDCDisplayValues::paramValue)))
+                .add(toSpaceSeparated("prompt", prompt().stream().map(OIDCPromptValues::paramValue).toList()))
+                .add(toSingle("max_age", maxAge()))
+                .add(toSpaceSeparated("ui_locales", uiLocales()))
+                .add(toSingle("id_token_hint", idTokenHint()))
+                .add(toSingle("login_hint", loginHint()))
+                .add(toSpaceSeparated("acr_values", acrValues()))
+                .toString();
+
+
+
+
+
+    }
+
+    //TODO [03/04/2023] in .utils ?
+    private String toSingle(String key, Optional<String> value) {
+
+        return value.map(v -> key+"="+v).orElse("");
+    }
+
+    //TODO [03/04/2023] in .utils ?
+    private String toSpaceSeparated(String key, List<String> values) {
+        StringBuilder builder = new StringBuilder();
+        if(!Utils.isEmpty(values)){
+            builder
+                    .append(key)
+                    .append("=")
+                    .append(String.join(" ", values));
+        }
+        return builder.toString();
+    }
 
 
 }

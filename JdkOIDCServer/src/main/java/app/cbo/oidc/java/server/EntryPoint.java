@@ -1,6 +1,10 @@
 package app.cbo.oidc.java.server;
 
+import app.cbo.oidc.java.server.backends.Users;
+import app.cbo.oidc.java.server.datastored.User;
+
 import java.io.IOException;
+import java.util.Collections;
 import java.util.logging.*;
 
 public class EntryPoint {
@@ -9,6 +13,8 @@ public class EntryPoint {
 
     public static void main(String... args) throws IOException {
 
+
+        setupData();
 
         Logger parent = Logger.getLogger("");
         parent.setLevel(Level.FINE);  // Loggers will now publish more messages.
@@ -21,5 +27,14 @@ public class EntryPoint {
         server.start();
 
 
+    }
+
+    @Deprecated
+    //TODO [03/04/2023] read data on disk
+    private static void setupData() {
+
+        //String sub, String pwd, String totpKey, Map<String, Set<String>> consentedTo
+        var cyrille = new User("cyrille","sesame", "ALBACORE", Collections.emptyMap());
+        Users.getInstance().store(cyrille);
     }
 }

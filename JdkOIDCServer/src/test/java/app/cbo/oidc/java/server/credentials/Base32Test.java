@@ -1,12 +1,9 @@
-package app.cbo.oidc.java.server.otp;
+package app.cbo.oidc.java.server.credentials;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class Base32Test {
 

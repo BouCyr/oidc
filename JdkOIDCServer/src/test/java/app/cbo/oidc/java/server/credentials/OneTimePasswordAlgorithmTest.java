@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.otp;
+package app.cbo.oidc.java.server.credentials;
 
 import org.apache.commons.codec.binary.Hex;
 import org.assertj.core.api.Assertions;
@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.Base64;
 
 class OneTimePasswordAlgorithmTest {
 
@@ -68,44 +66,6 @@ class OneTimePasswordAlgorithmTest {
         }
     }
 
-    @Test
-    @Disabled
-    void realTimeTest() throws InterruptedException {
-
-        // check with FreeOTP, GoogleAuthenticator or  https://totp.danhersam.com/
-
-        var secret = SecretGenerator.getInstance().generateSecret(10);
-
-        var asb32 = Base32.encode(secret);
-        var asHex = Hex.encodeHexString(secret);
-        System.out.println(asb32);
-        System.out.println(new org.apache.commons.codec.binary.Base32().encodeAsString(secret));
-
-
-        int cpt = 100;
-        while(cpt > 0){
-
-            var time = (Instant.now().getEpochSecond()/30);
-
-
-//            long T = (testTime[i] - T0)/X;
-            String steps = Long.toHexString(time).toUpperCase();
-            while (steps.length() < 16) steps = "0" + steps;
-
-
-
-
-            var totp = TOTP.generateTOTP(asHex, Long.toHexString(time).toUpperCase(), "6");
-            var totp2 = TOTP.generateTOTP(asHex, steps, "6");
-
-            System.out.println(totp);
-            System.out.println(totp2);
-
-            System.out.println();
-            Thread.sleep(10_000L);
-            cpt--;
-        }
-    }
 
 
 

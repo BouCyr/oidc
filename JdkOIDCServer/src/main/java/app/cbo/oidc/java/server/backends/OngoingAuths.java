@@ -7,13 +7,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class ParamsDB {
+public class OngoingAuths {
+
+    public static final String CARRYON = "carryon";
 
     //TODO [20/03/2023] Cleanup/regular cleanup / max life time before error
 
-    private static final ParamsDB instance = new ParamsDB();
-    public static ParamsDB getInstance() {return instance;}
-    private ParamsDB(){ }
+    private static final OngoingAuths instance = new OngoingAuths();
+    public static OngoingAuths getInstance() {return instance;}
+    private OngoingAuths(){ }
 
 
     private final Map<String, AuthorizeEndpointParams> store = new HashMap<>();

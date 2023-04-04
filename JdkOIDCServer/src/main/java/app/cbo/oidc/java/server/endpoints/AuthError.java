@@ -2,12 +2,16 @@ package app.cbo.oidc.java.server.endpoints;
 
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpointParams;
 import app.cbo.oidc.java.server.oidc.HttpConstants;
+import app.cbo.oidc.java.server.utils.ExceptionHandling;
 import app.cbo.oidc.java.server.utils.ExchangeResponseUtils;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import app.cbo.oidc.java.server.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.logging.Logger;
@@ -15,6 +19,8 @@ import java.util.logging.Logger;
 public  class AuthError extends Exception implements Interaction {
 
     private final static Logger LOGGER = Logger.getLogger(AuthError.class.getCanonicalName());
+
+
 
     public enum Code {
         invalid_request,
@@ -53,6 +59,12 @@ public  class AuthError extends Exception implements Interaction {
 
 
         LOGGER.info(String.format("Handling error with code %s and description %s ", error, Utils.isBlank(errorDescription)?"NONE":errorDescription));
+
+        LOGGER.info(ExceptionHandling.getStackTrace(this));
+
+
+
+
         if(!Utils.isBlank(this.state)){
             LOGGER.info(String.format("We have a state %s and a redirect_uri %s",
                     Utils.isBlank(this.state)?"NO":state,

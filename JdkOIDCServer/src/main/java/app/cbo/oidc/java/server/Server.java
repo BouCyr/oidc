@@ -1,7 +1,12 @@
 package app.cbo.oidc.java.server;
 
+import app.cbo.oidc.java.server.endpoints.ResourceInteraction;
+import app.cbo.oidc.java.server.endpoints.ResponseInteraction;
 import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateHandler;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.utils.Utils;
+import com.sun.net.httpserver.Filter;
+import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
@@ -29,11 +34,24 @@ public class Server {
 
     public void start() throws IOException {
 
+
+
+
+
+
         server.createContext(AuthorizeHandler.AUTHORIZE_ENPOINT, new AuthorizeHandler());
         server.createContext(AuthenticateHandler.AUTHENTICATE_ENDPOINT, new AuthenticateHandler());
+        server.createContext("/favicon.ico", exchange ->{
+
+            new ResourceInteraction("image/x-icon", "favicon.ico")
+                    .handle(exchange);
+        } );
+
         server.createContext("/", exchange ->{
             LOGGER.info("404 on "+exchange.getRequestURI().toString());
             exchange.sendResponseHeaders(404, 0);
+            exchange.getResponseBody().flush();
+            exchange.getResponseBody().close();
             return;
         } );
 

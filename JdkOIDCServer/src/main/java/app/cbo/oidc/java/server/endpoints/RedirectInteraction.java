@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.endpoints;
 
-import app.cbo.oidc.java.server.backends.ParamsDB;
+import app.cbo.oidc.java.server.backends.OngoingAuths;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpointParams;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import com.sun.net.httpserver.HttpExchange;
@@ -10,7 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public record RedirectInteraction(String uri, AuthorizeEndpointParams originalRarams, Map<String, String> redirectParams, boolean internal) implements Interaction {
+@Deprecated //better to craft dedicated interaction for each case
+public record RedirectInteraction(String uri,
+                                  AuthorizeEndpointParams originalRarams,
+                                  Map<String, String> redirectParams,
+                                  boolean internal) implements Interaction {
+
 
 
 
@@ -29,8 +34,8 @@ public record RedirectInteraction(String uri, AuthorizeEndpointParams originalRa
         Map<String, String> actualRedirectParams = new HashMap<>(this.redirectParams());
         if(this.internal()) {
             //if internal redirect, store the initial authentication request sent by the client somewhere, to be able to carry on
-            var carryon = ParamsDB.getInstance().store(originalRarams);
-            actualRedirectParams.put("carryon", carryon);
+            var ongoing = OngoingAuths.getInstance().store(originalRarams);
+            actualRedirectParams.put("ongoing", ongoing);
         }
 
 

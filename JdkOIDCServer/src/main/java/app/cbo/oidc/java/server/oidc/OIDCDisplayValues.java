@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 /**
  * display
- * OPTIONAL. ASCII string value that specifies how the Authorization Server displays the authentication and consent user interface pages to the End-User. The defined values are:
+ * OPTIONAL. ASCII string value that specifies how the Authorization Server displays the authentication and consent userId interface pages to the End-User. The defined values are:
  * -page : The Authorization Server SHOULD display the authentication and consent UI consistent with a full User Agent page view. If the display parameter is not specified, this is the default display mode.
  * -popup : The Authorization Server SHOULD display the authentication and consent UI consistent with a popup User Agent window. The popup User Agent window should be of an appropriate size for a login-focused dialog and should not obscure the entire window that it is popping up over.
  * -touch : The Authorization Server SHOULD display the authentication and consent UI consistent with a device that leverages a touch interface.

@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.otp;
+package app.cbo.oidc.java.server.credentials;
 
 
 /**
@@ -15,14 +15,10 @@ package app.cbo.oidc.java.server.otp;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Date;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
-import java.util.TimeZone;
 
 
 /**
@@ -41,6 +37,18 @@ public class TOTP {
         var time = (Instant.now().getEpochSecond()/30);
         var totp = TOTP.generateTOTP(asHex, Long.toHexString(time).toUpperCase(), "6");
         return totp;
+    }
+
+
+    public static boolean confront(String totp, String totpKey) {
+        if(totpKey == null){
+            return false;
+        }
+        if(totp == null){
+            return false;
+        }
+        return get(totpKey).equals(totp);
+
     }
 
     private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);

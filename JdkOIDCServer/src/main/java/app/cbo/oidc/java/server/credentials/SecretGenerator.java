@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.otp;
+package app.cbo.oidc.java.server.credentials;
 
 import java.security.SecureRandom;
 

@@ -7,11 +7,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class CodesDB {
+public class Codes {
 
-    private static final CodesDB instance = new CodesDB();
-    public static CodesDB getInstance() {return instance;}
-    private CodesDB() { }
+    private static final Codes instance = new Codes();
+    public static Codes getInstance() {return instance;}
+    private Codes() { }
 
 
     Map<String, User> store = new HashMap<>();

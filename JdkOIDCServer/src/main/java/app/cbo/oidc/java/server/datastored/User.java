@@ -2,24 +2,29 @@ package app.cbo.oidc.java.server.datastored;
 
 import java.util.*;
 
-public record User(String sub, Map<String, Set<String>> consentedTo) {
+public record User(String sub, String pwd, String totpKey, Map<String, Set<String>> consentedTo) {
 
-    public User(String sub, Map<String, Set<String>> consentedTo) {
+    public User(String sub,
+                String pwd,
+                String totpKey,
+                Map<String, Set<String>> consentedTo) {
 
         // for readability purpose
-        var paramConsentedTo = consentedTo;
         this.sub = sub;
+        this.pwd=pwd;
+        this.totpKey=totpKey;
+
         this.consentedTo = new HashMap<>();
-        for(String clientId : paramConsentedTo.keySet()){
+        for(String clientId : consentedTo.keySet()){
             this.consentedTo.put(clientId, new HashSet<>());
-            for(String consent : paramConsentedTo.get(clientId)){
+            for(String consent : consentedTo.get(clientId)){
                 this.consentedTo.get(clientId).add(consent);
             }
         }
     }
 
-    public User(String sub) {
-        this(sub, new HashMap<>());
+    public User(String sub, String pwd, String totpKey) {
+        this(sub, pwd, totpKey, new HashMap<>());
     }
 
     public boolean hasConsentedTo(String clientId, String scope){

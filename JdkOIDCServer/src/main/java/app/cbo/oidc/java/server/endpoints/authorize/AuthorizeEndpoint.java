@@ -1,7 +1,8 @@
 package app.cbo.oidc.java.server.endpoints.authorize;
 
-import app.cbo.oidc.java.server.backends.CodesDB;
-import app.cbo.oidc.java.server.backends.SessionsDB;
+import app.cbo.oidc.java.server.backends.Codes;
+import app.cbo.oidc.java.server.backends.Sessions;
+import app.cbo.oidc.java.server.backends.Users;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.endpoints.AuthError;
@@ -10,7 +11,10 @@ import app.cbo.oidc.java.server.endpoints.RedirectInteraction;
 import app.cbo.oidc.java.server.oidc.OIDCFlow;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
 import app.cbo.oidc.java.server.datastored.User;
+import app.cbo.oidc.java.server.utils.Utils;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -32,7 +36,7 @@ public class AuthorizeEndpoint {
     private final static Logger LOGGER = Logger.getLogger(AuthorizeEndpoint.class.getCanonicalName());
 
     public Interaction treatRequest(
-            Optional<SessionId> sessionIdOptional,
+            SessionId sessionId,
             Map<String, Collection<String>> rawParams) throws AuthError {
 
 
@@ -54,39 +58,58 @@ public class AuthorizeEndpoint {
         LOGGER.info("Request params are valid for flow "+flow.name() );
 
         //3.1.2.3.  Authorization Server Authenticates End-User
-        return checkIfAuthenticated(sessionIdOptional, flow, params);
+        return checkIfAuthenticated(sessionId, flow, params);
 
 
     }
 
-    private Interaction checkIfAuthenticated(Optional<SessionId> sessionIdOptional,
+    private Interaction checkIfAuthenticated(SessionId sessionId,
                                              OIDCFlow flow,
                                              AuthorizeEndpointParams params) throws AuthError {
 
-        LOGGER.info("Checking if user already has a session");
+        LOGGER.info("Checking if userId already has a session");
         Optional<Session> userSession;
-        if(sessionIdOptional.isEmpty()){
-            //no session cookie, user is not authenticated
+        if(Utils.isBlank(sessionId.getSessionId())){
+            //no session cookie, userId is not authenticated
             userSession = Optional.empty();
         } else {
-            userSession = SessionsDB.getInstance().getSession(sessionIdOptional.get());
+            userSession = Sessions.getInstance().getSession(sessionId);
         }
 
         if(userSession.isEmpty() && params.prompt().contains(OIDCPromptValues.NONE)){
             LOGGER.info("User has no session and client required no interaction. Sending back with error "+AuthError.Code.access_denied);
-            throw new AuthError(AuthError.Code.access_denied, "Requested no interaction with no authenticated user", params);
+            throw new AuthError(AuthError.Code.access_denied, "Requested no interaction with no authenticated userId", params);
         }
         if(userSession.isEmpty() || params.prompt().contains(OIDCPromptValues.LOGIN)){
-            LOGGER.info("User has no session or client required reuthentication. Redirect to login page");
-            return RedirectInteraction.internal("/login", params, Collections.emptyMap() );
+            LOGGER.info("User has no session or client required reauthentication. Redirect to login page");
+            return new RedirectToLogin(params);
         }
 
-        var session = userSession.get(); //user has a vliad sess
-        //TODO [20/03/2023] check params.maxAge
+        var session = userSession.get(); //userId has a valid session
+        var user = Users.getInstance().find(session.userId())
+                //user may have been deleted since the session was created...
+                .orElseThrow(() -> new AuthError(AuthError.Code.server_error, "Unable to find user linked to session"));
+
+
+
+        if(params.maxAge().isPresent()){
+            final long maxAge;
+            try{
+                maxAge = Long.parseLong(params.maxAge().get());
+            }catch(NumberFormatException e){
+                throw new AuthError(AuthError.Code.invalid_request, "max_age should be parseable as a long");
+            }
+            var sessionAge = Duration.between(session.authTime(), LocalDateTime.now());
+            if(sessionAge.toSeconds() > maxAge ){
+                return new RedirectToLogin(params);
+            }
+        }
+
         //TODO [20/03/2023] check ACR - if current authent has acr < requested, a new authentication should be done with the "updated" acr value check
+        //[03/04/2023] OIDC specs is not very clear...
 
         LOGGER.info("User has a valid, active session matching the client requirements");
-        return this.checkConsent(flow, userSession.get().user(), params);
+        return this.checkConsent(flow, user, params);
     }
 
 
@@ -101,7 +124,7 @@ public class AuthorizeEndpoint {
             LOGGER.info("User has already consented to all requested scopes");
             return this.authSuccess(flow, user, params);
         } else {
-            LOGGER.info("Client is requesting scopes the user has not yet consented to transmit.");
+            LOGGER.info("Client is requesting scopes the userId has not yet consented to transmit.");
             return RedirectInteraction.internal("/consent", params, Map.of("scopes", String.join(" ", notYetConsentedTo)));
         }
 
@@ -121,14 +144,14 @@ public class AuthorizeEndpoint {
             return new AuthError(AuthError.Code.invalid_request, "Missing redirect_uri");
         }
 
-        String code = CodesDB.getInstance().createFor(user);
+        String code = Codes.getInstance().createFor(user);
         Map<String, String> params = new HashMap<>();
         params.put("code", code);
         if(originalParams.state().isPresent()){
             params.put("state", originalParams.state().get());
         }
 
-        LOGGER.info("Authorization OK for flow "+flow.name()+". Redirecting the user to redirect uri with the code");
+        LOGGER.info("Authorization OK for flow "+flow.name()+". Redirecting the userId to redirect uri with the code");
         return RedirectInteraction.external(originalParams.redirectUri().get(), params);
     }
 

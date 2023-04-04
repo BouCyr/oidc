@@ -26,7 +26,7 @@ public record StartupArgs(int port) {
                 .filter(kv -> ARGS.contains(kv.left()))
                 .forEach(kv -> asMap.put(kv.left(), kv.right()));
 
-        return new StartupArgs(asMap.getOrDefault("port", "8080"));
+        return new StartupArgs(asMap.getOrDefault("port", "9451"));
 
 
     }

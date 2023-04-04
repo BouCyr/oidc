@@ -1,26 +1,29 @@
 package app.cbo.oidc.java.server.backends;
 
+import app.cbo.oidc.java.server.credentials.AuthenticationMode;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.datastored.User;
 
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class SessionsDB {
+public class Sessions {
 
-    //TODO [20/03/2023] Cleanup/regular cleanup / session life time
-    //TODO [20/03/2023] This should be a sessionsDB, thaht returns users+session data (acr, iat, masLifeTime, etc.)
-    private static SessionsDB instance = null;
-    private SessionsDB(){ }
-    public static SessionsDB getInstance(){
+    public final static String SESSION_ID_COOKIE_NAME = "sessionId";
+
+    private static Sessions instance = null;
+    private Sessions(){ }
+    public static Sessions getInstance(){
         if(instance == null)
-            instance = new SessionsDB();
+            instance = new Sessions();
         return instance;
     }
     
     
-    private Map<String, Session> sessions;
+    private Map<String, Session> sessions = new ConcurrentHashMap<>();
 
     public Optional<Session> getSession(SessionId id) {
 
@@ -34,8 +37,8 @@ public class SessionsDB {
         this.sessions.put(session.id(), updated);
     }
 
-    public SessionId createSession(User user){
-        var newSession = new Session(user);
+    public SessionId createSession(User user, EnumSet<AuthenticationMode> authenticationModes){
+        var newSession = new Session(user::sub);
         this.sessions.put(newSession.id(), newSession);
         return newSession::id;
     }
