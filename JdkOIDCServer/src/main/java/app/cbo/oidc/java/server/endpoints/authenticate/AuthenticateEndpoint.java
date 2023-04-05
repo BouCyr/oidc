@@ -5,11 +5,13 @@ import app.cbo.oidc.java.server.backends.Sessions;
 import app.cbo.oidc.java.server.backends.Users;
 import app.cbo.oidc.java.server.credentials.PasswordEncoder;
 import app.cbo.oidc.java.server.credentials.TOTP;
+import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.endpoints.AuthError;
 import app.cbo.oidc.java.server.endpoints.HTMLInteraction;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthentSuccessful;
+import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.io.IOException;
@@ -31,10 +33,9 @@ public class AuthenticateEndpoint {
 
     private final static Logger LOGGER = Logger.getLogger(AuthenticateEndpoint.class.getCanonicalName());
 
-    public Interaction treatRequest(
-            SessionId sessionIdOptional,
-
-            Map<String, Collection<String>> rawParams) throws AuthError {
+    @NotNull public Interaction treatRequest(
+            @NotNull Optional<Session> currentSession, //TODO [05/04/2023]
+            @NotNull Map<String, Collection<String>> rawParams) throws AuthError {
 
         AuthenticateEndpointParams params = new AuthenticateEndpointParams(rawParams);
 

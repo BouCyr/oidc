@@ -2,6 +2,7 @@ package app.cbo.oidc.java.server.endpoints;
 
 import app.cbo.oidc.java.server.backends.OngoingAuths;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpointParams;
+import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -27,7 +28,7 @@ public record RedirectInteraction(String uri,
         return new RedirectInteraction(uri, null, redirectParams, false);
     }
 
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(@NotNull HttpExchange exchange) throws IOException {
 
 
         //copy in a new Hashmap, in case this.redirectParams() is RO.

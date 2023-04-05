@@ -4,6 +4,7 @@ import app.cbo.oidc.java.server.backends.OngoingAuths;
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateEndpointParams;
+import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -15,7 +16,7 @@ public record RedirectToLogin(AuthorizeEndpointParams params) implements Interac
 
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(@NotNull HttpExchange exchange) throws IOException {
 
 
         OngoingAuthId ongoingAuthId = OngoingAuths.getInstance().store(params);

@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.backends;
 
+import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.datastored.UserId;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpointParams;
 import app.cbo.oidc.java.server.oidc.OIDCDisplayValues;
@@ -55,19 +56,14 @@ class OngoingAuthsTest {
 
 
 
-    @Test
-    void nullability_create(){
-        assertThatThrownBy(() -> OngoingAuths.getInstance().store(null))
-                .isInstanceOf(NullPointerException.class);
-    }
 
     @Test
     void nullability_consume() {
 
         assertThatThrownBy(() -> OngoingAuths.getInstance().retrieve(null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> OngoingAuths.getInstance().retrieve(() -> null))
-                .isInstanceOf(NullPointerException.class);
+        assertThat(OngoingAuths.getInstance().retrieve(OngoingAuthId.of(null)))
+                .isEmpty();
 
     }
 

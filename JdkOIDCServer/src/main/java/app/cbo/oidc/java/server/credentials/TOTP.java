@@ -12,6 +12,8 @@ package app.cbo.oidc.java.server.credentials;
  (http://trustee.ietf.org/license-info).
  */
 
+import app.cbo.oidc.java.server.jsr305.NotNull;
+
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
@@ -39,7 +41,7 @@ public class TOTP {
      * @param b32 secret key
      *
      */
-    public static String get(String b32){
+    @NotNull public static String get(@NotNull String b32){
         var secret = Base32.decode(b32);
         var asHex = bytesToHex(secret);
         var time = (Instant.now().getEpochSecond())/30;
@@ -55,7 +57,7 @@ public class TOTP {
      * @param skewBefore number of next TOTP to compute
      * @returns topts (including previous and next ones)
      */
-    static List<String> get(String b32, int skewBefore, int skewAfter){
+    @NotNull static List<String> get(@NotNull String b32,  int skewBefore, int skewAfter){
         var secret = Base32.decode(b32);
         var asHex = bytesToHex(secret);
 
@@ -75,13 +77,7 @@ public class TOTP {
      * @param totpKey as stored on the system
      * @return true if the provided totp matches the last, current or next totp computed from the secret key
      */
-    public static boolean confront(String providedTotp, String totpKey) {
-        if(totpKey == null){
-            return false;
-        }
-        if(providedTotp == null){
-            return false;
-        }
+    public static boolean confront(@NotNull String providedTotp, @NotNull String totpKey) {
 
         return get(totpKey,1,1)
                 .stream()

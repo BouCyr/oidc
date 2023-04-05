@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.endpoints;
 
+import app.cbo.oidc.java.server.jsr305.NotNull;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
@@ -17,7 +18,7 @@ public class ResponseInteraction implements Interaction {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(@NotNull HttpExchange exchange) throws IOException {
 
         exchange.getResponseHeaders().set("Content-type",this.contentType);
         exchange.sendResponseHeaders(200, 0);

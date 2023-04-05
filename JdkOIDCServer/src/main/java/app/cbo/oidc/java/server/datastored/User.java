@@ -1,5 +1,8 @@
 package app.cbo.oidc.java.server.datastored;
 
+import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.jsr305.Nullable;
+
 import java.util.*;
 
 public record User(String sub, String pwd, String totpKey, Map<String, Set<String>> consentedTo) {
@@ -27,7 +30,7 @@ public record User(String sub, String pwd, String totpKey, Map<String, Set<Strin
         return this::sub;
     }
 
-    public User(String sub, String pwd, String totpKey) {
+    public User(@NotNull String sub, @Nullable String pwd, @Nullable String totpKey) {
         this(sub, pwd, totpKey, new HashMap<>());
     }
 
@@ -37,8 +40,6 @@ public record User(String sub, String pwd, String totpKey, Map<String, Set<Strin
     public void consentsTo(String clientId, String scope){
         this.consentedTo.computeIfAbsent(clientId, c -> new HashSet<>()).add(scope);
     }
-
-
 
     public boolean hasConsentedToAll(String clientId, List<String> scopes) {
         return this.consentedTo.containsKey(clientId)

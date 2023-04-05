@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.endpoints;
 
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpointParams;
+import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.oidc.HttpConstants;
 import app.cbo.oidc.java.server.utils.ExceptionHandling;
 import app.cbo.oidc.java.server.utils.ExchangeResponseUtils;
@@ -52,7 +53,7 @@ public  class AuthError extends Exception implements Interaction {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(@NotNull HttpExchange exchange) throws IOException {
 
 
         LOGGER.info(String.format("Handling error with code %s and description %s ", error, Utils.isBlank(errorDescription)?"NONE":errorDescription));

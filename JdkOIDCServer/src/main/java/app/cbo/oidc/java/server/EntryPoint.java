@@ -33,8 +33,7 @@ public class EntryPoint {
     //TODO [03/04/2023] read data on disk
     private static void setupData() {
 
-        //String sub, String pwd, String totpKey, Map<String, Set<String>> consentedTo
-        var cyrille = new User("cyrille","sesame", "ALBACORE", Collections.emptyMap());
-        Users.getInstance().store(cyrille);
+
+        Users.getInstance().create("cyrille","sesame", "ALBACORE");
     }
 }

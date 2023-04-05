@@ -1,5 +1,7 @@
 package app.cbo.oidc.java.server.credentials;
 
+import app.cbo.oidc.java.server.jsr305.NotNull;
+
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;
@@ -23,13 +25,7 @@ public class PasswordEncoder {
     private PasswordEncoder(){ }
 
 
-
-    //TODO [31/03/2023] PBKDF
-    public String encodePassword(String clear){
-
-        if(clear == null){
-            throw new NullPointerException("Input cannot be null");
-        }
+    public String encodePassword(@NotNull String clear){
 
         SecureRandom random = new SecureRandom();
         byte[] salt = new byte[16];
@@ -48,11 +44,10 @@ public class PasswordEncoder {
         }
     }
 
-    public boolean confront(String provided, String storedEncoded){
+    public boolean confront(@NotNull String provided, @NotNull String storedEncoded){
 
         if(provided == null || storedEncoded == null)
-            throw new NullPointerException("Input cannot be null");
-
+            return false;
 
         var tabs = storedEncoded.split("\\.");
         var salt = Base64.getDecoder().decode(tabs[0]);

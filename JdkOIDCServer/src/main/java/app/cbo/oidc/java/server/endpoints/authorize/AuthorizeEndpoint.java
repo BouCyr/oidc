@@ -9,6 +9,7 @@ import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.endpoints.AuthError;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.endpoints.RedirectInteraction;
+import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.oidc.OIDCFlow;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
 import app.cbo.oidc.java.server.datastored.User;
@@ -36,9 +37,9 @@ public class AuthorizeEndpoint {
     
     private final static Logger LOGGER = Logger.getLogger(AuthorizeEndpoint.class.getCanonicalName());
 
-    public Interaction treatRequest(
-            SessionId sessionId,
-            Map<String, Collection<String>> rawParams) throws AuthError {
+    @NotNull public Interaction treatRequest(
+            @NotNull Optional<Session> session,
+            @NotNull Map<String, Collection<String>> rawParams) throws AuthError {
 
 
         //put params in the dedicated record
@@ -59,24 +60,16 @@ public class AuthorizeEndpoint {
         LOGGER.info("Request params are valid for flow "+flow.name() );
 
         //3.1.2.3.  Authorization Server Authenticates End-User
-        return checkIfAuthenticated(sessionId, flow, params);
+        return checkIfAuthenticated(session, flow, params);
 
 
     }
 
-    private Interaction checkIfAuthenticated(SessionId sessionId,
+    private Interaction checkIfAuthenticated(Optional<Session> userSession,
                                              OIDCFlow flow,
                                              AuthorizeEndpointParams params) throws AuthError {
 
-        LOGGER.info("Checking if userId already has a session");
-        Optional<Session> userSession;
-        if(Utils.isBlank(sessionId.getSessionId())){
-            //no session cookie, userId is not authenticated
-            userSession = Optional.empty();
-        } else {
-            userSession = Sessions.getInstance().getSession(sessionId);
-        }
-
+        LOGGER.info("Checking if userId already has a (valid) session");
         if(userSession.isEmpty() && params.prompt().contains(OIDCPromptValues.NONE)){
             LOGGER.info("User has no session and client required no interaction. Sending back with error "+AuthError.Code.access_denied);
             throw new AuthError(AuthError.Code.access_denied, "Requested no interaction with no authenticated userId", params);

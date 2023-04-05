@@ -46,12 +46,12 @@ class PasswordEncoderTest {
         Assertions.assertThatThrownBy(() ->  PasswordEncoder.getInstance().encodePassword(null))
                 .isInstanceOf(NullPointerException.class);
 
-        Assertions.assertThatThrownBy(() ->  PasswordEncoder.getInstance().confront(null, null))
-                .isInstanceOf(NullPointerException.class);
-        Assertions.assertThatThrownBy(() ->  PasswordEncoder.getInstance().confront("a", null))
-                .isInstanceOf(NullPointerException.class);
-        Assertions.assertThatThrownBy(() ->  PasswordEncoder.getInstance().confront(null, "b"))
-                .isInstanceOf(NullPointerException.class);
+        Assertions.assertThat(PasswordEncoder.getInstance().confront(null, null))
+                .isFalse();
+        Assertions.assertThat(PasswordEncoder.getInstance().confront("a", null))
+                .isFalse();
+        Assertions.assertThat(PasswordEncoder.getInstance().confront(null, "b"))
+                .isFalse();
     }
 
     @Test

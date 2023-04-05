@@ -1,7 +1,10 @@
 package app.cbo.oidc.java.server.endpoints.authorize;
 
+import app.cbo.oidc.java.server.backends.Sessions;
+import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.endpoints.AuthError;
+import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.Cookies;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -24,14 +27,17 @@ public class AuthorizeHandler implements HttpHandler {
     private final AuthorizeEndpoint endpoint = AuthorizeEndpoint.getInstance();
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(@NotNull HttpExchange exchange) throws IOException {
 
         try {
 
             Map<String, Collection<String>> params = extractParams(exchange);
-            Optional<SessionId> sessionId = Cookies.findSessionCookie(Cookies.parseCookies(exchange));
 
-            var result = this.endpoint.treatRequest(sessionId.orElse(()->null), params);
+            var cookies = Cookies.parseCookies(exchange);
+            var sessionId = Cookies.findSessionCookie(cookies);
+            Optional<Session> session = sessionId.isEmpty()? Optional.empty(): Sessions.getInstance().getSession(sessionId.get());
+
+            var result = this.endpoint.treatRequest(session, params);
             result.handle(exchange);
             return;
         }catch(AuthError error){
