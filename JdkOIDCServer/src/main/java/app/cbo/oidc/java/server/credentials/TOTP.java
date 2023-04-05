@@ -43,8 +43,7 @@ public class TOTP {
         var secret = Base32.decode(b32);
         var asHex = bytesToHex(secret);
         var time = (Instant.now().getEpochSecond())/30;
-        var totp = TOTP.generateTOTP(asHex, Long.toHexString(time).toUpperCase(), "6");
-        return totp;
+        return TOTP.generateTOTP(asHex, Long.toHexString(time).toUpperCase(), "6");
     }
 
     /**
@@ -60,12 +59,11 @@ public class TOTP {
         var secret = Base32.decode(b32);
         var asHex = bytesToHex(secret);
 
-        return IntStream.rangeClosed(-1*skewBefore, +1*skewAfter)
+        return IntStream.rangeClosed(-1*skewBefore, skewAfter)
                 .boxed()
                 .map(i -> {
                     var time = i + ((Instant.now().getEpochSecond()) / 30);
-                    var totp = TOTP.generateTOTP(asHex, Long.toHexString(time).toUpperCase(), "6");
-                    return totp;
+                    return TOTP.generateTOTP(asHex, Long.toHexString(time).toUpperCase(), "6");
                 }).toList();
     }
 
@@ -230,7 +228,7 @@ public class TOTP {
                                       String returnDigits,
                                       String crypto){
         int codeDigits = Integer.decode(returnDigits);
-        StringBuilder result = null;
+        StringBuilder result;
 
         // Using the counter
         // First 8 bytes are for the movingFactor

@@ -2,10 +2,6 @@ package app.cbo.oidc.java.server.oidc;
 
 import app.cbo.oidc.java.server.utils.EnumValuesHelper;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-
 /*
 prompt
 OPTIONAL. Space delimited, case sensitive list of ASCII string values that specifies whether the Authorization Server prompts the End-User for reauthentication and consent. The defined values are:

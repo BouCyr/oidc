@@ -9,7 +9,6 @@ import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.endpoints.AuthError;
 import app.cbo.oidc.java.server.endpoints.HTMLInteraction;
 import app.cbo.oidc.java.server.endpoints.Interaction;
-import app.cbo.oidc.java.server.endpoints.RedirectInteraction;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthentSuccessful;
 import app.cbo.oidc.java.server.utils.Utils;
 
@@ -79,14 +78,8 @@ public class AuthenticateEndpoint {
 
 
             var sessionId = Sessions.getInstance().createSession(user, authentications);
-            var originalAuthorizeParams = OngoingAuths.getInstance().retrieve(params.ongoing());
+            var originalAuthorizeParams = OngoingAuths.getInstance().retrieve(params::ongoing);
             return new AuthentSuccessful(sessionId, originalAuthorizeParams.orElseThrow(()->new AuthError(AuthError.Code.server_error, "Unable to retrieve the original auhtorization request")));
-
-
-
-
-
-
 
         }
 

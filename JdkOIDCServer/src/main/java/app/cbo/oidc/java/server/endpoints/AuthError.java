@@ -8,10 +8,7 @@ import app.cbo.oidc.java.server.utils.HttpCode;
 import app.cbo.oidc.java.server.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.logging.Logger;
@@ -87,11 +84,7 @@ public  class AuthError extends Exception implements Interaction {
                     +(ruHasParams?"&":"?")
                     +redirectParams;
 
-            try {
-                exchange.getResponseHeaders().add("Location", redirectTo);
-            }catch(RuntimeException e){
-                throw e;
-            }
+            exchange.getResponseHeaders().add("Location", redirectTo);
             ExchangeResponseUtils.build(exchange, HttpCode.FOUND, null, null);
         }else{
             LOGGER.info("Returning httpStatus 500 since we do not know where to send the error.");

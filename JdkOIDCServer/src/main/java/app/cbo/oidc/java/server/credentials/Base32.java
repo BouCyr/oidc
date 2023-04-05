@@ -47,11 +47,11 @@ public class Base32 {
         int buffer = 0;
         int bitsLeft = 0;
         int count = 0;
-        for (int i = 0; i < data.length; i++) {
-            int index = data[i] & 0x7f;
+        for (byte datum : data) {
+            int index = datum & 0x7f;
             int value = INDEXES[index];
             if (value == -1) {
-                throw new IllegalArgumentException("Invalid character in input: " + (char) data[i]);
+                throw new IllegalArgumentException("Invalid character in input: " + (char) datum);
             }
             buffer <<= SHIFT;
             buffer |= value & MASK;

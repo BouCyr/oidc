@@ -2,7 +2,6 @@ package app.cbo.oidc.java.server.backends;
 
 import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Code;
-import app.cbo.oidc.java.server.datastored.User;
 import app.cbo.oidc.java.server.datastored.UserId;
 
 import java.util.HashMap;
@@ -20,7 +19,7 @@ public class Codes {
     private Codes() { }
 
 
-    Map<String, UserId> store = new HashMap<>();
+    final Map<String, UserId> store = new HashMap<>();
 
     public Code createFor(UserId userId, ClientId clientId){
 

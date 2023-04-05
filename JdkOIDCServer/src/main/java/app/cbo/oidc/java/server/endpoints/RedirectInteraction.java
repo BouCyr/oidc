@@ -35,7 +35,7 @@ public record RedirectInteraction(String uri,
         if(this.internal()) {
             //if internal redirect, store the initial authentication request sent by the client somewhere, to be able to carry on
             var ongoing = OngoingAuths.getInstance().store(originalRarams);
-            actualRedirectParams.put("ongoing", ongoing);
+            actualRedirectParams.put("ongoing", ongoing.getOngoingAuthId());
         }
 
 

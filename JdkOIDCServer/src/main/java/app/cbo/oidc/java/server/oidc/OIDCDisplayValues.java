@@ -2,9 +2,6 @@ package app.cbo.oidc.java.server.oidc;
 
 import app.cbo.oidc.java.server.utils.EnumValuesHelper;
 
-import java.util.Optional;
-import java.util.stream.Stream;
-
 /**
  * display
  * OPTIONAL. ASCII string value that specifies how the Authorization Server displays the authentication and consent userId interface pages to the End-User. The defined values are:

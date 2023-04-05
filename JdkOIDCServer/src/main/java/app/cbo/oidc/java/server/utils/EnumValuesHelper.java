@@ -16,6 +16,7 @@ public class EnumValuesHelper {
      * @param <E> type of the enum
      * @return the enum value if matchig, empty if not
      */
+    @SafeVarargs
     public static <E extends Enum<E> & ParamEnum> Optional<E> fromParam(String paramValue, E... values){
 
         return Stream.of(values)
@@ -30,6 +31,7 @@ public class EnumValuesHelper {
      * @param <E> type of the enum
      * @return the enum values
      */
+    @SafeVarargs
     public static <E extends Enum<E> & ParamEnum> List<E> fromParams(Collection<String> paramValues, E... values){
 
         if(paramValues == null){

@@ -4,8 +4,6 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 
 public class HTMLInteraction implements Interaction{
@@ -22,9 +20,8 @@ public class HTMLInteraction implements Interaction{
                 outputBuilder.append(line).append(System.lineSeparator());
             }
         }
-        final var templateContent = outputBuilder.toString();
 
-        String output = templateContent;
+        String output = outputBuilder.toString();
         for (String key : templatedValues.keySet()) {
             if (output.contains(key)) {
                 output = output.replaceAll(key, templatedValues.get(key));
@@ -42,7 +39,7 @@ public class HTMLInteraction implements Interaction{
         exchange.sendResponseHeaders(200, 0);
 
         try(var is = new ByteArrayInputStream(this.output.getBytes(StandardCharsets.UTF_8));
-            var os = exchange.getResponseBody();){
+            var os = exchange.getResponseBody()){
             is.transferTo(os);
             os.flush();
         }

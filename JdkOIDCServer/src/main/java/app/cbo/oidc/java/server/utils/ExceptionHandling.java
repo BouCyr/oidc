@@ -1,7 +1,5 @@
 package app.cbo.oidc.java.server.utils;
 
-import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateHandler;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;

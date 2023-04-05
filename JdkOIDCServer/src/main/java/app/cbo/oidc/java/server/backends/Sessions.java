@@ -23,7 +23,7 @@ public class Sessions {
     }
     
     
-    private Map<String, Session> sessions = new ConcurrentHashMap<>();
+    private final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
     public Optional<Session> getSession(SessionId id) {
 

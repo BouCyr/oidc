@@ -24,7 +24,7 @@ public class ResponseInteraction implements Interaction {
 
 
         try(var is = body.get();
-            var os = exchange.getResponseBody();){
+            var os = exchange.getResponseBody()){
             is.transferTo(os);
             os.flush();
         }

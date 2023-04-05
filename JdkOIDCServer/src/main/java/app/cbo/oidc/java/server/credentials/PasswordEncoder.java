@@ -42,8 +42,7 @@ public class PasswordEncoder {
         KeySpec spec = new PBEKeySpec(clear.toCharArray(), salt, 65536, 128);
         try {
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-            byte[] hash = factory.generateSecret(spec).getEncoded();
-            return hash;
+            return factory.generateSecret(spec).getEncoded();
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
             throw new RuntimeException("unable to hash password",e);
         }
