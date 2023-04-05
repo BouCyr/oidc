@@ -60,7 +60,7 @@ public class Sessions {
         //TODO [05/04/2023] ACRs
         var newSession = new Session(user::sub);
         this.sessions.put(newSession.id(), newSession);
-        return newSession::id;
+        return SessionId.of(newSession.id());
     }
 
 
