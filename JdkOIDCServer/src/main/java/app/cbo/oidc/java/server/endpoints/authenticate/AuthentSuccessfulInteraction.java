@@ -1,15 +1,17 @@
-package app.cbo.oidc.java.server.endpoints.authorize;
+package app.cbo.oidc.java.server.endpoints.authenticate;
 
 import app.cbo.oidc.java.server.backends.Sessions;
 import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.endpoints.Interaction;
+import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 
-public record AuthentSuccessful(SessionId sessionId, AuthorizeEndpointParams params) implements Interaction {
+public record AuthentSuccessfulInteraction(SessionId sessionId, AuthorizeParams params) implements Interaction {
 
     @Override
     public void handle(@NotNull HttpExchange exchange) throws IOException {

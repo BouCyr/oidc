@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server.backends;
 
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
-import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpointParams;
+import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 
 import java.util.HashMap;
@@ -19,15 +19,15 @@ public class OngoingAuths {
     private OngoingAuths(){ }
 
 
-    private final Map<String, AuthorizeEndpointParams> store = new HashMap<>();
-    @NotNull public OngoingAuthId store(@NotNull AuthorizeEndpointParams p){
+    private final Map<String, AuthorizeParams> store = new HashMap<>();
+    @NotNull public OngoingAuthId store(@NotNull AuthorizeParams p){
 
         String key = UUID.randomUUID().toString();
         store.put(key, p);
         return OngoingAuthId.of(key);
     }
 
-    @NotNull  public Optional<AuthorizeEndpointParams> retrieve(@NotNull OngoingAuthId key){
+    @NotNull  public Optional<AuthorizeParams> retrieve(@NotNull OngoingAuthId key){
         if(key.getOngoingAuthId()==null) {
             return Optional.empty();
         }

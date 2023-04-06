@@ -2,8 +2,7 @@ package app.cbo.oidc.java.server.endpoints.authorize;
 
 import app.cbo.oidc.java.server.backends.Sessions;
 import app.cbo.oidc.java.server.datastored.Session;
-import app.cbo.oidc.java.server.datastored.SessionId;
-import app.cbo.oidc.java.server.endpoints.AuthError;
+import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.Cookies;
 import com.sun.net.httpserver.HttpExchange;
@@ -40,13 +39,13 @@ public class AuthorizeHandler implements HttpHandler {
             var result = this.endpoint.treatRequest(session, params);
             result.handle(exchange);
             return;
-        }catch(AuthError error){
+        }catch(AuthErrorInteraction error){
 
             error.handle(exchange);
             return;
         }catch(Exception e){
 
-            new AuthError(AuthError.Code.server_error, "?").handle(exchange);
+            new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "?").handle(exchange);
             return;
         }
     }

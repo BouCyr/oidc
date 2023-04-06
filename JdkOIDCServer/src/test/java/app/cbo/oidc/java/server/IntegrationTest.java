@@ -1,19 +1,16 @@
 package app.cbo.oidc.java.server;
 
 import app.cbo.oidc.java.server.credentials.TOTP;
-import app.cbo.oidc.java.server.oidc.HttpConstants;
+import app.cbo.oidc.java.server.utils.MimeType;
 import app.cbo.oidc.java.server.utils.QueryStringParser;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.CookieHandler;
-import java.net.CookieManager;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +59,7 @@ public class IntegrationTest {
 
         var authenticationRequest = HttpRequest.newBuilder()
                 .uri(loginURI)
-                .header("Content-Type", HttpConstants.TYPE_FORM)
+                .header("Content-Type", MimeType.FORM.mimeType())
                 .POST( HttpRequest.BodyPublishers.ofString("login=cyrille&pwd=sesame&totp="+totp+"&ongoing="+ongoings.iterator().next()))
                 .build();
 

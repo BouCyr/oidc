@@ -1,8 +1,7 @@
 package app.cbo.oidc.java.server.backends;
 
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
-import app.cbo.oidc.java.server.datastored.UserId;
-import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpointParams;
+import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.oidc.OIDCDisplayValues;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
 import org.junit.jupiter.api.Test;
@@ -12,14 +11,13 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
 class OngoingAuthsTest {
 
     @Test
     void nominal(){
 
-        AuthorizeEndpointParams p = createParams();
+        AuthorizeParams p = createParams();
         var code = OngoingAuths.getInstance().store(p);
 
         var foundBack = OngoingAuths.getInstance().retrieve(code);
@@ -68,8 +66,8 @@ class OngoingAuthsTest {
     }
 
 
-    private AuthorizeEndpointParams createParams() {
-        AuthorizeEndpointParams p = new AuthorizeEndpointParams(
+    private AuthorizeParams createParams() {
+        AuthorizeParams p = new AuthorizeParams(
 
                 List.of("openid"),   //List<String> scope,
                 List.of("rs"),  //List<String> responseTypes,

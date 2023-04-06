@@ -1,7 +1,6 @@
 package app.cbo.oidc.java.server.utils;
 
-import app.cbo.oidc.java.server.endpoints.AuthError;
-import app.cbo.oidc.java.server.oidc.HttpConstants;
+import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import com.sun.net.httpserver.*;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
@@ -9,12 +8,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -74,7 +70,7 @@ class ParamsHelperTest {
                     params = ParamsHelper.extractParams(hx);
                     System.out.println("@" + (i++));
 
-                } catch (AuthError authError) {
+                } catch (AuthErrorInteraction authError) {
                     authError.printStackTrace();
                     Assertions.fail("Should work");
                     throw new RuntimeException(authError);
@@ -129,7 +125,7 @@ class ParamsHelperTest {
         {//POST
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri("/test"))
-                    .header("Content-Type", HttpConstants.TYPE_FORM)
+                    .header("Content-Type", MimeType.FORM.mimeType())
                     .POST(HttpRequest.BodyPublishers.ofString("singleParam=single&double=one two")).build();
             System.out.println("Sending request");
             var h = c.send(request, HttpResponse.BodyHandlers.ofString());
@@ -144,7 +140,7 @@ class ParamsHelperTest {
         {//WRONG Content-Type
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri("/test"))
-                    .header("Content-Type", HttpConstants.TYPE_TEXT_PLAIN)
+                    .header("Content-Type", MimeType.TEXT_PLAIN.mimeType())
                     .POST(HttpRequest.BodyPublishers.ofString("singleParam=single&double=one two")).build();
             System.out.println("Sending request");
             var h = c.send(request, HttpResponse.BodyHandlers.ofString());
@@ -155,7 +151,7 @@ class ParamsHelperTest {
         {//WRONG VERB
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri("/test"))
-                    .header("Content-Type", HttpConstants.TYPE_TEXT_PLAIN)
+                    .header("Content-Type", MimeType.TEXT_PLAIN.mimeType())
                     .DELETE().build();
             System.out.println("Sending request");
             var h = c.send(request, HttpResponse.BodyHandlers.ofString());

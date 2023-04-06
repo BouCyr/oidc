@@ -1,7 +1,6 @@
 package app.cbo.oidc.java.server.utils;
 
-import app.cbo.oidc.java.server.endpoints.AuthError;
-import app.cbo.oidc.java.server.oidc.HttpConstants;
+import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.BufferedReader;
@@ -16,7 +15,7 @@ import java.util.stream.Stream;
 
 public class ParamsHelper {
 
-    public static Map<String, Collection<String>> extractParams(HttpExchange exchange) throws AuthError {
+    public static Map<String, Collection<String>> extractParams(HttpExchange exchange) throws AuthErrorInteraction {
         Map<String, Collection<String>> params;
         if ("GET".equals(exchange.getRequestMethod())) {
             params = QueryStringParser.from(exchange.getRequestURI().getQuery());
@@ -24,27 +23,27 @@ public class ParamsHelper {
             params = readPostBody(exchange);
         } else{
             String msg = "Invalid HTTP method";
-            throw new AuthError(AuthError.Code.invalid_request, msg, null, null);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, msg, null, null);
         }
         return params;
     }
 
-    private static Map<String, Collection<String>> readPostBody(HttpExchange exchange) throws AuthError {
+    private static Map<String, Collection<String>> readPostBody(HttpExchange exchange) throws AuthErrorInteraction {
         Map<String, Collection<String>> params;
         if (exchange.getRequestHeaders().containsKey("Content-Type")
                 && exchange.getRequestHeaders().get("Content-Type").size() == 1
-                && HttpConstants.TYPE_FORM.equals(exchange.getRequestHeaders().get("Content-Type").get(0))) {
+                && MimeType.FORM.mimeType().equals(exchange.getRequestHeaders().get("Content-Type").get(0))) {
 
             try(var reader =  new BufferedReader(new InputStreamReader(exchange.getRequestBody()))) {
                 String result = reader.lines().collect(Collectors.joining("\n"));
                 params = QueryStringParser.from(result);
             } catch (IOException e) {
-                throw new AuthError(AuthError.Code.server_error," unable to read body");
+                throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error," unable to read body");
             }
 
         }else{
             String msg = "POST request with wrong contentType";
-            throw new AuthError(AuthError.Code.invalid_request, msg, null, null);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, msg, null, null);
         }
         return params;
     }

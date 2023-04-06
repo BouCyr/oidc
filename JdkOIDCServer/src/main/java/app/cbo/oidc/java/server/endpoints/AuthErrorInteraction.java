@@ -1,8 +1,8 @@
 package app.cbo.oidc.java.server.endpoints;
 
-import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpointParams;
+import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.jsr305.NotNull;
-import app.cbo.oidc.java.server.oidc.HttpConstants;
+import app.cbo.oidc.java.server.utils.MimeType;
 import app.cbo.oidc.java.server.utils.ExceptionHandling;
 import app.cbo.oidc.java.server.utils.ExchangeResponseUtils;
 import app.cbo.oidc.java.server.utils.HttpCode;
@@ -14,9 +14,9 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.logging.Logger;
 
-public  class AuthError extends Exception implements Interaction {
+public  class AuthErrorInteraction extends Exception implements Interaction {
 
-    private final static Logger LOGGER = Logger.getLogger(AuthError.class.getCanonicalName());
+    private final static Logger LOGGER = Logger.getLogger(AuthErrorInteraction.class.getCanonicalName());
 
 
 
@@ -36,16 +36,16 @@ public  class AuthError extends Exception implements Interaction {
     private final String redirectUri;
     private final String state;
 
-    public AuthError(Code error, String errorDescription){
+    public AuthErrorInteraction(Code error, String errorDescription){
         this(error, errorDescription, null, null);
     }
 
-    public AuthError(Code error, String errorDescription, AuthorizeEndpointParams params){
+    public AuthErrorInteraction(Code error, String errorDescription, AuthorizeParams params){
 
         this(error, errorDescription, params.redirectUri().orElse(null), params.state().orElse(null));
     }
 
-    public AuthError(Code error, String errorDescription, String redirectUri, String state) {
+    public AuthErrorInteraction(Code error, String errorDescription, String redirectUri, String state) {
         this.error = error;
         this.errorDescription = errorDescription;
         this.redirectUri = redirectUri;
@@ -100,7 +100,7 @@ public  class AuthError extends Exception implements Interaction {
                     +System.lineSeparator()
                     +errorDescription;
 
-            ExchangeResponseUtils.build(exchange, status, HttpConstants.TYPE_TEXT_PLAIN, content);
+            ExchangeResponseUtils.build(exchange, status, MimeType.TEXT_PLAIN.mimeType(), content);
         }
 
     }

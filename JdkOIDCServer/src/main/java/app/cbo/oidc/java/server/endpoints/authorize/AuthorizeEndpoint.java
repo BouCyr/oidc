@@ -1,19 +1,16 @@
 package app.cbo.oidc.java.server.endpoints.authorize;
 
 import app.cbo.oidc.java.server.backends.Codes;
-import app.cbo.oidc.java.server.backends.Sessions;
 import app.cbo.oidc.java.server.backends.Users;
 import app.cbo.oidc.java.server.datastored.Code;
 import app.cbo.oidc.java.server.datastored.Session;
-import app.cbo.oidc.java.server.datastored.SessionId;
-import app.cbo.oidc.java.server.endpoints.AuthError;
+import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.endpoints.RedirectInteraction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.oidc.OIDCFlow;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
 import app.cbo.oidc.java.server.datastored.User;
-import app.cbo.oidc.java.server.utils.Utils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -39,24 +36,24 @@ public class AuthorizeEndpoint {
 
     @NotNull public Interaction treatRequest(
             @NotNull Optional<Session> session,
-            @NotNull Map<String, Collection<String>> rawParams) throws AuthError {
+            @NotNull Map<String, Collection<String>> rawParams) throws AuthErrorInteraction {
 
 
         //put params in the dedicated record
-        AuthorizeEndpointParams params = new AuthorizeEndpointParams(rawParams);
+        AuthorizeParams params = new AuthorizeParams(rawParams);
 
 
         //3.1.2.2.  Authentication Request Validation
         //The Authorization Server MUST validate all the OAuth 2.0 parameters according to the OAuth 2.0 specification.
         //check their validity
-        AuthorizeEndpointParams.checkParams(params);
+        AuthorizeParams.checkParams(params);
         LOGGER.info("Request params are valid");
         //deduce the requested flow from responsetypes
         OIDCFlow flow = OIDCFlow.fromResponseType(params.responseTypes(), params);
         LOGGER.info("Selected OIDC flow is "+flow.name());
 
         //additional checks for specific flows
-        AuthorizeEndpointParams.checkParamsForFlow(params, flow);
+        AuthorizeParams.checkParamsForFlow(params, flow);
         LOGGER.info("Request params are valid for flow "+flow.name() );
 
         //3.1.2.3.  Authorization Server Authenticates End-User
@@ -67,22 +64,22 @@ public class AuthorizeEndpoint {
 
     private Interaction checkIfAuthenticated(Optional<Session> userSession,
                                              OIDCFlow flow,
-                                             AuthorizeEndpointParams params) throws AuthError {
+                                             AuthorizeParams params) throws AuthErrorInteraction {
 
         LOGGER.info("Checking if userId already has a (valid) session");
         if(userSession.isEmpty() && params.prompt().contains(OIDCPromptValues.NONE)){
-            LOGGER.info("User has no session and client required no interaction. Sending back with error "+AuthError.Code.access_denied);
-            throw new AuthError(AuthError.Code.access_denied, "Requested no interaction with no authenticated userId", params);
+            LOGGER.info("User has no session and client required no interaction. Sending back with error "+ AuthErrorInteraction.Code.access_denied);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.access_denied, "Requested no interaction with no authenticated userId", params);
         }
         if(userSession.isEmpty() || params.prompt().contains(OIDCPromptValues.LOGIN)){
             LOGGER.info("User has no session or client required reauthentication. Redirect to login page");
-            return new RedirectToLogin(params);
+            return new RedirectToLoginInteraction(params);
         }
 
         var session = userSession.get(); //userId has a valid session
         var user = Users.getInstance().find(session.userId())
                 //user may have been deleted since the session was created...
-                .orElseThrow(() -> new AuthError(AuthError.Code.server_error, "Unable to find user linked to session"));
+                .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to find user linked to session"));
 
 
 
@@ -91,11 +88,11 @@ public class AuthorizeEndpoint {
             try{
                 maxAge = Long.parseLong(params.maxAge().get());
             }catch(NumberFormatException e){
-                throw new AuthError(AuthError.Code.invalid_request, "max_age should be parseable as a long");
+                throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "max_age should be parseable as a long");
             }
             var sessionAge = Duration.between(session.authTime(), LocalDateTime.now());
             if(sessionAge.toSeconds() > maxAge ){
-                return new RedirectToLogin(params);
+                return new RedirectToLoginInteraction(params);
             }
         }
 
@@ -107,7 +104,7 @@ public class AuthorizeEndpoint {
     }
 
 
-    private Interaction checkConsent(OIDCFlow flow, User user, AuthorizeEndpointParams params) {
+    private Interaction checkConsent(OIDCFlow flow, User user, AuthorizeParams params) {
 
         var notYetConsentedTo = params.scope()
                 .stream()
@@ -126,7 +123,7 @@ public class AuthorizeEndpoint {
 
     }
 
-    private Interaction authSuccess(OIDCFlow flow, User user, AuthorizeEndpointParams originalParams) {
+    private Interaction authSuccess(OIDCFlow flow, User user, AuthorizeParams originalParams) {
 
         //cf 3.1.2.5
         // HTTP/1.1 302 Found  Location: https://client.example.org/cb?code=SplxlOBeZQQYbYS6WxSbIA&state=af0ifjsldkj
@@ -135,7 +132,7 @@ public class AuthorizeEndpoint {
 
         if(originalParams.redirectUri().isEmpty()){
             //should not happens here, but...
-            return new AuthError(AuthError.Code.invalid_request, "Missing redirect_uri");
+            return new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Missing redirect_uri");
         }
 
         Code authCode = Codes.getInstance().createFor(user.getUserId(), ()-> originalParams.clientId().orElse(""));

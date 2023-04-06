@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server.endpoints;
 
 import app.cbo.oidc.java.server.backends.OngoingAuths;
-import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpointParams;
+import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import com.sun.net.httpserver.HttpExchange;
@@ -13,14 +13,14 @@ import java.util.stream.Collectors;
 
 @Deprecated //better to craft dedicated interaction for each case
 public record RedirectInteraction(String uri,
-                                  AuthorizeEndpointParams originalRarams,
+                                  AuthorizeParams originalRarams,
                                   Map<String, String> redirectParams,
                                   boolean internal) implements Interaction {
 
 
 
 
-    public static RedirectInteraction internal(String uri, AuthorizeEndpointParams originalRarams, Map<String, String> redirectParams){
+    public static RedirectInteraction internal(String uri, AuthorizeParams originalRarams, Map<String, String> redirectParams){
         return new RedirectInteraction(uri, originalRarams, redirectParams, true);
     }
 
@@ -47,6 +47,9 @@ public record RedirectInteraction(String uri,
 
         exchange.getResponseHeaders().add("Location", uri+"?"+queryString);
         exchange.sendResponseHeaders(HttpCode.FOUND.code(), 0);
+
+        exchange.getResponseBody().flush();
+        exchange.getResponseBody().close();
         return;
 
     }

@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server.oidc;
 
-import app.cbo.oidc.java.server.endpoints.AuthError;
-import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpointParams;
+import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
+import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.util.Collection;
@@ -11,10 +11,10 @@ public enum OIDCFlow {
     IMPLICIT,
     HYBRID;
 
-    public static OIDCFlow fromResponseType(Collection<String> responseTypes, AuthorizeEndpointParams p) throws AuthError {
+    public static OIDCFlow fromResponseType(Collection<String> responseTypes, AuthorizeParams p) throws AuthErrorInteraction {
 
         if(Utils.isEmpty(responseTypes)){
-            throw new AuthError(AuthError.Code.unsupported_response_type, "response_type is REQUIRED", p);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.unsupported_response_type, "response_type is REQUIRED", p);
         }
 
         boolean hasCode = responseTypes.contains("code");
@@ -36,7 +36,7 @@ public enum OIDCFlow {
             if(hasCode && hasIdToken && hasToken)
                 return HYBRID;
         }
-        throw new AuthError(AuthError.Code.unsupported_response_type, "Invalid response_type", p);
+        throw new AuthErrorInteraction(AuthErrorInteraction.Code.unsupported_response_type, "Invalid response_type", p);
 
     }
 }

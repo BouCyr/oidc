@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.endpoints.authorize;
 
-import app.cbo.oidc.java.server.endpoints.AuthError;
+import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.oidc.OIDCDisplayValues;
 import app.cbo.oidc.java.server.oidc.OIDCFlow;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
@@ -16,7 +16,7 @@ import java.util.Optional;
 import static app.cbo.oidc.java.server.utils.ParamsHelper.singleParam;
 import static app.cbo.oidc.java.server.utils.ParamsHelper.spaceSeparatedList;
 
-public record AuthorizeEndpointParams(
+public record AuthorizeParams(
         List<String> scope,
         List<String> responseTypes,
         Optional<String> clientId,
@@ -37,7 +37,7 @@ public record AuthorizeEndpointParams(
 ){
 
 
-    public AuthorizeEndpointParams(Map<String, Collection<String>> params){
+    public AuthorizeParams(Map<String, Collection<String>> params){
         this(
                 spaceSeparatedList(singleParam(params.get("scope")).orElse("")),
                 spaceSeparatedList(singleParam(params.get("response_type")).orElse("")),
@@ -64,33 +64,33 @@ public record AuthorizeEndpointParams(
     /**
      * Checks wether the params were correctly filled by the client
      * @param p the parsed params
-     * @throws AuthError if some params were invalid
+     * @throws AuthErrorInteraction if some params were invalid
      */
-    public static void checkParams(AuthorizeEndpointParams p) throws AuthError {
+    public static void checkParams(AuthorizeParams p) throws AuthErrorInteraction {
         if(p == null){
-            throw new AuthError(AuthError.Code.invalid_request, "Invalid request");
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Invalid request");
         }
 
         if(Utils.isBlank(p.scope())){
-            throw new AuthError(AuthError.Code.invalid_scope, "'scope' param is REQUIRED'",p);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_scope, "'scope' param is REQUIRED'",p);
         }
         if(p.scope().stream().filter("openid"::equals).findAny().isEmpty()){
-            throw new  AuthError(AuthError.Code.invalid_scope,  "'scope' param MUST contain 'openid'",p);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_scope,  "'scope' param MUST contain 'openid'",p);
         }
         if(Utils.isBlank(p.responseTypes())){
-            throw new  AuthError(AuthError.Code.unsupported_response_type , "'response_type' param is REQUIRED'", p);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.unsupported_response_type , "'response_type' param is REQUIRED'", p);
         }
         if(Utils.isBlank(p.clientId())){
-            throw new AuthError(AuthError.Code.invalid_request , "'client_id' param is REQUIRED'",p);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'client_id' param is REQUIRED'",p);
         }
         if(Utils.isBlank(p.redirectUri())){
-            throw new AuthError(AuthError.Code.invalid_request , "'redirect_uri' param is REQUIRED'",p);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'redirect_uri' param is REQUIRED'",p);
         }
         if(p.maxAge().isPresent()) {
             try {
                 Long.parseLong(p.maxAge().get());
             }catch (NumberFormatException e){
-                throw new AuthError(AuthError.Code.invalid_request , "'max_age' param must be an integer value'", p);
+                throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'max_age' param must be an integer value'", p);
             }
         }
     }
@@ -99,12 +99,12 @@ public record AuthorizeEndpointParams(
      * Checks wether the params were correctly filled by the client FOR THIS PARTICULAR FLOW
      * @param flow the requested flow
      * @param params the authentication request params
-     * @throws AuthError if some params were invalid
+     * @throws AuthErrorInteraction if some params were invalid
      */
-    public static void checkParamsForFlow(AuthorizeEndpointParams params, OIDCFlow flow) throws AuthError {
+    public static void checkParamsForFlow(AuthorizeParams params, OIDCFlow flow) throws AuthErrorInteraction {
         //AFAIK, only specific requirement is "nonce is REQUIRED" for implicit flow
         if(flow == OIDCFlow.IMPLICIT && Utils.isBlank(params.nonce()))
-            throw new AuthError(AuthError.Code.invalid_request, "'nonce' param is REQUIRED'", params);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "'nonce' param is REQUIRED'", params);
     }
 
 

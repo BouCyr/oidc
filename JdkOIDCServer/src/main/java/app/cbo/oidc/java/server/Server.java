@@ -37,8 +37,10 @@ public class Server {
 
         server.createContext(AuthorizeHandler.AUTHORIZE_ENPOINT, new AuthorizeHandler());
         server.createContext(AuthenticateHandler.AUTHENTICATE_ENDPOINT, new AuthenticateHandler());
-        server.createContext("/favicon.ico", exchange -> new ResourceInteraction("image/x-icon", "favicon.ico")
-                .handle(exchange));
+        server.createContext("/sc/", exchange ->{
+            new ResourceInteraction(exchange.getRequestURI().getPath())
+                    .handle(exchange);
+        } );
 
         server.createContext("/", exchange ->{
             LOGGER.info("404 on "+exchange.getRequestURI().toString());
