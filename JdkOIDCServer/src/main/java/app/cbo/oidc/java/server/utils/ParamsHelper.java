@@ -32,16 +32,16 @@ public class ParamsHelper {
         Map<String, Collection<String>> params;
         if (exchange.getRequestHeaders().containsKey("Content-Type")
                 && exchange.getRequestHeaders().get("Content-Type").size() == 1
-                && MimeType.FORM.mimeType().equals(exchange.getRequestHeaders().get("Content-Type").get(0))) {
+                && exchange.getRequestHeaders().get("Content-Type").get(0).startsWith(MimeType.FORM.mimeType())) {
 
-            try(var reader =  new BufferedReader(new InputStreamReader(exchange.getRequestBody()))) {
+            try (var reader = new BufferedReader(new InputStreamReader(exchange.getRequestBody()))) {
                 String result = reader.lines().collect(Collectors.joining("\n"));
                 params = QueryStringParser.from(result);
             } catch (IOException e) {
-                throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error," unable to read body");
+                throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, " unable to read body");
             }
 
-        }else{
+        } else {
             String msg = "POST request with wrong contentType";
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, msg, null, null);
         }

@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server.utils;
 
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
-import com.sun.net.httpserver.*;
+import com.sun.net.httpserver.HttpServer;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -59,8 +59,6 @@ class ParamsHelperTest {
 
 
         server.createContext("/test", (hx) ->{
-
-
             try {
                 int i = 0;
                 System.out.println("@" + (i++));
