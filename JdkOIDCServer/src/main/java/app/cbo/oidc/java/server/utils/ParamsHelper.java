@@ -56,7 +56,7 @@ public class ParamsHelper {
         if(param == null ||param.isEmpty())
             return Optional.empty();
 
-        //if we have scope=openid email&scope=balbla, we take only the first one
+        //if we have scopes=openid email&scopes=balbla, we take only the first one
         return param.stream()
                 .filter(p -> !p.isBlank())
                 .findFirst();

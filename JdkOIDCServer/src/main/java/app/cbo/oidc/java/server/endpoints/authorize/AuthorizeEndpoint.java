@@ -2,19 +2,25 @@ package app.cbo.oidc.java.server.endpoints.authorize;
 
 import app.cbo.oidc.java.server.backends.Codes;
 import app.cbo.oidc.java.server.backends.Users;
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Code;
 import app.cbo.oidc.java.server.datastored.Session;
+import app.cbo.oidc.java.server.datastored.User;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.endpoints.RedirectInteraction;
+import app.cbo.oidc.java.server.endpoints.consent.ConsentHandler;
+import app.cbo.oidc.java.server.endpoints.consent.ConsentParams;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.oidc.OIDCFlow;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
-import app.cbo.oidc.java.server.datastored.User;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -106,7 +112,7 @@ public class AuthorizeEndpoint {
 
     private Interaction checkConsent(OIDCFlow flow, User user, AuthorizeParams params) {
 
-        var notYetConsentedTo = params.scope()
+        var notYetConsentedTo = params.scopes()
                 .stream()
                 .filter(scope -> !user.hasConsentedTo(params.clientId().orElse("..."), scope)) //TODO [20/03/2023] handle (...) in User
                 .collect(Collectors.toSet());
@@ -116,7 +122,12 @@ public class AuthorizeEndpoint {
             return this.authSuccess(flow, user, params);
         } else {
             LOGGER.info("Client is requesting scopes the userId has not yet consented to transmit.");
-            return RedirectInteraction.internal("/consent", params, Map.of("scopes", String.join(" ", notYetConsentedTo)));
+            return RedirectInteraction.internal(
+                    ConsentHandler.CONSENT_ENPOINT,
+                    params,
+                    Map.of(
+                            ConsentParams.SCOPES_REQUESTED, String.join(" ", notYetConsentedTo),
+                            ConsentParams.CLIENT_ID, params.clientId().get()));
         }
 
 
@@ -130,19 +141,20 @@ public class AuthorizeEndpoint {
 
         //the Authorization Response MUST return the parameters defined in Section 4.1.2 of OAuth 2.0
 
-        if(originalParams.redirectUri().isEmpty()){
+        if (originalParams.redirectUri().isEmpty()) {
             //should not happens here, but...
             return new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Missing redirect_uri");
         }
 
-        Code authCode = Codes.getInstance().createFor(user.getUserId(), ()-> originalParams.clientId().orElse(""));
+        //TODO [07/04/2023] remove orElse
+        Code authCode = Codes.getInstance().createFor(user.getUserId(), ClientId.of(originalParams.clientId().orElse("")), originalParams.redirectUri().orElse(""));
         Map<String, String> params = new HashMap<>();
         params.put("code", authCode.getCode());
-        if(originalParams.state().isPresent()){
+        if (originalParams.state().isPresent()) {
             params.put("state", originalParams.state().get());
         }
 
-        LOGGER.info("Authorization OK for flow "+flow.name()+". Redirecting the userId to redirect uri with the code");
+        LOGGER.info("Authorization OK for flow " + flow.name() + ". Redirecting the userId to redirect uri with the code");
         return RedirectInteraction.external(originalParams.redirectUri().get(), params);
     }
 

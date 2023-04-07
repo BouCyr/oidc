@@ -11,18 +11,25 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static java.net.http.HttpResponse.BodyHandlers.*;
-import static org.assertj.core.api.Assertions.*;
+import static java.net.http.HttpResponse.BodyHandlers.ofString;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class IntegrationTest {
 
+    private static final String PORT = "4545";
+    private static final String SCHEME = "http://";
+    private static final String DOMAIN = "localhost";
+    private static final String ROOT = SCHEME + DOMAIN + ":" + PORT;
+
+
     @Test
-    public void test() throws IOException, URISyntaxException, InterruptedException {
-        EntryPoint.main("port=4545");
+    public void authorizationFlow() throws IOException, URISyntaxException, InterruptedException {
+        EntryPoint.main("port=" + PORT);
 
 
         var cookies = new MyCookies();
@@ -30,61 +37,88 @@ public class IntegrationTest {
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .cookieHandler(cookies)
                 .build();
+
+
         var authorizeRequest = HttpRequest.newBuilder()
-                    .uri(new URI("http://localhost:4545/authorize?scope=openid&redirect_uri=http://toto&response_type=code&client_id=INTEGRATION"))
-                    .GET().build();
-
-        var redirectionToLogin = browser.send(authorizeRequest, ofString());
-
-        assertThat(redirectionToLogin.statusCode()).isEqualTo(302);
-        assertThat(redirectionToLogin.headers().firstValue("location"))
-                .isPresent();
-        var redirectToLoginURL = redirectionToLogin.headers().firstValue("location").get();
-
-
-        var loginURI = new URI("http://localhost:4545" + redirectToLoginURL);
-        var redirectToLoginRequest = HttpRequest.newBuilder()
-                .uri(loginURI)
+                .uri(new URI(ROOT + "/authorize?scope=openid&redirect_uri=http://www.google.com&response_type=code&client_id=INTEGRATION"))//TODO [07/04/2023]  not google
                 .GET().build();
 
-        var loginPage = browser.send(redirectToLoginRequest, ofString() );
+        HttpResponse<String> loginPage = followRedirects(browser, authorizeRequest);
 
         assertThat(loginPage.statusCode()).isEqualTo(200);
-
         var totp = TOTP.get("ALBACORE"); //[05/04/2023] should you an external way to generate TOTP
-
-        var ongoings = QueryStringParser.from(loginURI.getQuery()).get("ongoing");
-        assertThat(ongoings).isNotNull().hasSize(1);
+        var loginOngoings = QueryStringParser.from(loginPage.uri().getQuery()).get("ongoing");
+        assertThat(loginOngoings).isNotNull().hasSize(1);
+        var loginOngoing = loginOngoings.iterator().next();
 
 
         var authenticationRequest = HttpRequest.newBuilder()
-                .uri(loginURI)
+                .uri(loginPage.uri())
                 .header("Content-Type", MimeType.FORM.mimeType())
-                .POST( HttpRequest.BodyPublishers.ofString("login=cyrille&pwd=sesame&totp="+totp+"&ongoing="+ongoings.iterator().next()))
+                .POST(HttpRequest.BodyPublishers.ofString("login=cyrille&pwd=sesame&totp=" + totp + "&ongoing=" + loginOngoing))
                 .build();
 
-        var redirectionToAuthorize = browser.send(authenticationRequest, ofString());
+        var consentPage = followRedirects(browser, authenticationRequest);
 
-        assertThat(redirectionToAuthorize.statusCode()).isEqualTo(302);
+        String consentOngoing = readOngoingInputField(consentPage.body());
+        assertThat(consentPage.statusCode()).isEqualTo(200);
 
-        var authorizeWithAuthentRequest = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:4545"+redirectionToAuthorize.headers().firstValue("location").get()))
+        assertThat(consentOngoing).isNotEqualTo(loginOngoing);
+
+        var consentRequest = HttpRequest.newBuilder()
+                .uri(consentPage.uri())
+                .header("Content-Type", MimeType.FORM.mimeType())
+                .POST(HttpRequest.BodyPublishers.ofString("backFromForm=true&scope_openid=on&scope_profile=on&ongoing=" + consentOngoing))
                 .build();
 
+        //TODO [07/04/2023] redirecturi is "toto
+        var codeSentToClient = followRedirects(browser, consentRequest);
 
-        var redirectToConsent = browser.send(authorizeWithAuthentRequest, ofString());
-
-        redirectToConsent.toString();
+        codeSentToClient.toString();
 
     }
+
+    private String readOngoingInputField(String html) {
+
+        //<input type='hidden' name='ongoing' value='ee736adf-e95c-46b6-afa2-d7c49efeb2ec' />
+        var ongoingInputindex = html.indexOf("<input type='hidden' name='ongoing' value='");
+        var ongoingField = html.substring(ongoingInputindex);
+        ongoingField = ongoingField.substring(ongoingField.indexOf("value='") + "value='".length());
+        ongoingField = ongoingField.substring(0, ongoingField.indexOf("'"));
+        return ongoingField;
+    }
+
+    /**
+     * Cannot find a way to have the java.net.httpClient follow relative redirects...
+     */
+    private HttpResponse<String> followRedirects(HttpClient browser, HttpRequest req) throws IOException, InterruptedException, URISyntaxException {
+        var res = browser.send(req, ofString());
+
+        var status = res.statusCode();
+        var locationHeader = res.headers().firstValue("location");
+        if (status / 100 == 3 && locationHeader.isPresent()) {
+
+            var target = locationHeader.get();
+
+            //fix relative redirects
+            var redirectedTo = target.startsWith("http") ? new URI(target) : new URI(ROOT + locationHeader.get());
+            var redirectedRequest = HttpRequest.newBuilder()
+                    .uri(redirectedTo)
+                    .GET().build();
+            res = followRedirects(browser, redirectedRequest);
+        }
+        return res;
+    }
+
 
     static class MyCookies extends CookieHandler {
 
         String sessionId = null;
+
         @Override
         public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) throws IOException {
 
-            if(sessionId != null)
+            if (sessionId != null)
                 return Map.of("Cookie", List.of(sessionId));
             return Collections.emptyMap();
         }

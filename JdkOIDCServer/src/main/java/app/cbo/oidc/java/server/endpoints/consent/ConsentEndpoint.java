@@ -31,12 +31,10 @@ public class ConsentEndpoint {
 
         if(Utils.isBlank(params.clientId())) {
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.unauthorized_client, "Unable to retrieve clientId");
-        }else if(Utils.isBlank(params.ongoing())){
-            throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to retrieve ongoing authorization request");
         }else if(maybeSession.isEmpty()){
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to handle consents without valid authentication");
         }else if(params.scopesRequested().isEmpty()){
-            throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to handle consents without valid authentication");
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "No requested scopes found");
         }
 
         var session = maybeSession.get();
@@ -59,14 +57,17 @@ public class ConsentEndpoint {
 
         if(missingConsents.isEmpty()){
             //all good !
-            return new ConsentGivenInteraction();
+            return new ConsentGivenInteraction(params.ongoing());
         }else{
             if(params.backFromForm()){
                 //users did not give consent to all or some scopes requested by this client
                 throw new AuthErrorInteraction(AuthErrorInteraction.Code.access_denied, "User did not consent");
-            }else{
+            }else {
                 //some consents were never given byt his user to this client ; display the form
-                return new DisplayConsentFormInteraction();
+                return new DisplayConsentFormInteraction(
+                        params.ongoing(),
+                        user.scopesConsentedTo(params.clientId())
+                );
             }
 
         }

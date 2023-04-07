@@ -37,7 +37,8 @@ public record User(String sub, String pwd, String totpKey, Map<String, Set<Strin
     public boolean hasConsentedTo(String clientId, String scope){
         return this.consentedTo().getOrDefault(clientId, new HashSet<>()).contains(scope);
     }
-    public void consentsTo(String clientId, String scope){
+
+    public void consentsTo(String clientId, String scope) {
         this.consentedTo.computeIfAbsent(clientId, c -> new HashSet<>()).add(scope);
     }
 
@@ -47,4 +48,13 @@ public record User(String sub, String pwd, String totpKey, Map<String, Set<Strin
     }
 
 
+    public Set<String> scopesConsentedTo(String clientId) {
+
+        var forThisClient = this.consentedTo().get(clientId);
+        if (forThisClient == null) {
+            return Collections.emptySet();
+        } else {
+            return Set.copyOf(forThisClient);
+        }
+    }
 }

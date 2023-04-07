@@ -17,7 +17,7 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.singleParam;
 import static app.cbo.oidc.java.server.utils.ParamsHelper.spaceSeparatedList;
 
 public record AuthorizeParams(
-        List<String> scope,
+        List<String> scopes,
         List<String> responseTypes,
         Optional<String> clientId,
         Optional<String> redirectUri,
@@ -71,14 +71,14 @@ public record AuthorizeParams(
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Invalid request");
         }
 
-        if(Utils.isBlank(p.scope())){
-            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_scope, "'scope' param is REQUIRED'",p);
+        if (Utils.isBlank(p.scopes())) {
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_scope, "'scope' param is REQUIRED'", p);
         }
-        if(p.scope().stream().filter("openid"::equals).findAny().isEmpty()){
-            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_scope,  "'scope' param MUST contain 'openid'",p);
+        if (p.scopes().stream().filter("openid"::equals).findAny().isEmpty()) {
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_scope, "'scope' param MUST contain 'openid'", p);
         }
-        if(Utils.isBlank(p.responseTypes())){
-            throw new AuthErrorInteraction(AuthErrorInteraction.Code.unsupported_response_type , "'response_type' param is REQUIRED'", p);
+        if (Utils.isBlank(p.responseTypes())) {
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.unsupported_response_type, "'response_type' param is REQUIRED'", p);
         }
         if(Utils.isBlank(p.clientId())){
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'client_id' param is REQUIRED'",p);
@@ -112,7 +112,7 @@ public record AuthorizeParams(
 
 
         return new QueryStringBuilder()
-                .add(toSpaceSeparated("scope",scope()))
+                .add(toSpaceSeparated("scope", scopes()))
                 .add(toSpaceSeparated("response_type", responseTypes()))
                 .add(toSingle("client_id", clientId()))
                 .add(toSingle("redirect_uri", redirectUri()))

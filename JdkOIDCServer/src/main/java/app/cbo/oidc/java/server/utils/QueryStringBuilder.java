@@ -11,10 +11,13 @@ public class QueryStringBuilder {
      * @return this
      */
     public QueryStringBuilder add(String fullParam) {
-        if(has)
+
+        if (Utils.isBlank(fullParam))
+            return this;
+        if (has)
             builder.append("&");
         builder.append(fullParam);
-        has=true;
+        has = true;
 
         return this;
     }

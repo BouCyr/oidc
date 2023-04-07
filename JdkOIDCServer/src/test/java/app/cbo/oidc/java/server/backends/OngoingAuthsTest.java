@@ -69,7 +69,7 @@ class OngoingAuthsTest {
     private AuthorizeParams createParams() {
         AuthorizeParams p = new AuthorizeParams(
 
-                List.of("openid"),   //List<String> scope,
+                List.of("openid"),   //List<String> scopes,
                 List.of("rs"),  //List<String> responseTypes,
                 Optional.of("clientId"),  //Optional<String> clientId,
                 Optional.of("redirectUri"),  //Optional<String> redirectUri,

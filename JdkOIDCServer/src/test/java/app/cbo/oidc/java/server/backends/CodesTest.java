@@ -10,69 +10,94 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CodesTest {
 
-    @Test
-    void nominal(){
-        var code = Codes.getInstance().createFor(UserId.of("bob"), ClientId.of("the_client_id"));
+    public static final String REDIRECT_URI = "http://www.example.com";
+    public static final String THE_CLIENT_ID = "the_client_id";
+    public static final String BOB = "bob";
 
-        var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of("the_client_id"));
+    @Test
+    void nominal() {
+        var code = Codes.getInstance().createFor(UserId.of(BOB),
+                ClientId.of(THE_CLIENT_ID),
+                REDIRECT_URI);
+
+        var userIdfoundBack = Codes.getInstance().consume(
+                code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(userIdfoundBack)
                 .isPresent()
                 .get()
-                    .extracting(UserId::getUserId)
-                    .isEqualTo("bob");
+                .extracting(UserId::getUserId)
+                .isEqualTo(BOB);
     }
 
     @Test
     void code_consumed(){
-        var code = Codes.getInstance().createFor(UserId.of("bob"),ClientId.of("the_client_id"));
+        var code = Codes.getInstance().createFor(UserId.of(BOB), ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
 
-        var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of("the_client_id"));
+        var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(userIdfoundBack)
                 .isPresent();
 
-        var replay = Codes.getInstance().consume(code, ClientId.of("the_client_id"));
+        var replay = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(replay)
                 .isEmpty();
     }
 
     @Test
     void wrong_code(){
-        var code = Codes.getInstance().createFor(UserId.of("bob"), ClientId.of("the_client_id"));
+        var code = Codes.getInstance().createFor(UserId.of(BOB), ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
 
-        var userIdfoundBack = Codes.getInstance().consume(Code.of("??"), ClientId.of("the_client_id"));
+        var userIdfoundBack = Codes.getInstance().consume(Code.of("??"), ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(userIdfoundBack)
                 .isEmpty();
     }
 
     @Test
-    void wrong_client(){
-        var code = Codes.getInstance().createFor(UserId.of("bob"), ClientId.of("the_client_id"));
+    void wrong_client() {
+        var code = Codes.getInstance().createFor(UserId.of(BOB), ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
 
-        var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of("ANOTHER_client_id"));
+        var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of("ANOTHER_client_id"), REDIRECT_URI);
         assertThat(userIdfoundBack)
                 .isEmpty();
     }
 
     @Test
-    void nullability_create(){
-        assertThatThrownBy(() -> Codes.getInstance().createFor(null,null))
+    void wrong_redirectUri() {
+        var code = Codes.getInstance().createFor(UserId.of(BOB), ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
+
+        var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), "http://zombiecool.su");
+        assertThat(userIdfoundBack)
+                .isEmpty();
+    }
+
+    @Test
+    void nullability_create() {
+        assertThatThrownBy(() -> Codes.getInstance().createFor(null, null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> Codes.getInstance().createFor(UserId.of("bob"),null))
+        assertThatThrownBy(() -> Codes.getInstance().createFor(UserId.of(BOB), null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> Codes.getInstance().createFor(null, ClientId.of("the_client_id")))
+        assertThatThrownBy(() -> Codes.getInstance().createFor(null, ClientId.of(THE_CLIENT_ID), null))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> Codes.getInstance().createFor(null, null, REDIRECT_URI))
                 .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void nullability_consume() {
-        var code = Codes.getInstance().createFor(UserId.of("bob"),  ClientId.of("the_client_id"));
+        var code = Codes.getInstance().createFor(UserId.of(BOB), ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
 
-        assertThatThrownBy(() -> Codes.getInstance().consume(null,null))
+        assertThatThrownBy(() -> Codes.getInstance().consume(null, null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> Codes.getInstance().consume(code,null))
+        assertThatThrownBy(() -> Codes.getInstance().consume(code, null, REDIRECT_URI))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> Codes.getInstance().createFor(null,ClientId.of("the_client_id")))
+
+        assertThatThrownBy(() -> Codes.getInstance().consume(null, ClientId.of(THE_CLIENT_ID), REDIRECT_URI))
                 .isInstanceOf(NullPointerException.class);
+        assertThat(Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), null))
+                .isEmpty();
+
+        var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
+        assertThat(userIdfoundBack)
+                .isNotEmpty();
     }
 
 }
