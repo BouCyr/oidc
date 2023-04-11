@@ -10,12 +10,13 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JSONWriterTest {
 
     @Test
     void testFlat() throws IOException {
-        var json = new JSONWriter().write(new FlatRecord(5, "aString"));
+        var json = JSON.jsonify(new FlatRecord(5, "aString"));
         System.out.println("FLAT");
         System.out.println(json);
         System.out.println();
@@ -31,7 +32,7 @@ class JSONWriterTest {
 
     @Test
     void testMaster() throws IOException {
-        var json = new JSONWriter().write(new MasterRecord(8965.56F, "line1" + System.lineSeparator() + "line2",
+        var json = JSON.jsonify(new MasterRecord(8965.56F, "line1" + System.lineSeparator() + "line2",
                 new FlatRecord(5, "aString")));
 
         System.out.println("EMBEDDED");
@@ -53,7 +54,7 @@ class JSONWriterTest {
 
     @Test
     void testList() throws IOException {
-        var json = new JSONWriter().write(
+        var json = JSON.jsonify(
                 new WithListRecord(8965.56F,
                         "line1" + System.lineSeparator() + "line2",
                         List.of(
@@ -82,7 +83,7 @@ class JSONWriterTest {
 
     @Test
     void testEmptyList() throws IOException {
-        var json = JSONWriter.write(
+        var json = JSON.jsonify(
                 new WithListRecord(8965.56F,
                         "line1" + System.lineSeparator() + "line2",
                         Collections.emptyList()));
@@ -104,7 +105,7 @@ class JSONWriterTest {
 
     @Test
     void testMap() throws IOException {
-        var json = JSONWriter.write(
+        var json = JSON.jsonify(
                 new WithMapRecord(8965.56F,
                         "line1" + System.lineSeparator() + "line2",
                         Map.of(
@@ -129,6 +130,50 @@ class JSONWriterTest {
         assertThat(firstFR.integer()).isEqualTo(1);
         assertThat(firstFR.myString()).isEqualTo("aString");
 
+    }
+
+    @Test
+    void testGetter() throws IOException {
+        var json = JSON.jsonify(
+                new WithGetter("tralala"));
+
+        System.out.println("GETTER");
+        System.out.println(json);
+        System.out.println();
+
+        ObjectMapper jackson = new ObjectMapper();
+        var validation = jackson.reader().readValue(json, WithGetter.class);
+
+        assertThat(validation).isNotNull();
+        assertThat(validation.getPayload()).isEqualTo("tralala");
+    }
+
+    @Test
+    void testException() throws IOException {
+        assertThatThrownBy(() -> JSON.jsonify(new Throwing()))
+                .isInstanceOf(JsonProcessingException.class);
+    }
+
+    public static class Throwing {
+
+        public String getPayload() {
+            throw new IllegalStateException("Dang.");
+        }
+    }
+
+    public static class WithGetter {
+        private String payload = null;
+
+        public WithGetter() {
+        }
+
+        public WithGetter(String payload) {
+            this.payload = payload;
+        }
+
+        public String getPayload() {
+            return payload;
+        }
     }
 
     static record FlatRecord(int integer, String myString) {

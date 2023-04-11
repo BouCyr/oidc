@@ -39,12 +39,12 @@ class JSONWriter {
 
     }
 
-    public static int countOccur(String what, String in) {
+    private static int countOccur(String what, String in) {
         return in.length() - in.replaceAll(what, "").length();
     }
 
 
-    static String write(Object o, int lvl) {
+    private static String write(Object o, int lvl) {
 
 
         var buffer = new StringBuilder();
@@ -123,9 +123,10 @@ class JSONWriter {
 
     private static String name(String baseName) {
         String name;
-        if (baseName.startsWith("get"))
+        if (baseName.startsWith("get")) {
             name = baseName.substring(3);
-        else
+            name = Character.toLowerCase(name.charAt(0)) + name.substring(1);
+        } else
             name = baseName;
         return "\"" + name + "\"";
     }
