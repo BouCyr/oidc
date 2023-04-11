@@ -1,21 +1,27 @@
 package app.cbo.oidc.java.server.json;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.System.lineSeparator;
 
+/**
+ * transforms (badly) an object to a JSON representation
+ */
 class JSONWriter {
 
 
     public static String write(Object o) {
         String result = write(o, 0);
 
+        //indentation
+        //not perfect, but better thant nothing
+        //the JSON is copied line-by-line
+        //if the line contains '{' or '[', all subsequent lines will have more identation
+        //if the line contains '}' or ']', THIS LINE and all subsequent lines will have less identation
         var lines = result.lines().toList();
         int idt = 0;
 
@@ -39,23 +45,30 @@ class JSONWriter {
 
     }
 
+    /**
+     * count the nb of occurences of a char in another String.
+     *
+     * @param what the char looked for ; PLEASE DO NOT INPUT MORE THAN ONE CHAR :)
+     * @param in   the string we are looking into
+     * @return the number of occurences of the char in the in...
+     */
     private static int countOccur(String what, String in) {
+        //stupid but it works
         return in.length() - in.replaceAll(what, "").length();
     }
 
 
     private static String write(Object o, int lvl) {
-
-
         var buffer = new StringBuilder();
         buffer.append("{").append(lineSeparator());
 
-
+        //find all getters & record accessors
         buffer.append(Arrays.stream(o.getClass().getMethods())
                 .filter(method -> method.getParameterCount() == 0)
                 .filter(method -> !Void.TYPE.equals(method.getReturnType()))
+                //remorve hashcode, getClass & toString
                 .filter(method -> !isFromObject(method.getName()))
-                .map(method -> toJson(lvl + 1, o, method))
+                .map(method -> toJson(lvl + 1, o, method))//magic!
                 .collect(Collectors.joining("," + lineSeparator())));
 
         buffer.append(lineSeparator()).append("}");
@@ -63,6 +76,7 @@ class JSONWriter {
 
     }
 
+    //list the method inherited from Object
     private static boolean isFromObject(String methodName) {
         return Set.of("toString", "hashCode", "getClass").contains(methodName);
     }
@@ -75,7 +89,7 @@ class JSONWriter {
             String name = name(method.getName());
             buffer.append(name)
                     .append(": ")
-                    .append(value(lvl + 1, result));
+                    .append(value(lvl + 1, result)); //magic !
 
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new JsonProcessingException(e);
@@ -84,40 +98,54 @@ class JSONWriter {
     }
 
     private static String value(int lvl, Object result) {
-
-        //TODO [11/04/2023] array[]
         if (result instanceof Number n) {
             return n.toString();
-
-        } else if (result instanceof Map<?, ?> m) {
-            var buffer = new StringBuilder()
-                    .append("{").append(lineSeparator());
-
-            buffer.append(
-                    m.entrySet()
-                            .stream()
-                            .map(entry -> name(entry.getKey().toString()) + ": " + value(lvl + 1, entry.getValue()))
-                            .collect(Collectors.joining(", " + lineSeparator())));
-            buffer.append("}");
-            return buffer.toString();
-
-        } else if (result instanceof Collection<?> c) {
-            var buffer = new StringBuilder()
-                    .append("[").append(lineSeparator());
-
-            buffer.append(
-                    c.stream()
-                            .map(i -> JSONWriter.value(lvl + 1, i))
-                            .collect(Collectors.joining("," + lineSeparator())));
-
-            buffer.append("]");
-            return buffer.toString();
-
+        } else if (result instanceof Character c) {
+            return "\"" + c + "\"";
         } else if (result instanceof String s) {
             return "\"" + s.replaceAll("\\R", " ") + "\"";
+        } else if (result instanceof Map<?, ?> m) {
+            return map(lvl, m);
+
+        } else if (result instanceof Collection<?> c) {
+            return collection(lvl, c);
+
+        } else if (result.getClass().isArray()) {
+            int length = Array.getLength(result);
+            Collection<Object> col = new ArrayList<>();
+            for (int i = 0; i < length; i++) {
+                col.add(Array.get(result, i));
+            }
+            return collection(lvl, col);
         } else {
             return write(result, lvl + 1);
         }
+    }
+
+    private static String map(int lvl, Map<?, ?> m) {
+        var buffer = new StringBuilder()
+                .append("{").append(lineSeparator());
+
+        buffer.append(
+                m.entrySet()
+                        .stream()
+                        .map(entry -> name(entry.getKey().toString()) + ": " + value(lvl + 1, entry.getValue()))
+                        .collect(Collectors.joining(", " + lineSeparator())));
+        buffer.append("}");
+        return buffer.toString();
+    }
+
+    private static String collection(int lvl, Collection<?> c) {
+        var buffer = new StringBuilder()
+                .append("[").append(lineSeparator());
+
+        buffer.append(
+                c.stream()
+                        .map(i -> JSONWriter.value(lvl + 1, i))
+                        .collect(Collectors.joining("," + lineSeparator())));
+
+        buffer.append("]");
+        return buffer.toString();
     }
 
 

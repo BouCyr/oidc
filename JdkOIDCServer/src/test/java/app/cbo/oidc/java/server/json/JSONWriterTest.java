@@ -149,9 +149,52 @@ class JSONWriterTest {
     }
 
     @Test
+    void testChar() throws IOException {
+        var json = (JSON.jsonify(new WithChar('c')));
+
+        ObjectMapper jackson = new ObjectMapper();
+        var validation = jackson.reader().readValue(json, WithChar.class);
+
+        assertThat(validation).isNotNull();
+        assertThat(validation.payload()).isEqualTo('c');
+    }
+
+    @Test
+    void testArray() throws IOException {
+        var json = (JSON.jsonify(new WithArray(new int[]{1, 2, 3, 4, 5})));
+
+        System.out.println(json);
+        ObjectMapper jackson = new ObjectMapper();
+        var validation = jackson.reader().readValue(json, WithArray.class);
+
+        assertThat(validation).isNotNull();
+        assertThat(validation.ints()).isEqualTo(new int[]{1, 2, 3, 4, 5});
+    }
+
+    @Test
+    void testListOfString() throws IOException {
+        var json = (JSON.jsonify(new WithListOfString(List.of("a", "b", "c"))));
+
+        System.out.println(json);
+        ObjectMapper jackson = new ObjectMapper();
+        var validation = jackson.reader().readValue(json, WithListOfString.class);
+
+        assertThat(validation).isNotNull();
+        assertThat(validation.strings()).isEqualTo(List.of("a", "b", "c"));
+    }
+
+    @Test
     void testException() throws IOException {
         assertThatThrownBy(() -> JSON.jsonify(new Throwing()))
                 .isInstanceOf(JsonProcessingException.class);
+    }
+
+
+    public static record WithArray(int[] ints) {
+
+    }
+
+    public static record WithChar(char payload) {
     }
 
     public static class Throwing {
@@ -183,6 +226,9 @@ class JSONWriterTest {
     }
 
     static record WithListRecord(float integer, String myString, Collection<FlatRecord> subs) {
+    }
+
+    static record WithListOfString(Collection<String> strings) {
     }
 
     static record WithMapRecord(float integer, String myString, Map<String, FlatRecord> subs) {
