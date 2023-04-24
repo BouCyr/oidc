@@ -30,6 +30,7 @@ public class Users {
 
 
 
+
     public void create(@NotNull String login, @Nullable String clearPwd, @Nullable String totpKey) {
 
         if(this.find(UserId.of(login)).isPresent()){
@@ -38,4 +39,6 @@ public class Users {
         User newUser = new User(login, PasswordEncoder.getInstance().encodePassword(clearPwd), totpKey);
         this.users.put(newUser.sub(), newUser);
     }
+
+
 }

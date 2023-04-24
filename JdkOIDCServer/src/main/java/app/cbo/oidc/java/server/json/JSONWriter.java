@@ -1,9 +1,13 @@
 package app.cbo.oidc.java.server.json;
 
+import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.jsr305.Nullable;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.lang.System.lineSeparator;
@@ -13,9 +17,8 @@ import static java.lang.System.lineSeparator;
  */
 class JSONWriter {
 
-
-    public static String write(Object o) {
-        String result = write(o, 0);
+    public static String writeIndented(Object o) {
+        String result = write(o);
 
         //indentation
         //not perfect, but better thant nothing
@@ -45,6 +48,39 @@ class JSONWriter {
 
     }
 
+    private static String write(Object o) {
+        var buffer = new StringBuilder();
+        buffer.append("{").append(lineSeparator());
+
+        //find all getters & record accessors
+        List<String> lines = new ArrayList<>(Arrays.stream(o.getClass().getMethods())
+                .filter(method -> method.getParameterCount() == 0)
+                .filter(method -> !Void.TYPE.equals(method.getReturnType()))
+                //remove hashcode, getClass & toString
+                .filter(method -> !isFromObject(method.getName()))
+                .filter(method -> !isExtraNodes(method.getName()))
+                .map(method -> new NameAndValue(method, o))
+                .map(JSONWriter::toJson)//magic!
+                .toList());
+
+        if (o instanceof WithExtraNode wen) {
+
+            wen.extranodes().keySet()
+                    .stream()
+                    .map(k -> new NameAndValue(wen.extranodes(), k))
+                    .map(JSONWriter::toJson)
+                    .forEach(lines::add);
+
+
+        }
+
+        buffer.append(lines.stream().collect(Collectors.joining("," + lineSeparator())));
+
+        buffer.append(lineSeparator()).append("}");
+        return buffer.toString();
+
+    }
+
     /**
      * count the nb of occurences of a char in another String.
      *
@@ -57,47 +93,46 @@ class JSONWriter {
         return in.length() - in.replaceAll(what, "").length();
     }
 
-
-    private static String write(Object o, int lvl) {
-        var buffer = new StringBuilder();
-        buffer.append("{").append(lineSeparator());
-
-        //find all getters & record accessors
-        buffer.append(Arrays.stream(o.getClass().getMethods())
-                .filter(method -> method.getParameterCount() == 0)
-                .filter(method -> !Void.TYPE.equals(method.getReturnType()))
-                //remorve hashcode, getClass & toString
-                .filter(method -> !isFromObject(method.getName()))
-                .map(method -> toJson(lvl + 1, o, method))//magic!
-                .collect(Collectors.joining("," + lineSeparator())));
-
-        buffer.append(lineSeparator()).append("}");
-        return buffer.toString();
-
+    private static boolean isExtraNodes(String methodName) {
+        return "extranodes".equals(methodName);
     }
 
     //list the method inherited from Object
-    private static boolean isFromObject(String methodName) {
+    private static boolean isFromObject(@Nullable String methodName) {
         return Set.of("toString", "hashCode", "getClass").contains(methodName);
     }
 
-    private static String toJson(int lvl, Object o, Method method) {
+    private static @NotNull
+    String toJson(@NotNull NameAndValue node) {
         var buffer = new StringBuilder();
-        try {
-            var result = method.invoke(o);
 
-            String name = name(method.getName());
-            buffer.append(name)
-                    .append(": ")
-                    .append(value(lvl + 1, result)); //magic !
 
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new JsonProcessingException(e);
+        var result = node.getValue().get();
+
+        if (result == null) {
+            return buffer
+                    .append("\"").append(node.name()).append("\"")
+                    .append(": null").toString();
         }
+        if ((result instanceof Optional<?> opt) && opt.isEmpty()) {
+            return buffer
+                    .append("\"").append(node.name()).append("\"")
+                    .append(": null").toString();
+        }
+        if (result instanceof Optional<?> opt) {
+            result = opt.get();
+        }
+
+        buffer
+                .append("\"").append(node.name()).append("\"")
+                .append(": ")
+                .append(value(result)); //magic !
+
+
         return buffer.toString();
     }
 
-    private static String value(int lvl, Object result) {
+    private static String value(Object result) {
         if (result instanceof Number n) {
             return n.toString();
         } else if (result instanceof Character c) {
@@ -105,10 +140,10 @@ class JSONWriter {
         } else if (result instanceof String s) {
             return "\"" + s.replaceAll("\\R", " ") + "\"";
         } else if (result instanceof Map<?, ?> m) {
-            return map(lvl, m);
+            return map(m);
 
         } else if (result instanceof Collection<?> c) {
-            return collection(lvl, c);
+            return collection(c);
 
         } else if (result.getClass().isArray()) {
             int length = Array.getLength(result);
@@ -116,46 +151,76 @@ class JSONWriter {
             for (int i = 0; i < length; i++) {
                 col.add(Array.get(result, i));
             }
-            return collection(lvl, col);
+            return collection(col);
         } else {
-            return write(result, lvl + 1);
+            return write(result);
         }
     }
 
-    private static String map(int lvl, Map<?, ?> m) {
+    private static String map(Map<?, ?> m) {
         var buffer = new StringBuilder()
                 .append("{").append(lineSeparator());
 
         buffer.append(
                 m.entrySet()
                         .stream()
-                        .map(entry -> name(entry.getKey().toString()) + ": " + value(lvl + 1, entry.getValue()))
+                        .map(entry -> ("\"" + entry.getKey().toString() + "\"") + ": " + value(entry.getValue()))
                         .collect(Collectors.joining(", " + lineSeparator())));
         buffer.append("}");
         return buffer.toString();
     }
 
-    private static String collection(int lvl, Collection<?> c) {
+    private static String collection(Collection<?> c) {
         var buffer = new StringBuilder()
                 .append("[").append(lineSeparator());
 
         buffer.append(
                 c.stream()
-                        .map(i -> JSONWriter.value(lvl + 1, i))
+                        .map(JSONWriter::value)
                         .collect(Collectors.joining("," + lineSeparator())));
 
         buffer.append("]");
         return buffer.toString();
     }
 
+    static class NameAndValue {
+        private final String name;
+        private final Supplier<Object> value;
 
-    private static String name(String baseName) {
-        String name;
-        if (baseName.startsWith("get")) {
-            name = baseName.substring(3);
-            name = Character.toLowerCase(name.charAt(0)) + name.substring(1);
-        } else
-            name = baseName;
-        return "\"" + name + "\"";
+        public NameAndValue(String name, Supplier<Object> value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        public NameAndValue(Map<String, ?> map, String key) {
+            this(key, () -> map.get(key));
+        }
+
+        public NameAndValue(Method method, Object target) {
+            String baseName = method.getName();
+            if (baseName.startsWith("get")) {
+                baseName = baseName.substring(3);
+                name = Character.toLowerCase(baseName.charAt(0)) + baseName.substring(1);
+            } else {
+                name = baseName;
+            }
+            this.value = () -> {
+                try {
+                    return method.invoke(target);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new JsonProcessingException(e);
+                }
+            };
+        }
+
+        public String name() {
+            return name;
+        }
+
+        public Supplier<Object> getValue() {
+            return value;
+        }
     }
+
+
 }

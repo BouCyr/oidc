@@ -34,7 +34,7 @@ public class AuthorizeHandler implements HttpHandler {
 
             var cookies = Cookies.parseCookies(exchange);
             var sessionId = Cookies.findSessionCookie(cookies);
-            Optional<Session> session = sessionId.isEmpty()? Optional.empty(): Sessions.getInstance().getSession(sessionId.get());
+            Optional<Session> session = sessionId.isEmpty() ? Optional.empty() : Sessions.getInstance().find(sessionId.get());
 
             var result = this.endpoint.treatRequest(session, params);
             result.handle(exchange);

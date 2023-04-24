@@ -1,6 +1,8 @@
 package app.cbo.oidc.java.server.json;
 
 
+import app.cbo.oidc.java.server.jsr305.NotNull;
+
 public class JSON {
 
     /**
@@ -17,7 +19,8 @@ public class JSON {
      * <p>
      * i.e. do not reuse this code :)
      */
-    public static String jsonify(Object o) {
-        return JSONWriter.write(o);
+    public static @NotNull
+    String jsonify(@NotNull Object o) {
+        return JSONWriter.writeIndented(o);
     }
 }

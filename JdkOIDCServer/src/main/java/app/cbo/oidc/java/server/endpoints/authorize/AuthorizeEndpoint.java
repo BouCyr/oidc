@@ -2,10 +2,7 @@ package app.cbo.oidc.java.server.endpoints.authorize;
 
 import app.cbo.oidc.java.server.backends.Codes;
 import app.cbo.oidc.java.server.backends.Users;
-import app.cbo.oidc.java.server.datastored.ClientId;
-import app.cbo.oidc.java.server.datastored.Code;
-import app.cbo.oidc.java.server.datastored.Session;
-import app.cbo.oidc.java.server.datastored.User;
+import app.cbo.oidc.java.server.datastored.*;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.endpoints.RedirectInteraction;
@@ -106,20 +103,20 @@ public class AuthorizeEndpoint {
         //[03/04/2023] OIDC specs is not very clear...
 
         LOGGER.info("User has a valid, active session matching the client requirements");
-        return this.checkConsent(flow, user, params);
+        return this.checkConsent(flow, user, params, session);
     }
 
 
-    private Interaction checkConsent(OIDCFlow flow, User user, AuthorizeParams params) {
+    private Interaction checkConsent(OIDCFlow flow, User user, AuthorizeParams params, Session session) {
 
         var notYetConsentedTo = params.scopes()
                 .stream()
                 .filter(scope -> !user.hasConsentedTo(params.clientId().orElse("..."), scope)) //TODO [20/03/2023] handle (...) in User
                 .collect(Collectors.toSet());
-        
-        if(notYetConsentedTo.isEmpty()) {
+
+        if (notYetConsentedTo.isEmpty()) {
             LOGGER.info("User has already consented to all requested scopes");
-            return this.authSuccess(flow, user, params);
+            return this.authSuccess(flow, user, params, session);
         } else {
             LOGGER.info("Client is requesting scopes the userId has not yet consented to transmit.");
             return RedirectInteraction.internal(
@@ -134,7 +131,7 @@ public class AuthorizeEndpoint {
 
     }
 
-    private Interaction authSuccess(OIDCFlow flow, User user, AuthorizeParams originalParams) {
+    private Interaction authSuccess(OIDCFlow flow, User user, AuthorizeParams originalParams, Session session) {
 
         //cf 3.1.2.5
         // HTTP/1.1 302 Found  Location: https://client.example.org/cb?code=SplxlOBeZQQYbYS6WxSbIA&state=af0ifjsldkj
@@ -146,8 +143,19 @@ public class AuthorizeEndpoint {
             return new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Missing redirect_uri");
         }
 
-        //TODO [07/04/2023] remove orElse
-        Code authCode = Codes.getInstance().createFor(user.getUserId(), ClientId.of(originalParams.clientId().orElse("")), originalParams.redirectUri().orElse(""));
+        /*
+            Code createFor(@NotNull UserId userId,
+                   @NotNull ClientId clientId,
+                   @NotNull SessionId sessionId,
+                   @NotNull String redirectUri,
+                   @NotNull List<String> scopes) {
+         */
+        Code authCode = Codes.getInstance().createFor(
+                user.getUserId(),
+                ClientId.of(originalParams.clientId().orElse("")),
+                SessionId.of(session.id()),
+                originalParams.redirectUri().orElse(""),
+                originalParams.scopes());
         Map<String, String> params = new HashMap<>();
         params.put("code", authCode.getCode());
         if (originalParams.state().isPresent()) {

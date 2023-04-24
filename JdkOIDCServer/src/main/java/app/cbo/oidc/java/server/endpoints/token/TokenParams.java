@@ -10,7 +10,7 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.singleParam;
 
 //3.1.3.1.  Token Request
 public record TokenParams(String grantType, String code, String redirectUri, String clientId) {
-    //rfc6749#section-4.1.3
+    //rfc6749 Oauth2 #section-4.1.3
     // grant_type REQUIRED.  Value MUST be set to "authorization_code".
     public final static String GRANT_TYPE = "grant_type";
 

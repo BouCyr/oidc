@@ -1,18 +1,16 @@
 package app.cbo.oidc.java.server.json;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class JSONWriterTest {
+class JSONTest {
 
     @Test
     void testFlat() throws IOException {
@@ -27,6 +25,22 @@ class JSONWriterTest {
         assertThat(validation).isNotNull();
         assertThat(validation.integer()).isEqualTo(5);
         assertThat(validation.myString()).isEqualTo("aString");
+
+    }
+
+    @Test
+    void testFlatWithNullField() throws IOException {
+        var json = JSON.jsonify(new FlatRecord(5, null));
+        System.out.println("FLAT");
+        System.out.println(json);
+        System.out.println();
+
+        ObjectMapper jackson = new ObjectMapper();
+        var validation = jackson.reader().readValue(json, FlatRecord.class);
+
+        assertThat(validation).isNotNull();
+        assertThat(validation.integer()).isEqualTo(5);
+        assertThat(validation.myString()).isNull();
 
     }
 
@@ -50,6 +64,24 @@ class JSONWriterTest {
         var firstFR = validation.sub();
         assertThat(firstFR.integer()).isEqualTo(5);
         assertThat(firstFR.myString()).isEqualTo("aString");
+    }
+
+    @Test
+    void testMasterWithNullSubObject() throws IOException {
+        var json = JSON.jsonify(new MasterRecord(8965.56F, "line1" + System.lineSeparator() + "line2",
+                null));
+
+        System.out.println("EMBEDDED");
+        System.out.println(json);
+        System.out.println();
+
+        ObjectMapper jackson = new ObjectMapper();
+        var validation = jackson.reader().readValue(json, MasterRecord.class);
+
+        assertThat(validation).isNotNull();
+        assertThat(validation.integer()).isEqualTo(8965.56F);
+        assertThat(validation.sub())
+                .isNull();
     }
 
     @Test
@@ -77,6 +109,27 @@ class JSONWriterTest {
         var firstFR = validation.subs().iterator().next();
         assertThat(firstFR.integer()).isEqualTo(1);
         assertThat(firstFR.myString()).isEqualTo("aString");
+
+
+    }
+
+    @Test
+    void testNullList() throws IOException {
+        var json = JSON.jsonify(
+                new WithListRecord(8965.56F,
+                        "line1" + System.lineSeparator() + "line2",
+                        null));
+        System.out.println("LIST");
+        System.out.println(json);
+        System.out.println();
+
+        ObjectMapper jackson = new ObjectMapper();
+        var validation = jackson.reader().readValue(json, WithListRecord.class);
+
+        assertThat(validation).isNotNull();
+        assertThat(validation.integer()).isEqualTo(8965.56F);
+        assertThat(validation.subs())
+                .isNull();
 
 
     }
@@ -189,6 +242,39 @@ class JSONWriterTest {
                 .isInstanceOf(JsonProcessingException.class);
     }
 
+    @Test
+    void testOptionalPresent() throws IOException {
+        var test = new WithOptional(4, Optional.of("filled!"));
+        var json = JSON.jsonify(test);
+
+        ObjectMapper jackson = new ObjectMapper();
+        jackson.registerModule(new Jdk8Module());
+        var validation = jackson.reader().readValue(json, WithOptional.class);
+
+        assertThat(validation).isNotNull();
+        assertThat(validation.anInt()).isEqualTo(4);
+        assertThat(validation.maybeAString())
+                .isPresent()
+                .get().isEqualTo("filled!");
+    }
+
+    @Test
+    void testOptionalAbsent() throws IOException {
+        var test = new WithOptional(4, Optional.empty());
+        var json = JSON.jsonify(test);
+
+        ObjectMapper jackson = new ObjectMapper();
+        jackson.registerModule(new Jdk8Module());
+        var validation = jackson.reader().readValue(json, WithOptional.class);
+        assertThat(validation).isNotNull();
+        assertThat(validation.anInt()).isEqualTo(4);
+        assertThat(validation.maybeAString())
+                .isEmpty();
+    }
+
+    public static record WithOptional(int anInt, Optional<String> maybeAString) {
+
+    }
 
     public static record WithArray(int[] ints) {
 

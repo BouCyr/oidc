@@ -27,12 +27,13 @@ public class Sessions {
     
     private final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
-    @NotNull public Optional<Session> getSession(@NotNull SessionId id) {
+    @NotNull
+    public Optional<Session> find(@NotNull SessionId id) {
 
-        if(id == null || id.getSessionId() == null)
+        if (id == null || id.getSessionId() == null)
             return Optional.empty();
 
-        var existing =  Optional.ofNullable(this.sessions.get(id.getSessionId()));
+        var existing = Optional.ofNullable(this.sessions.get(id.getSessionId()));
         existing.ifPresent(this::refresh);
         return existing;
     }
@@ -42,7 +43,7 @@ public class Sessions {
             throw new NullPointerException("session id cannot be null");
         }
 
-        Optional<Session> session = this.getSession(id);
+        Optional<Session> session = this.find(id);
         if(!Utils.isEmpty(authenticationModes) && session.isPresent()){
             session.get().authentications().addAll(authenticationModes);
         }

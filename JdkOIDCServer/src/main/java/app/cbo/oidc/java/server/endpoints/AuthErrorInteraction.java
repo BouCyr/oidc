@@ -2,11 +2,7 @@ package app.cbo.oidc.java.server.endpoints;
 
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.jsr305.NotNull;
-import app.cbo.oidc.java.server.utils.MimeType;
-import app.cbo.oidc.java.server.utils.ExceptionHandling;
-import app.cbo.oidc.java.server.utils.ExchangeResponseUtils;
-import app.cbo.oidc.java.server.utils.HttpCode;
-import app.cbo.oidc.java.server.utils.Utils;
+import app.cbo.oidc.java.server.utils.*;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
@@ -19,15 +15,16 @@ public  class AuthErrorInteraction extends Exception implements Interaction {
     private final static Logger LOGGER = Logger.getLogger(AuthErrorInteraction.class.getCanonicalName());
 
 
-
     public enum Code {
         invalid_request,
         unauthorized_client,
+        invalid_client,
         access_denied,
         unsupported_response_type,
         invalid_scope,
         server_error,
-        temporarily_unavailable
+        temporarily_unavailable,
+        invalid_grant
     }
 
 

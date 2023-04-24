@@ -60,7 +60,7 @@ public class ConsentHandler implements HttpHandler {
 
             var cookies = Cookies.parseCookies(exchange);
             var sessionId = Cookies.findSessionCookie(cookies);
-            Optional<Session> session = sessionId.isEmpty() ? Optional.empty() : Sessions.getInstance().getSession(sessionId.get());
+            Optional<Session> session = sessionId.isEmpty() ? Optional.empty() : Sessions.getInstance().find(sessionId.get());
 
             ConsentEndpoint.getInstance()
                     .treatRequest(session, params)
