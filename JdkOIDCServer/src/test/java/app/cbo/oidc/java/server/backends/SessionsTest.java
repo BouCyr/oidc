@@ -19,18 +19,18 @@ class SessionsTest {
     @Test
     void nominal(){
 
-        var session = Sessions.getInstance().createSession(new User("cyrille",null,null), EnumSet.of(AuthenticationMode.PASSWORD_OK));
+        var session = Sessions.getInstance().createSession(new User("cyrille", null, null), EnumSet.of(AuthenticationMode.PASSWORD_OK));
 
         Sessions.getInstance().addAuthentications(session, EnumSet.of(AuthenticationMode.PASSWORD_OK, AuthenticationMode.TOTP_OK));
 
-        var foundback = Sessions.getInstance().find(session);
-        assertThat(foundback)
+        var foundBack = Sessions.getInstance().find(session);
+        assertThat(foundBack)
                 .isPresent();
 
-        assertThat(foundback.get().userId().getUserId()).isEqualTo("cyrille");
-        assertThat(foundback.get().authentications()).containsExactly(AuthenticationMode.PASSWORD_OK, AuthenticationMode.TOTP_OK);
+        assertThat(foundBack.get().userId().getUserId()).isEqualTo("cyrille");
+        assertThat(foundBack.get().authentications()).containsExactly(AuthenticationMode.PASSWORD_OK, AuthenticationMode.TOTP_OK);
 
-        assertThat(foundback.get().authTime()).isCloseTo(LocalDateTime.now(), new TemporalUnitWithinOffset(5L, ChronoUnit.SECONDS));
+        assertThat(foundBack.get().authTime()).isCloseTo(LocalDateTime.now(), new TemporalUnitWithinOffset(5L, ChronoUnit.SECONDS));
     }
 
     @Test

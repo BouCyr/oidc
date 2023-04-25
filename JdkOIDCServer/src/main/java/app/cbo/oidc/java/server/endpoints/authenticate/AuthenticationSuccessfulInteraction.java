@@ -11,13 +11,13 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 
-public record AuthentSuccessfulInteraction(SessionId sessionId, AuthorizeParams params) implements Interaction {
+public record AuthenticationSuccessfulInteraction(SessionId sessionId, AuthorizeParams params) implements Interaction {
 
     @Override
     public void handle(@NotNull HttpExchange exchange) throws IOException {
 
-        exchange.getResponseHeaders().add("Set-Cookie", Sessions.SESSION_ID_COOKIE_NAME+"="+sessionId.getSessionId()+"; Secure; Path=/");
-        exchange.getResponseHeaders().add("Location", AuthorizeHandler.AUTHORIZE_ENPOINT+"?"+params.toQueryString());
+        exchange.getResponseHeaders().add("Set-Cookie", Sessions.SESSION_ID_COOKIE_NAME + "=" + sessionId.getSessionId() + "; Secure; Path=/");
+        exchange.getResponseHeaders().add("Location", AuthorizeHandler.AUTHORIZE_ENDPOINT + "?" + params.toQueryString());
         exchange.sendResponseHeaders(HttpCode.FOUND.code(), 0);
         exchange.getResponseBody().flush();
         exchange.getResponseBody().close();

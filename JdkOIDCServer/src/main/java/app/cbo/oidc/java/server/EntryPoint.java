@@ -62,7 +62,7 @@ public class EntryPoint {
                         " " + logRecord.getLevel() +
                         //find thread name ? align to fixed length
                         " thread#" + logRecord.getLongThreadID() +
-                        //right align method name (with trncutaion to the left ?
+                        //right align method name (with truncate to the left ?)
                         " " + className +
                         //align to fixed length (truncate to the right)
 

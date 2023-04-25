@@ -1,6 +1,5 @@
 package app.cbo.oidc.java.server.endpoints.token;
 
-import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 
 import java.util.Collection;
@@ -23,7 +22,7 @@ public record TokenParams(String grantType, String code, String redirectUri, Str
     //client_id REQUIRED, if the client is not authenticating with the authorization server as described in Section 3.2.1.
     public final static String CLIENT_ID = "client_id";
 
-    public TokenParams(@NotNull Map<String, Collection<String>> params) throws AuthErrorInteraction {
+    public TokenParams(@NotNull Map<String, Collection<String>> params) {
         this(
                 singleParam(params.get(GRANT_TYPE)).orElse(null),
                 singleParam(params.get(CODE)).orElse(null),

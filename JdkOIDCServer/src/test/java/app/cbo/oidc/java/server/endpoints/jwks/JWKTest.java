@@ -32,7 +32,7 @@ class JWKTest {
         //the corresponding public k
         var publicKey = KeySet.getInstance().publicKey(kid)
                 .orElseThrow(() -> new RuntimeException("No key found, test fails"));
-        //the correpsonding private key
+        //the corresponding private key
         var privateKey = KeySet.getInstance().privateKey(kid)
                 .orElseThrow(() -> new RuntimeException("No key found, test fails"));
 
@@ -44,7 +44,7 @@ class JWKTest {
                 .keyID(kid.getKeyId()).build();
 
         String theirsAsJson = theirs.toJSONObject().toJSONString();
-        //give it to jackson to do proper ident
+        //give it to jackson to do proper indent
         var readByJackson = new ObjectMapper().reader().readTree(theirsAsJson);
         System.out.println("AS COMPUTED BY EXTERNAL (nimbus):");
         System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(readByJackson));
@@ -65,19 +65,19 @@ class JWKTest {
         //and reading it back using the raw RSA private key.
 
         //-as a sanity check, we will first use the raw public key, that was not serialized as a JWK
-        var encryptorfromKeySet = Cipher.getInstance("RSA");
-        encryptorfromKeySet.init(Cipher.ENCRYPT_MODE, publicKey);
-        var encryptedFromKeySet = encryptorfromKeySet.doFinal(PAYLOAD.getBytes(StandardCharsets.UTF_8));
+        var encryptorFromKeySet = Cipher.getInstance("RSA");
+        encryptorFromKeySet.init(Cipher.ENCRYPT_MODE, publicKey);
+        var encryptedFromKeySet = encryptorFromKeySet.doFinal(PAYLOAD.getBytes(StandardCharsets.UTF_8));
 
         //-as a sanity check, we will then use the public key that was serialized in JWK by nimbus and then read back by nimbus
-        var encryptorfromExternal = Cipher.getInstance("RSA");
-        encryptorfromExternal.init(Cipher.ENCRYPT_MODE, publicKeyFromNimbus.toRSAPublicKey());
-        var encryptedFromExternal = encryptorfromExternal.doFinal("Hello darkness my old friend".getBytes(StandardCharsets.UTF_8));
+        var encryptorFromExternal = Cipher.getInstance("RSA");
+        encryptorFromExternal.init(Cipher.ENCRYPT_MODE, publicKeyFromNimbus.toRSAPublicKey());
+        var encryptedFromExternal = encryptorFromExternal.doFinal("Hello darkness my old friend".getBytes(StandardCharsets.UTF_8));
 
         //-as a sanity check, we will then use the public key that was serialized in JWK by OUR code and then read back by nimbus
-        var encryptorfromMineJWK = Cipher.getInstance("RSA");
-        encryptorfromMineJWK.init(Cipher.ENCRYPT_MODE, mineParsedByThem.toRSAPublicKey());
-        var encryptedFromMineJWK = encryptorfromMineJWK.doFinal("Hello darkness my old friend".getBytes(StandardCharsets.UTF_8));
+        var encryptorFromMineJWK = Cipher.getInstance("RSA");
+        encryptorFromMineJWK.init(Cipher.ENCRYPT_MODE, mineParsedByThem.toRSAPublicKey());
+        var encryptedFromMineJWK = encryptorFromMineJWK.doFinal("Hello darkness my old friend".getBytes(StandardCharsets.UTF_8));
 
         String decryptedFromKeySet = decrypt(privateKey, encryptedFromKeySet);
         String decryptedFromExternal = decrypt(privateKey, encryptedFromExternal);
@@ -93,10 +93,9 @@ class JWKTest {
     }
 
     private String decrypt(PrivateKey privateKey, byte[] encryptedFromKeySet) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        var decryptorFromKeyset = Cipher.getInstance("RSA");
-        decryptorFromKeyset.init(Cipher.DECRYPT_MODE, privateKey);
-        var decryptedFormKeyset = decryptorFromKeyset.doFinal(encryptedFromKeySet);
-        var asString = new String(decryptedFormKeyset, StandardCharsets.UTF_8);
-        return asString;
+        var decryptorFromKeySet = Cipher.getInstance("RSA");
+        decryptorFromKeySet.init(Cipher.DECRYPT_MODE, privateKey);
+        var decryptedFormKeySet = decryptorFromKeySet.doFinal(encryptedFromKeySet);
+        return new String(decryptedFormKeySet, StandardCharsets.UTF_8);
     }
 }

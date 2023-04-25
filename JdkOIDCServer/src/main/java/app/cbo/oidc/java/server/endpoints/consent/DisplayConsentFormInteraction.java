@@ -32,7 +32,7 @@ public class DisplayConsentFormInteraction implements Interaction {
                 .append("    <link href='/sc/pretty.css' rel='stylesheet'>").append(br)
                 .append("</head>").append(br)
                 .append("<body>").append(br)
-                .append("    <form class='container' method='POST' action='").append(ConsentHandler.CONSENT_ENPOINT).append("'>").append(br)
+                .append("    <form class='container' method='POST' action='").append(ConsentHandler.CONSENT_ENDPOINT).append("'>").append(br)
                 .append("        <input type='hidden' name='")
                 .append(ConsentParams.ONGOING)
                 .append("' value='").append(ongoingAuthId.getOngoingAuthId())

@@ -23,7 +23,7 @@ public class Codes {
     private Codes() {
     }
 
-    //TODO [14/04/2023] keep the requested scopes to generate the right idtoken
+    //TODO [14/04/2023] keep the requested scopes to generate the right idToken
     @NotNull
     public Code createFor(@NotNull UserId userId,
                           @NotNull ClientId clientId,

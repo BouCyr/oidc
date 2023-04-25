@@ -67,7 +67,7 @@ class OngoingAuthsTest {
 
 
     private AuthorizeParams createParams() {
-        AuthorizeParams p = new AuthorizeParams(
+        return new AuthorizeParams(
 
                 List.of("openid"),   //List<String> scopes,
                 List.of("rs"),  //List<String> responseTypes,
@@ -84,6 +84,5 @@ class OngoingAuthsTest {
                 Optional.of("loginHint"),//Optional<String> loginHint,
                 List.of("acrValues")//List<String> acrValues
         );
-        return p;
     }
 }

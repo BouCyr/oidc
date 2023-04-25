@@ -7,17 +7,9 @@ import app.cbo.oidc.java.server.utils.MimeType;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Optional;
-import java.util.function.Supplier;
 
-public class ResourceInteraction implements Interaction {
+public record ResourceInteraction(String path) implements Interaction {
 
-    private final String path;
-
-    public ResourceInteraction(String path) {
-        this.path = path;
-    }
 
     @Override
     public void handle(@NotNull HttpExchange exchange) throws IOException {

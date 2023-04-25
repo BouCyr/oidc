@@ -60,14 +60,9 @@ class ParamsHelperTest {
 
         server.createContext("/test", (hx) ->{
             try {
-                int i = 0;
-                System.out.println("@" + (i++));
                 Map<String, Collection<String>> params;
                 try {
-                    System.out.println("@" + (i++));
                     params = ParamsHelper.extractParams(hx);
-                    System.out.println("@" + (i++));
-
                 } catch (AuthErrorInteraction authError) {
                     authError.printStackTrace();
                     Assertions.fail("Should work");

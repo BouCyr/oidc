@@ -16,7 +16,7 @@ public class JWS {
     public static String jwsWrap(@NotNull JWA algo, @NotNull Object payload, @Nullable String keyId, @Nullable PrivateKey key) {
 
         if (algo != JWA.NONE && (keyId == null || key == null)) {
-            throw new NullPointerException("Key & keyid must be provided if alg is not 'none'");
+            throw new NullPointerException("Key & keyId must be provided if alg is not 'none'");
         }
 
         JWSHeader header = new JWSHeader(algo.rfcName(), "JWT", keyId);

@@ -13,7 +13,7 @@ public class JSON {
      * <p>
      * Numbers and String are OK ; pretty sure other base type will do something weird
      * Collections will be written as a json array
-     * Maps will be written as subobjects, with the key as field names. If key is not a string, it will probabaly crash
+     * Maps will be written as sub objects, with the key as field names. If key is not a string, it will probably crash
      * array are not supported, and will probably crash
      * not tested with java inheritance, but reflection magic may cause crash
      * <p>

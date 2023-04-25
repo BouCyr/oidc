@@ -10,7 +10,7 @@ import java.util.UUID;
 public record Session(String id, UserId userId, LocalDateTime authTime, LocalDateTime refreshTime, EnumSet<AuthenticationMode> authentications) {
     //TODO [CBO] acr level
 
-    public Session(@NotNull UserId user){
+    public Session(@NotNull UserId user) {
         this(UUID.randomUUID().toString(),
                 user,
                 LocalDateTime.now(),
@@ -18,7 +18,7 @@ public record Session(String id, UserId userId, LocalDateTime authTime, LocalDat
                 EnumSet.noneOf(AuthenticationMode.class));
     }
 
-    public Session(@NotNull Session original){
-        this(original.id(), original.userId(), original.authTime(), LocalDateTime.now(),original.authentications());
+    public static Session refreshed(@NotNull Session original) {
+        return new Session(original.id(), original.userId(), original.authTime(), LocalDateTime.now(), original.authentications());
     }
 }

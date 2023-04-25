@@ -47,7 +47,7 @@ public class AuthenticateEndpoint {
                         getClass().getClassLoader().getResourceAsStream("login.html"),
                         Map.of("__ONGOING__", params.ongoing()));
             }catch(IOException e){
-                throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to process logni template");
+                throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to process login template");
             }
         }else{
 
@@ -77,7 +77,7 @@ public class AuthenticateEndpoint {
 
             var sessionId = Sessions.getInstance().createSession(user, authentications);
             var originalAuthorizeParams = OngoingAuths.getInstance().retrieve(params::ongoing);
-            return new AuthentSuccessfulInteraction(sessionId, originalAuthorizeParams.orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to retrieve the original authorization request")));
+            return new AuthenticationSuccessfulInteraction(sessionId, originalAuthorizeParams.orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to retrieve the original authorization request")));
 
         }
 

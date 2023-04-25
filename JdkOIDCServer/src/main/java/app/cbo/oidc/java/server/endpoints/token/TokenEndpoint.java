@@ -127,7 +127,7 @@ public class TokenEndpoint {
 
     private boolean authenticateClient(String clientId, String clientSecret) {
 
-        //td check if client MUST authenticate (ClientRegirstry to be created)
+        //td check if client MUST authenticate (ClientRegistry to be created)
 
         if (clientId == null)
             return clientSecret == null;

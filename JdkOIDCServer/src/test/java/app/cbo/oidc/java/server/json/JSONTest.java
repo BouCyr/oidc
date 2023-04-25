@@ -237,7 +237,7 @@ class JSONTest {
     }
 
     @Test
-    void testException() throws IOException {
+    void testException() {
         assertThatThrownBy(() -> JSON.jsonify(new Throwing()))
                 .isInstanceOf(JsonProcessingException.class);
     }

@@ -21,7 +21,7 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
  */
 public class AuthorizeHandler implements HttpHandler {
 
-    public static final String AUTHORIZE_ENPOINT = "/authorize";
+    public static final String AUTHORIZE_ENDPOINT = "/authorize";
 
     private final AuthorizeEndpoint endpoint = AuthorizeEndpoint.getInstance();
 

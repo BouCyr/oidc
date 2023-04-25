@@ -11,10 +11,11 @@ public class EnumValuesHelper {
 
     /**
      * Converts a String to the provided enum
+     *
      * @param paramValue string (found in query string)
-     * @param values All possible values
-     * @param <E> type of the enum
-     * @return the enum value if matchig, empty if not
+     * @param values     All possible values
+     * @param <E>        type of the enum
+     * @return the enum value if matching, empty if not
      */
     @SafeVarargs
     public static <E extends Enum<E> & ParamEnum> Optional<E> fromParam(String paramValue, E... values){
@@ -25,7 +26,7 @@ public class EnumValuesHelper {
     }
 
     /**
-     * Converts some Strinsg to the provided enum
+     * Converts some Strings to the provided enum
      * @param paramValues string (found in query string)
      * @param values All possible values
      * @param <E> type of the enum

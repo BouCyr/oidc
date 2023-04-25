@@ -23,8 +23,8 @@ class JSONWriter {
         //indentation
         //not perfect, but better thant nothing
         //the JSON is copied line-by-line
-        //if the line contains '{' or '[', all subsequent lines will have more identation
-        //if the line contains '}' or ']', THIS LINE and all subsequent lines will have less identation
+        //if the line contains '{' or '[', all subsequent lines will have more indentation
+        //if the line contains '}' or ']', THIS LINE and all subsequent lines will have less indentation
         var lines = result.lines().toList();
         int idt = 0;
 
@@ -86,7 +86,7 @@ class JSONWriter {
      *
      * @param what the char looked for ; PLEASE DO NOT INPUT MORE THAN ONE CHAR :)
      * @param in   the string we are looking into
-     * @return the number of occurences of the char in the in...
+     * @return the number of occurrences of the char in the in...
      */
     private static int countOccur(String what, String in) {
         //stupid but it works

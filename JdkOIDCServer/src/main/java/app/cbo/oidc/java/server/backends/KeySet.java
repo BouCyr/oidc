@@ -18,7 +18,7 @@ public class KeySet {
     private final Map<String, KeyPair> pairs = new HashMap<>();
 
     private KeySet() {
-        KeyPairGenerator kpg = null;
+        KeyPairGenerator kpg;
         try {
             kpg = KeyPairGenerator.getInstance("RSA");
             //rfc7518 : A key of size 2048 bits or larger MUST be used with these algorithms.

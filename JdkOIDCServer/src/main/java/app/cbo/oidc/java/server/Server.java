@@ -34,15 +34,12 @@ public class Server {
     public void start() {
 
 
-        server.createContext(AuthorizeHandler.AUTHORIZE_ENPOINT, new AuthorizeHandler());
+        server.createContext(AuthorizeHandler.AUTHORIZE_ENDPOINT, new AuthorizeHandler());
         server.createContext(AuthenticateHandler.AUTHENTICATE_ENDPOINT, new AuthenticateHandler());
-        server.createContext(ConsentHandler.CONSENT_ENPOINT, new ConsentHandler());
+        server.createContext(ConsentHandler.CONSENT_ENDPOINT, new ConsentHandler());
         server.createContext(TokenHandler.TOKEN_ENDPOINT, new TokenHandler());
         server.createContext(JWKSHandler.JWKS_ENDPOINT, new JWKSHandler());
-        server.createContext("/sc/", exchange -> {
-            new ResourceInteraction(exchange.getRequestURI().getPath())
-                    .handle(exchange);
-        });
+        server.createContext("/sc/", exchange -> new ResourceInteraction(exchange.getRequestURI().getPath()).handle(exchange));
 
         server.createContext("/", new NotFoundHandler());
 

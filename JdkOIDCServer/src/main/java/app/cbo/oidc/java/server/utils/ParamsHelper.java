@@ -56,14 +56,14 @@ public class ParamsHelper {
         if(param == null ||param.isEmpty())
             return Optional.empty();
 
-        //if we have scopes=openid email&scopes=balbla, we take only the first one
+        //if we have scopes=openid email&scopes=blabla, we take only the first one
         return param.stream()
                 .filter(p -> !p.isBlank())
                 .findFirst();
     }
 
     /**
-     * @param spaceSeparatedList A string containing several space separataed values (eg "one two three")
+     * @param spaceSeparatedList A string containing several space separated values (eg "one two three")
      * @return A list of all non blank non empty values, in order they were found in the source string
      */
     public static List<String> spaceSeparatedList(String spaceSeparatedList){

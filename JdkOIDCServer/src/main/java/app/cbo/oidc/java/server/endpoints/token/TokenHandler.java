@@ -42,7 +42,7 @@ public class TokenHandler implements HttpHandler {
                     .handle(exchange);
 
 
-        } catch (AuthErrorInteraction | JsonError errorInteraction) {
+        } catch (AuthErrorInteraction errorInteraction) {
             errorInteraction.handle(exchange);
         } catch (Exception e) {
             System.out.println("?");

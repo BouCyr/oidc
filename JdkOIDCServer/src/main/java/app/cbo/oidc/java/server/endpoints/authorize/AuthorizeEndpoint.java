@@ -51,7 +51,7 @@ public class AuthorizeEndpoint {
         //check their validity
         AuthorizeParams.checkParams(params);
         LOGGER.info("Request params are valid");
-        //deduce the requested flow from responsetypes
+        //deduce the requested flow from response types
         OIDCFlow flow = OIDCFlow.fromResponseType(params.responseTypes(), params);
         LOGGER.info("Selected OIDC flow is "+flow.name());
 
@@ -75,7 +75,7 @@ public class AuthorizeEndpoint {
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.access_denied, "Requested no interaction with no authenticated userId", params);
         }
         if(userSession.isEmpty() || params.prompt().contains(OIDCPromptValues.LOGIN)){
-            LOGGER.info("User has no session or client required reauthentication. Redirect to login page");
+            LOGGER.info("User has no session or client required new authentication. Redirect to login page");
             return new RedirectToLoginInteraction(params);
         }
 
@@ -91,7 +91,7 @@ public class AuthorizeEndpoint {
             try{
                 maxAge = Long.parseLong(params.maxAge().get());
             }catch(NumberFormatException e){
-                throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "max_age should be parseable as a long");
+                throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "max_age should be parsable as a long");
             }
             var sessionAge = Duration.between(session.authTime(), LocalDateTime.now());
             if(sessionAge.toSeconds() > maxAge ){
@@ -99,7 +99,7 @@ public class AuthorizeEndpoint {
             }
         }
 
-        //TODO [20/03/2023] check ACR - if current authent has acr < requested, a new authentication should be done with the "updated" acr value check
+        //TODO [20/03/2023] check ACR - if current authentication has acr < requested, a new authentication should be done with the "updated" acr value check
         //[03/04/2023] OIDC specs is not very clear...
 
         LOGGER.info("User has a valid, active session matching the client requirements");
@@ -120,7 +120,7 @@ public class AuthorizeEndpoint {
         } else {
             LOGGER.info("Client is requesting scopes the userId has not yet consented to transmit.");
             return RedirectInteraction.internal(
-                    ConsentHandler.CONSENT_ENPOINT,
+                    ConsentHandler.CONSENT_ENDPOINT,
                     params,
                     Map.of(
                             ConsentParams.SCOPES_REQUESTED, String.join(" ", notYetConsentedTo),

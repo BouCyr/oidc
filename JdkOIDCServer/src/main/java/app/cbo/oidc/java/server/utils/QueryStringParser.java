@@ -21,10 +21,9 @@ public class QueryStringParser {
                 .collect(Collectors.toList());
 
         final Map<String, Collection<String>> result = new HashMap<>();
-        params.forEach(param -> {
-            result.computeIfAbsent(param.left(), k -> new ArrayList<>())
-                    .add(param.right());
-        });
+        params
+                .forEach(param -> result.computeIfAbsent(param.left(), k -> new ArrayList<>())
+                        .add(param.right()));
         return result;
     }
 

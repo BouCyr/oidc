@@ -13,18 +13,16 @@ import java.util.stream.Collectors;
 
 @Deprecated //better to craft dedicated interaction for each case
 public record RedirectInteraction(String uri,
-                                  AuthorizeParams originalRarams,
+                                  AuthorizeParams originalParams,
                                   Map<String, String> redirectParams,
                                   boolean internal) implements Interaction {
 
 
-
-
-    public static RedirectInteraction internal(String uri, AuthorizeParams originalRarams, Map<String, String> redirectParams){
-        return new RedirectInteraction(uri, originalRarams, redirectParams, true);
+    public static RedirectInteraction internal(String uri, AuthorizeParams originalParams, Map<String, String> redirectParams) {
+        return new RedirectInteraction(uri, originalParams, redirectParams, true);
     }
 
-    public static RedirectInteraction external(String uri, Map<String, String> redirectParams){
+    public static RedirectInteraction external(String uri, Map<String, String> redirectParams) {
         return new RedirectInteraction(uri, null, redirectParams, false);
     }
 
@@ -35,7 +33,7 @@ public record RedirectInteraction(String uri,
         Map<String, String> actualRedirectParams = new HashMap<>(this.redirectParams());
         if(this.internal()) {
             //if internal redirect, store the initial authentication request sent by the client somewhere, to be able to carry on
-            var ongoing = OngoingAuths.getInstance().store(originalRarams);
+            var ongoing = OngoingAuths.getInstance().store(originalParams);
             actualRedirectParams.put("ongoing", ongoing.getOngoingAuthId());
         }
 

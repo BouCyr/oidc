@@ -6,7 +6,8 @@ public class QueryStringBuilder {
     private final StringBuilder builder=new StringBuilder();
 
     /**
-     * Append an item to the querystring
+     * Append an item to the queryString
+     *
      * @param fullParam formatted param (with both key & value : 'test=tested'
      * @return this
      */

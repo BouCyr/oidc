@@ -21,7 +21,7 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 
 public class ConsentHandler implements HttpHandler {
 
-    public static final String CONSENT_ENPOINT = "/consent";
+    public static final String CONSENT_ENDPOINT = "/consent";
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -36,7 +36,7 @@ public class ConsentHandler implements HttpHandler {
                         .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Cannot retrieve current authorization in request"));
 
                 var ongoingRequest = OngoingAuths.getInstance().retrieve(OngoingAuthId.of(ongoingId))
-                        .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Cannot retrieve current authorizationin storage"));
+                        .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Cannot retrieve current authorization in storage"));
 
                 var requested = Set.copyOf(ongoingRequest.scopes());
 

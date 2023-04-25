@@ -29,9 +29,9 @@ class CodesTest {
                 SCOPES,
                 UUID.randomUUID().toString());
 
-        var userIdfoundBack = Codes.getInstance().consume(
+        var userIdFoundBack = Codes.getInstance().consume(
                 code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
-        assertThat(userIdfoundBack)
+        assertThat(userIdFoundBack)
                 .isPresent()
                 .get()
                 .extracting(codeData -> codeData.userId().getUserId())
@@ -45,8 +45,8 @@ class CodesTest {
                 SessionId.of(THE_SESSION_ID),
                 REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
 
-        var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
-        assertThat(userIdfoundBack)
+        var userIdFoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
+        assertThat(userIdFoundBack)
                 .isPresent();
 
         var replay = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
@@ -61,8 +61,8 @@ class CodesTest {
                 SessionId.of(THE_SESSION_ID),
                 REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
 
-        var userIdfoundBack = Codes.getInstance().consume(Code.of("??"), ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
-        assertThat(userIdfoundBack)
+        var userIdFoundBack = Codes.getInstance().consume(Code.of("??"), ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
+        assertThat(userIdFoundBack)
                 .isEmpty();
     }
 
@@ -73,8 +73,8 @@ class CodesTest {
                 SessionId.of(THE_SESSION_ID),
                 REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
 
-        var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of("ANOTHER_client_id"), REDIRECT_URI);
-        assertThat(userIdfoundBack)
+        var userIdFoundBack = Codes.getInstance().consume(code, ClientId.of("ANOTHER_client_id"), REDIRECT_URI);
+        assertThat(userIdFoundBack)
                 .isEmpty();
     }
 
@@ -84,8 +84,8 @@ class CodesTest {
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID), REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
 
-        var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), "http://zombiecool.su");
-        assertThat(userIdfoundBack)
+        var userIdFoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), "http://zombiecool.su");
+        assertThat(userIdFoundBack)
                 .isEmpty();
     }
 
@@ -119,8 +119,8 @@ class CodesTest {
         assertThat(Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), null))
                 .isEmpty();
 
-        var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
-        assertThat(userIdfoundBack)
+        var userIdFoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
+        assertThat(userIdFoundBack)
                 .isNotEmpty();
     }
 

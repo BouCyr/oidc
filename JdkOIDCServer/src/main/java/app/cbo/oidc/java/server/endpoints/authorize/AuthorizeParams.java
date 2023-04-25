@@ -62,7 +62,8 @@ public record AuthorizeParams(
     }
 
     /**
-     * Checks wether the params were correctly filled by the client
+     * Checks whether the params were correctly filled by the client
+     *
      * @param p the parsed params
      * @throws AuthErrorInteraction if some params were invalid
      */
@@ -96,7 +97,7 @@ public record AuthorizeParams(
     }
 
     /**
-     * Checks wether the params were correctly filled by the client FOR THIS PARTICULAR FLOW
+     * Checks whether the params were correctly filled by the client FOR THIS PARTICULAR FLOW
      * @param flow the requested flow
      * @param params the authentication request params
      * @throws AuthErrorInteraction if some params were invalid

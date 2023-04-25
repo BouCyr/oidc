@@ -13,7 +13,7 @@ public record ConsentGivenInteraction(AuthorizeParams params) implements Interac
 
     @Override
     public void handle(@NotNull HttpExchange exchange) throws IOException {
-        exchange.getResponseHeaders().add("Location", AuthorizeHandler.AUTHORIZE_ENPOINT + "?" + params.toQueryString());
+        exchange.getResponseHeaders().add("Location", AuthorizeHandler.AUTHORIZE_ENDPOINT + "?" + params.toQueryString());
         exchange.sendResponseHeaders(HttpCode.FOUND.code(), 0);
         exchange.getResponseBody().flush();
         exchange.getResponseBody().close();

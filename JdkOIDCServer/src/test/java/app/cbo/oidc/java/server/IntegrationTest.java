@@ -71,7 +71,6 @@ public class IntegrationTest {
                 .POST(HttpRequest.BodyPublishers.ofString("backFromForm=true&scope_openid=on&scope_profile=on&ongoing=" + consentOngoing))
                 .build();
 
-        //TODO [07/04/2023] redirecturi is "toto
         var codeSentToClient = followRedirects(browser, consentRequest);
 
         codeSentToClient.toString();
@@ -81,8 +80,8 @@ public class IntegrationTest {
     private String readOngoingInputField(String html) {
 
         //<input type='hidden' name='ongoing' value='ee736adf-e95c-46b6-afa2-d7c49efeb2ec' />
-        var ongoingInputindex = html.indexOf("<input type='hidden' name='ongoing' value='");
-        var ongoingField = html.substring(ongoingInputindex);
+        var ongoingInputIndex = html.indexOf("<input type='hidden' name='ongoing' value='");
+        var ongoingField = html.substring(ongoingInputIndex);
         ongoingField = ongoingField.substring(ongoingField.indexOf("value='") + "value='".length());
         ongoingField = ongoingField.substring(0, ongoingField.indexOf("'"));
         return ongoingField;
@@ -116,7 +115,7 @@ public class IntegrationTest {
         String sessionId = null;
 
         @Override
-        public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) throws IOException {
+        public Map<String, List<String>> get(URI uri, Map<String, List<String>> requestHeaders) {
 
             if (sessionId != null)
                 return Map.of("Cookie", List.of(sessionId));
@@ -124,14 +123,13 @@ public class IntegrationTest {
         }
 
         @Override
-        public void put(URI uri, Map<String, List<String>> responseHeaders) throws IOException {
+        public void put(URI uri, Map<String, List<String>> responseHeaders) {
 
-            if(responseHeaders.containsKey("set-cookie"))
-            {
+            if (responseHeaders.containsKey("set-cookie")) {
                 responseHeaders.get("set-cookie")
                         .stream()
                         .filter(s -> s.startsWith("sessionId="))
-                        .findAny().ifPresent(s -> this.sessionId=s);
+                        .findAny().ifPresent(s -> this.sessionId = s);
             }
 
         }
