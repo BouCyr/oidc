@@ -4,6 +4,7 @@ import app.cbo.oidc.java.server.oidc.tokens.IdToken;
 import com.auth0.jwt.algorithms.Algorithm;
 import org.junit.jupiter.api.Test;
 
+import java.net.MalformedURLException;
 import java.security.InvalidKeyException;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -41,9 +42,9 @@ class JwtTest {
     }
 
     @Test
-    void wrongKey() throws NoSuchAlgorithmException {
+    void wrongKey() throws NoSuchAlgorithmException, MalformedURLException {
         var ecdsaPriv = KeyPairGenerator.getInstance("EC").generateKeyPair().getPrivate();
-        IdToken payload = new IdToken("cyrille", "auth0");
+        IdToken payload = new IdToken("cyrille", "http://auth0.com");
         assertThatThrownBy(() -> JWS.jwsWrap(JWA.RS256, payload, "kid", ecdsaPriv))
                 .isInstanceOf(RuntimeException.class)
                 .hasRootCauseInstanceOf(InvalidKeyException.class);
@@ -52,7 +53,7 @@ class JwtTest {
     @Test
     void none() {
 
-        IdToken payload = new IdToken("cyrille", "auth0");
+        IdToken payload = new IdToken("cyrille", "http://auth0.com");
 
         String token = JWS.jwsWrap(JWA.NONE, payload, null, null);
 
@@ -71,7 +72,7 @@ class JwtTest {
     @Test
     void RSA256() {
 
-        IdToken payload = new IdToken("cyrille", "auth0");
+        IdToken payload = new IdToken("cyrille", "http://auth0.com");
         String token = JWS.jwsWrap(JWA.RS256, payload, "kid", this.privateK);
 
         var decoded = com.auth0.jwt.JWT.decode(token);

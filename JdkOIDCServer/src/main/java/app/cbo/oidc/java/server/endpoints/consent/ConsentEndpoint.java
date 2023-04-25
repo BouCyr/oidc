@@ -29,11 +29,11 @@ public class ConsentEndpoint {
             @NotNull Optional<Session> maybeSession,
             @NotNull ConsentParams params) throws AuthErrorInteraction {
 
-        if(Utils.isBlank(params.clientId())) {
+        if (Utils.isBlank(params.clientId())) {
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.unauthorized_client, "Unable to retrieve clientId");
-        }else if(maybeSession.isEmpty()){
+        } else if (maybeSession.isEmpty()) {
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to handle consents without valid authentication");
-        }else if(params.scopesRequested().isEmpty()){
+        } else if (params.scopesRequested().isEmpty()) {
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "No requested scopes found");
         }
 

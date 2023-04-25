@@ -7,13 +7,15 @@ import app.cbo.oidc.java.server.credentials.PasswordEncoder;
 import app.cbo.oidc.java.server.credentials.TOTP;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
-import app.cbo.oidc.java.server.endpoints.HTMLInteraction;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import static app.cbo.oidc.java.server.credentials.AuthenticationMode.*;
@@ -75,7 +77,7 @@ public class AuthenticateEndpoint {
 
             var sessionId = Sessions.getInstance().createSession(user, authentications);
             var originalAuthorizeParams = OngoingAuths.getInstance().retrieve(params::ongoing);
-            return new AuthentSuccessfulInteraction(sessionId, originalAuthorizeParams.orElseThrow(()->new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to retrieve the original auhtorization request")));
+            return new AuthentSuccessfulInteraction(sessionId, originalAuthorizeParams.orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to retrieve the original authorization request")));
 
         }
 

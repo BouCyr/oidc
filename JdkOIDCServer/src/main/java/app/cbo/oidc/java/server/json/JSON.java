@@ -19,8 +19,8 @@ public class JSON {
      * <p>
      * i.e. do not reuse this code :)
      */
-    public static @NotNull
-    String jsonify(@NotNull Object o) {
+    @NotNull
+    public static String jsonify(@NotNull Object o) {
         return JSONWriter.writeIndented(o);
     }
 }

@@ -4,6 +4,7 @@ import app.cbo.oidc.java.server.endpoints.ResourceInteraction;
 import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateHandler;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
 import app.cbo.oidc.java.server.endpoints.consent.ConsentHandler;
+import app.cbo.oidc.java.server.endpoints.jwks.JWKSHandler;
 import app.cbo.oidc.java.server.endpoints.token.TokenHandler;
 import com.sun.net.httpserver.HttpServer;
 
@@ -37,18 +38,13 @@ public class Server {
         server.createContext(AuthenticateHandler.AUTHENTICATE_ENDPOINT, new AuthenticateHandler());
         server.createContext(ConsentHandler.CONSENT_ENPOINT, new ConsentHandler());
         server.createContext(TokenHandler.TOKEN_ENDPOINT, new TokenHandler());
+        server.createContext(JWKSHandler.JWKS_ENDPOINT, new JWKSHandler());
         server.createContext("/sc/", exchange -> {
             new ResourceInteraction(exchange.getRequestURI().getPath())
                     .handle(exchange);
         });
 
-        server.createContext("/", exchange -> {
-            LOGGER.info("404 on " + exchange.getRequestURI().toString());
-            exchange.sendResponseHeaders(404, 0);
-            exchange.getResponseBody().flush();
-            exchange.getResponseBody().close();
-            return;
-        } );
+        server.createContext("/", new NotFoundHandler());
 
         // start the server
         server.start();

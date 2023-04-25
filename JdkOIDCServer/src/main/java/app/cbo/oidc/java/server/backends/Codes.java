@@ -2,6 +2,7 @@ package app.cbo.oidc.java.server.backends;
 
 import app.cbo.oidc.java.server.datastored.*;
 import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.jsr305.Nullable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.util.*;
@@ -23,12 +24,13 @@ public class Codes {
     }
 
     //TODO [14/04/2023] keep the requested scopes to generate the right idtoken
-    public @NotNull
-    Code createFor(@NotNull UserId userId,
-                   @NotNull ClientId clientId,
-                   @NotNull SessionId sessionId,
-                   @NotNull String redirectUri,
-                   @NotNull List<String> scopes) {
+    @NotNull
+    public Code createFor(@NotNull UserId userId,
+                          @NotNull ClientId clientId,
+                          @NotNull SessionId sessionId,
+                          @NotNull String redirectUri,
+                          @NotNull List<String> scopes,
+                          @Nullable String nonce) {
 
         if (userId.getUserId() == null || clientId.getClientId() == null || Utils.isBlank(redirectUri)) {
             throw new NullPointerException("Input cannot be null");
@@ -36,14 +38,14 @@ public class Codes {
 
         Code code = Code.of(UUID.randomUUID().toString());
 
-        store.put(this.computeKey(code, clientId, redirectUri), new CodeData(userId, sessionId, scopes));
+        store.put(this.computeKey(code, clientId, redirectUri), new CodeData(userId, sessionId, scopes, nonce));
 
         return code;
 
     }
 
-    public @NotNull
-    Optional<CodeData> consume(@NotNull Code code, @NotNull ClientId clientId, @NotNull String redirectUri) {
+    @NotNull
+    public Optional<CodeData> consume(@NotNull Code code, @NotNull ClientId clientId, @NotNull String redirectUri) {
 
         if (code.getCode() == null || clientId.getClientId() == null || Utils.isBlank(redirectUri)) {
             return Optional.empty();
@@ -53,8 +55,8 @@ public class Codes {
     }
 
     //code is only valid for ONE client_id
-    private @NotNull
-    String computeKey(
+    @NotNull
+    private String computeKey(
             @NotNull Code code,
             @NotNull ClientId clientId,
             @NotNull String redirectURi) {

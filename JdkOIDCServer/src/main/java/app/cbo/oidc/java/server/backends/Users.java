@@ -23,7 +23,8 @@ public class Users {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();
 
-    public @NotNull Optional<User> find(@NotNull UserId userId) {
+    @NotNull
+    public Optional<User> find(@NotNull UserId userId) {
         return Optional.ofNullable(this.users.get(userId.getUserId()));
     }
 

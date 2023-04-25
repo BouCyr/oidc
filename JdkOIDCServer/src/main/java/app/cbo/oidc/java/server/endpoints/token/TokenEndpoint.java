@@ -18,9 +18,7 @@ import app.cbo.oidc.java.server.utils.HttpCode;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -86,15 +84,16 @@ public class TokenEndpoint {
         var session = Sessions.getInstance().find(codeData.sessionId())
                 .orElseThrow(() -> new JsonError(HttpCode.BAD_REQUEST, AuthErrorInteraction.Code.invalid_grant.name()));
 
+        var clock = Clock.systemUTC();
 
         var idToken = new IdToken(
                 user.sub(),
-                "ME",//TODO [14/04/2023]
+                "http://localhost:4951",//TODO [14/04/2023] props ?
                 List.of(clientId.getClientId()),
-                LocalDateTime.now().plusMinutes(5L).toEpochSecond(ZoneOffset.UTC), //TODO [14/04/2023]
-                LocalDateTime.now().toEpochSecond(ZoneOffset.UTC),
+                Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(), //TODO [14/04/2023] props?
+                Instant.now(clock).getEpochSecond(),
                 session.authTime().toEpochSecond(ZoneOffset.UTC),
-                Optional.empty(), //TODO [14/04/2023]
+                Optional.of(codeData.nonce()),
                 "level" + session.authentications().size(),
                 session.authentications().stream().map(Enum::name).toList(),
                 Optional.of(clientId.getClientId()));

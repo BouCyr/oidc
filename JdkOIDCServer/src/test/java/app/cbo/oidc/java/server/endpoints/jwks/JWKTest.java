@@ -2,7 +2,7 @@ package app.cbo.oidc.java.server.endpoints.jwks;
 
 import app.cbo.oidc.java.server.backends.KeySet;
 import app.cbo.oidc.java.server.json.JSON;
-import app.cbo.oidc.java.server.jwt.JWKRsa;
+import app.cbo.oidc.java.server.jwt.JWK;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.KeyUse;
@@ -20,7 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
-class JWKRsaTest {
+class JWKTest {
 
     public static final String PAYLOAD = "Hello darkness my old friend";
 
@@ -52,7 +52,7 @@ class JWKRsaTest {
         var publicKeyFromNimbus = RSAKey.parse(theirsAsJson);
 
         //JWK build using our code
-        var mine = new JWKRsa(kid.getKeyId(), (RSAPublicKey) publicKey);
+        var mine = JWK.rsaPublicKey(kid.getKeyId(), (RSAPublicKey) publicKey);
         var mineJson = JSON.jsonify(mine);
 
         System.out.println("AS COMPUTED BY OUR CODE (jdk impl.):");

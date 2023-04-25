@@ -102,8 +102,8 @@ class JSONWriter {
         return Set.of("toString", "hashCode", "getClass").contains(methodName);
     }
 
-    private static @NotNull
-    String toJson(@NotNull NameAndValue node) {
+    @NotNull
+    private static String toJson(@NotNull NameAndValue node) {
         var buffer = new StringBuilder();
 
 

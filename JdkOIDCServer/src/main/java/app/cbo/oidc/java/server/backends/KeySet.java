@@ -2,8 +2,11 @@ package app.cbo.oidc.java.server.backends;
 
 import app.cbo.oidc.java.server.datastored.KeyId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.jwt.JWK;
+import app.cbo.oidc.java.server.jwt.JWKSet;
 
 import java.security.*;
+import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -39,18 +42,27 @@ public class KeySet {
         return instance;
     }
 
-    public @NotNull
-    KeyId current() {
+    @NotNull
+    public JWKSet asJWKSet() {
+        return new JWKSet(pairs.entrySet().stream()
+                .filter(kp -> kp.getValue().getPublic() instanceof RSAPublicKey)
+                .map(kp -> JWK.rsaPublicKey(kp.getKey(), (RSAPublicKey) kp.getValue().getPublic()))
+                .toList());
+    }
+
+    @NotNull
+    public KeyId current() {
         return this.currentKp;
     }
 
-    public @NotNull
-    Optional<PrivateKey> privateKey(@NotNull KeyId keyId) {
+    @NotNull
+    public Optional<PrivateKey> privateKey(@NotNull KeyId keyId) {
         return Optional.ofNullable(pairs.get(keyId.getKeyId())).map(KeyPair::getPrivate);
     }
 
-    public @NotNull
-    Optional<PublicKey> publicKey(@NotNull KeyId keyId) {
+    @NotNull
+    public Optional<PublicKey> publicKey(@NotNull KeyId keyId) {
         return Optional.ofNullable(pairs.get(keyId.getKeyId())).map(KeyPair::getPublic);
     }
+
 }

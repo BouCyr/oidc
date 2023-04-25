@@ -7,6 +7,7 @@ import app.cbo.oidc.java.server.datastored.UserId;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,7 +26,8 @@ class CodesTest {
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
                 REDIRECT_URI,
-                SCOPES);
+                SCOPES,
+                UUID.randomUUID().toString());
 
         var userIdfoundBack = Codes.getInstance().consume(
                 code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
@@ -41,7 +43,7 @@ class CodesTest {
         var code = Codes.getInstance().createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
-                REDIRECT_URI, SCOPES);
+                REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
 
         var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(userIdfoundBack)
@@ -57,7 +59,7 @@ class CodesTest {
         var code = Codes.getInstance().createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
-                REDIRECT_URI, SCOPES);
+                REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
 
         var userIdfoundBack = Codes.getInstance().consume(Code.of("??"), ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(userIdfoundBack)
@@ -69,7 +71,7 @@ class CodesTest {
         var code = Codes.getInstance().createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
-                REDIRECT_URI, SCOPES);
+                REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
 
         var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of("ANOTHER_client_id"), REDIRECT_URI);
         assertThat(userIdfoundBack)
@@ -80,7 +82,7 @@ class CodesTest {
     void wrong_redirectUri() {
         var code = Codes.getInstance().createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
-                SessionId.of(THE_SESSION_ID), REDIRECT_URI, SCOPES);
+                SessionId.of(THE_SESSION_ID), REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
 
         var userIdfoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), "http://zombiecool.su");
         assertThat(userIdfoundBack)
@@ -89,13 +91,13 @@ class CodesTest {
 
     @Test
     void nullability_create() {
-        assertThatThrownBy(() -> Codes.getInstance().createFor(null, null, null, null, null))
+        assertThatThrownBy(() -> Codes.getInstance().createFor(null, null, null, null, null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> Codes.getInstance().createFor(UserId.of(BOB), null, null, null, null))
+        assertThatThrownBy(() -> Codes.getInstance().createFor(UserId.of(BOB), null, null, null, null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> Codes.getInstance().createFor(null, ClientId.of(THE_CLIENT_ID), null, null, null))
+        assertThatThrownBy(() -> Codes.getInstance().createFor(null, ClientId.of(THE_CLIENT_ID), null, null, null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> Codes.getInstance().createFor(null, null, null, REDIRECT_URI, null))
+        assertThatThrownBy(() -> Codes.getInstance().createFor(null, null, null, REDIRECT_URI, null, null))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -105,7 +107,7 @@ class CodesTest {
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
                 REDIRECT_URI,
-                SCOPES);
+                SCOPES, UUID.randomUUID().toString());
 
         assertThatThrownBy(() -> Codes.getInstance().consume(null, null, null))
                 .isInstanceOf(NullPointerException.class);

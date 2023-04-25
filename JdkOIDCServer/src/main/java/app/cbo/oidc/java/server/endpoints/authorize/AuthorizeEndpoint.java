@@ -155,7 +155,8 @@ public class AuthorizeEndpoint {
                 ClientId.of(originalParams.clientId().orElse("")),
                 SessionId.of(session.id()),
                 originalParams.redirectUri().orElse(""),
-                originalParams.scopes());
+                originalParams.scopes(),
+                originalParams.nonce().orElse(null));
         Map<String, String> params = new HashMap<>();
         params.put("code", authCode.getCode());
         if (originalParams.state().isPresent()) {

@@ -3,7 +3,7 @@ package app.cbo.oidc.java.server.jwt;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Base64;
 
-public record JWKRsa(String kty, String use, String alg, String kid, String n, String e) {
+public record JWK(String kty, String use, String alg, String kid, String n, String e) {
     /*
     https://www.rfc-editor.org/rfc/rfc7517#page-5
     {"kty":"EC",
@@ -16,7 +16,7 @@ public record JWKRsa(String kty, String use, String alg, String kid, String n, S
     //cf https://www.rfc-editor.org/rfc/rfc7518#section-6.3
 
 
-    public JWKRsa(String kid, RSAPublicKey publicKey) {
+    public static JWK rsaPublicKey(String kid, RSAPublicKey publicKey) {
         //[24/04/2023] I read:
         //https://datatracker.ietf.org/doc/html/rfc7518#page-30
         // > The "n" (modulus) parameter contains the modulus value for the RSA public key.  It is represented as a Base64urlUInt-encoded value.
@@ -25,7 +25,7 @@ public record JWKRsa(String kty, String use, String alg, String kid, String n, S
         // My first impl 'Base64.getUrlEncoder().encodeToString(publicKey.getModulus().toByteArray())' somehow works straight away...
 
 
-        this(JWA.RS256.type(), "sig", JWA.RS256.rfcName(), kid,
+        return new JWK(JWA.RS256.type(), "sig", JWA.RS256.rfcName(), kid,
                 Base64.getUrlEncoder().encodeToString(publicKey.getModulus().toByteArray()),
                 Base64.getUrlEncoder().encodeToString(publicKey.getPublicExponent().toByteArray()));
     }
