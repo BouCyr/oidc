@@ -52,7 +52,7 @@ public class Sessions {
     private void refresh(@NotNull Session session) {
         if(session == null)
             throw new NullPointerException("session cannot be null");
-        var updated= new Session(session);
+        var updated = Session.refreshed(session);
         this.sessions.put(session.id(), updated);
     }
 

@@ -12,8 +12,10 @@ import java.util.Base64;
 public class JWS {
 
 
-    //TODO [13/04/2023] only pass keyId, switch to state component with a dep. on keystore
-    public static String jwsWrap(@NotNull JWA algo, @NotNull Object payload, @Nullable String keyId, @Nullable PrivateKey key) {
+    public static String jwsWrap(@NotNull JWA algo,
+                                 @NotNull Object payload,
+                                 @Nullable String keyId,
+                                 @Nullable PrivateKey key) {
 
         if (algo != JWA.NONE && (keyId == null || key == null)) {
             throw new NullPointerException("Key & keyId must be provided if alg is not 'none'");

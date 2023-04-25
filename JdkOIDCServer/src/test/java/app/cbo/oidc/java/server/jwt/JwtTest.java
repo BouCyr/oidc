@@ -57,13 +57,13 @@ class JwtTest {
         String token = JWS.jwsWrap(JWA.NONE, payload, null, null);
 
         var decoded = com.auth0.jwt.JWT.decode(token);
-        assertThat(decoded.getIssuer()).isEqualTo("auth0");
+        assertThat(decoded.getIssuer()).isEqualTo("http://auth0.com");
         assertThat(decoded.getSubject()).isEqualTo("cyrille");
 
         var verifier = com.auth0.jwt.JWT.require(Algorithm.none()).build();
         var verified = verifier.verify(token);
 
-        assertThat(verified.getIssuer()).isEqualTo("auth0");
+        assertThat(verified.getIssuer()).isEqualTo("http://auth0.com");
         assertThat(verified.getSubject()).isEqualTo("cyrille");
 
     }
@@ -75,13 +75,13 @@ class JwtTest {
         String token = JWS.jwsWrap(JWA.RS256, payload, "kid", this.privateK);
 
         var decoded = com.auth0.jwt.JWT.decode(token);
-        assertThat(decoded.getIssuer()).isEqualTo("auth0");
+        assertThat(decoded.getIssuer()).isEqualTo("http://auth0.com");
         assertThat(decoded.getSubject()).isEqualTo("cyrille");
 
         var verifier = com.auth0.jwt.JWT.require(Algorithm.RSA256(this.publicK, this.privateK)).build();
         var verified = verifier.verify(token);
 
-        assertThat(verified.getIssuer()).isEqualTo("auth0");
+        assertThat(verified.getIssuer()).isEqualTo("http://auth0.com");
         assertThat(verified.getSubject()).isEqualTo("cyrille");
 
     }
