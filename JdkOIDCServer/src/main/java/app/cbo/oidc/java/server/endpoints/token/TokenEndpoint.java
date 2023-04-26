@@ -8,6 +8,7 @@ import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Code;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.endpoints.Interaction;
+import app.cbo.oidc.java.server.json.JSON;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
 import app.cbo.oidc.java.server.jwt.JWA;
@@ -19,6 +20,7 @@ import app.cbo.oidc.java.server.utils.HttpCode;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -52,20 +54,25 @@ public class TokenEndpoint {
         Verify that the Authorization Code used was issued in response to an OpenID Connect Authentication Request (so that an ID Token will be returned from the Token Endpoint).
         */
 
+        LOGGER.info(("'+" + authClientId + "' tries to consume a code"));
 
         //Are the client credentials OK ? (none would be OK for the moment)
         if (!this.authenticateClient(authClientId, clientSecret)) {
+            LOGGER.info("Invalid client credentials");
             return new JsonError(HttpCode.BAD_REQUEST, AuthErrorInteraction.Code.access_denied.name());
         }
+        LOGGER.info("Client is authenticated");
 
         //if client id is in both params and authorization header, do they match ?
         if (authClientId != null && params.clientId() != null && !authClientId.equals(params.clientId())) {
+            LOGGER.info("Client id does not match the client  the code was generated for");
             return new JsonError(HttpCode.BAD_REQUEST, AuthErrorInteraction.Code.invalid_request.name());
         }
 
         //have we at least one clientId somewhere ?
         if (authClientId == null && params.clientId() == null) {
-            return new JsonError(HttpCode.BAD_REQUEST, AuthErrorInteraction.Code.invalid_request.name());
+            LOGGER.info("Client id not present");
+            return new JsonError(HttpCode.BAD_REQUEST, "clientid not present");
         }
 
         //the clientId may be found in credentials OR in the params.
@@ -73,16 +80,25 @@ public class TokenEndpoint {
         var clientId = ClientId.of(authClientId != null ? authClientId : params.clientId());
 
 
+        if (params.redirectUri() == null) {
+            throw new JsonError(HttpCode.BAD_REQUEST, "redirecturi not present");
+        }
+        if (params.grantType() == null) {
+            throw new JsonError(HttpCode.BAD_REQUEST, "grantype not present");
+        }
+
+
         var codeData = Codes.getInstance().consume(Code.of(params.code()), clientId, URLDecoder.decode(params.redirectUri(), StandardCharsets.UTF_8))
                 .orElseThrow(() -> new JsonError(HttpCode.BAD_REQUEST, AuthErrorInteraction.Code.invalid_grant.name()));
-
+        LOGGER.info("Code is retrieved");
 
         var user = Users.getInstance().find(codeData.userId())
                 .orElseThrow(() -> new JsonError(HttpCode.BAD_REQUEST, AuthErrorInteraction.Code.invalid_grant.name()));
-
+        LOGGER.info("User is found");
 
         var session = Sessions.getInstance().find(codeData.sessionId())
                 .orElseThrow(() -> new JsonError(HttpCode.BAD_REQUEST, AuthErrorInteraction.Code.invalid_grant.name()));
+        LOGGER.info("User session the code was generated from is found");
 
         var clock = Clock.systemUTC();
 
@@ -96,7 +112,12 @@ public class TokenEndpoint {
                 Optional.of(codeData.nonce()),
                 "level" + session.authentications().size(),
                 session.authentications().stream().map(Enum::name).toList(),
-                Optional.of(clientId.getClientId()));
+                Optional.of(clientId.getClientId()),
+                new HashMap<>());
+
+
+        LOGGER.info("idToken is : " + JSON.jsonify(idToken));
+        idToken.extranodes().put("at_hash", "rooooo"); //TODO [25/04/2023]
 
         //access and refresh tokens will be transmitted as JWS, so we do not have to store them
         //any token received will be valid if signature is OK.

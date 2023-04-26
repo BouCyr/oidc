@@ -9,7 +9,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Base64;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -18,6 +18,21 @@ class JwtTest {
 
     private final RSAPrivateKey privateK;
     private final RSAPublicKey publicK;
+
+    static IdToken testToken(String sub, String iss) {
+        return new IdToken(sub,
+                iss,
+                Collections.emptyList(),
+                5 * 60 + new Date().getTime() / 1000,
+                new Date().getTime() / 1000,
+                new Date().getTime() / 1000,
+                Optional.of("nonce"),
+                "NONE",
+                Collections.emptyList(),
+                Optional.empty(),
+                new HashMap<>()
+        );
+    }
 
 
     JwtTest() throws NoSuchAlgorithmException {
@@ -43,7 +58,7 @@ class JwtTest {
     @Test
     void wrongKey() throws NoSuchAlgorithmException {
         var ecdsaPriv = KeyPairGenerator.getInstance("EC").generateKeyPair().getPrivate();
-        IdToken payload = new IdToken("cyrille", "http://auth0.com");
+        IdToken payload = testToken("cyrille", "http://auth0.com");
         assertThatThrownBy(() -> JWS.jwsWrap(JWA.RS256, payload, "kid", ecdsaPriv))
                 .isInstanceOf(RuntimeException.class)
                 .hasRootCauseInstanceOf(InvalidKeyException.class);
@@ -52,7 +67,7 @@ class JwtTest {
     @Test
     void none() {
 
-        IdToken payload = new IdToken("cyrille", "http://auth0.com");
+        IdToken payload = testToken("cyrille", "http://auth0.com");
 
         String token = JWS.jwsWrap(JWA.NONE, payload, null, null);
 
@@ -71,7 +86,7 @@ class JwtTest {
     @Test
     void RSA256() {
 
-        IdToken payload = new IdToken("cyrille", "http://auth0.com");
+        IdToken payload = testToken("cyrille", "http://auth0.com");
         String token = JWS.jwsWrap(JWA.RS256, payload, "kid", this.privateK);
 
         var decoded = com.auth0.jwt.JWT.decode(token);

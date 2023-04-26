@@ -1,8 +1,9 @@
 package app.cbo.oidc.java.server.oidc.tokens;
 
-import java.util.Collections;
-import java.util.Date;
+import app.cbo.oidc.java.server.json.WithExtraNode;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -38,21 +39,9 @@ public record IdToken(
         Optional<String> nonce,
         String acr,
         List<String> amr,
-        Optional<String> azp
-) {
+        Optional<String> azp,
+        Map<String, Object> extranodes
+) implements WithExtraNode {
 
 
-        public IdToken(String sub, String iss) {
-                this(sub,
-                        iss,
-                        Collections.emptyList(),
-                        5 * 60 + new Date().getTime() / 1000,
-                        new Date().getTime() / 1000,
-                        new Date().getTime() / 1000,
-                        Optional.of("nonce"),
-                        "NONE",
-                        Collections.emptyList(),
-                        Optional.empty()
-                );
-        }
 }

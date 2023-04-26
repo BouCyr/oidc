@@ -38,7 +38,7 @@ public class JWS {
         } catch (Exception e) {
             throw new RuntimeException(e);//TODO [13/04/2023]
         }
-        var signature = Base64.getUrlEncoder().encodeToString(s);
+        var signature = base64urlencode(s);
 
         return signedPart + "." + signature;
 
@@ -46,7 +46,38 @@ public class JWS {
     }
 
     static String toJWSPart(Object o) {
-        return Base64.getUrlEncoder().encodeToString(JSON.jsonify(o).getBytes(StandardCharsets.UTF_8));
+        return base64urlencode(JSON.jsonify(o).getBytes(StandardCharsets.UTF_8));
+    }
+
+    //cf https://datatracker.ietf.org/doc/html/rfc7515#appendix-C
+    static String base64urlencode(byte[] arg) {
+        String s = Base64.getEncoder().encodeToString(arg); // Regular base64 encoder
+        s = s.split("=")[0]; // Remove any trailing '='s
+        s = s.replace('+', '-'); // 62nd char of encoding
+        s = s.replace('/', '_'); // 63rd char of encoding
+        return s;
+    }
+
+    //cf https://datatracker.ietf.org/doc/html/rfc7515#appendix-C
+    static byte[] base64urldecode(String arg) {
+        String s = arg;
+        s = s.replace('-', '+'); // 62nd char of encoding
+        s = s.replace('_', '/'); // 63rd char of encoding
+        switch (s.length() % 4) // Pad with trailing '='s
+        {
+            case 0:
+                break; // No pad chars in this case
+            case 2:
+                s += "==";
+                break; // Two pad chars
+            case 3:
+                s += "=";
+                break; // One pad char
+            default:
+                throw new RuntimeException(
+                        "Illegal base64url string!");
+        }
+        return Base64.getDecoder().decode(s); // Standard base64 decoder
     }
 
 }

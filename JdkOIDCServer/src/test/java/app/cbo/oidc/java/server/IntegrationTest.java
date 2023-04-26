@@ -1,8 +1,15 @@
 package app.cbo.oidc.java.server;
 
+import app.cbo.oidc.java.server.backends.KeySet;
 import app.cbo.oidc.java.server.credentials.TOTP;
+import app.cbo.oidc.java.server.datastored.KeyId;
+import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.endpoints.token.TokenHandler;
 import app.cbo.oidc.java.server.utils.MimeType;
 import app.cbo.oidc.java.server.utils.QueryStringParser;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -12,6 +19,10 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +39,7 @@ public class IntegrationTest {
 
 
     @Test
-    public void authorizationFlow() throws IOException, URISyntaxException, InterruptedException {
+    public void authorizationFlow() throws IOException, URISyntaxException, InterruptedException, OutsideRedirect {
         EntryPoint.main("port=" + PORT);
 
 
@@ -40,7 +51,7 @@ public class IntegrationTest {
 
 
         var authorizeRequest = HttpRequest.newBuilder()
-                .uri(new URI(ROOT + "/authorize?scope=openid&redirect_uri=http://www.google.com&response_type=code&client_id=INTEGRATION"))//TODO [07/04/2023]  not google
+                .uri(new URI(ROOT + AuthorizeHandler.AUTHORIZE_ENDPOINT + "?scope=openid&redirect_uri=http://cbo.app&response_type=code&client_id=INTEGRATION&nonce=monNonce"))
                 .GET().build();
 
         HttpResponse<String> loginPage = followRedirects(browser, authorizeRequest);
@@ -48,7 +59,9 @@ public class IntegrationTest {
         assertThat(loginPage.statusCode()).isEqualTo(200);
         var totp = TOTP.get("ALBACORE"); //[05/04/2023] should you an external way to generate TOTP
         var loginOngoings = QueryStringParser.from(loginPage.uri().getQuery()).get("ongoing");
-        assertThat(loginOngoings).isNotNull().hasSize(1);
+        assertThat(loginOngoings)
+                .isNotNull()
+                .hasSize(1);
         var loginOngoing = loginOngoings.iterator().next();
 
 
@@ -71,9 +84,55 @@ public class IntegrationTest {
                 .POST(HttpRequest.BodyPublishers.ofString("backFromForm=true&scope_openid=on&scope_profile=on&ongoing=" + consentOngoing))
                 .build();
 
-        var codeSentToClient = followRedirects(browser, consentRequest);
+        URI sentToclient = null;
+        try {
+            var codeSentToClient = followRedirects(browser, consentRequest);
 
-        codeSentToClient.toString();
+        } catch (OutsideRedirect e) {
+            sentToclient = e.redirectTo();
+        }
+
+        assertThat(sentToclient)
+                .isNotNull()
+                .hasAuthority("cbo.app")
+                .hasParameter("code");
+
+        var codeParam = QueryStringParser.from(sentToclient.getQuery())
+                .get("code");
+
+        assertThat(codeParam)
+                .isNotNull()
+                .isNotEmpty()
+                .hasSize(1);
+        var code = codeParam.iterator().next();
+        var codeReq = HttpRequest.newBuilder()
+                .uri(new URI(ROOT + TokenHandler.TOKEN_ENDPOINT))
+                .header("Content-Type", MimeType.FORM.mimeType())
+                .header("Authorization", "basic " + Base64.getEncoder().encodeToString("INTEGRATION:INTEGRATION".getBytes(StandardCharsets.UTF_8)))
+                .POST(HttpRequest.BodyPublishers.ofString("code=" + code + "&grant_type=authorization_code&client_id=INTEGRATION&redirect_uri=http://cbo.app"))
+                .build();
+        var codeRes = browser.send(codeReq, ofString());
+
+        var codeStatus = codeRes.statusCode();
+
+        var tokenResponse = codeRes.body();
+        var json = new ObjectMapper().reader().readTree(tokenResponse);
+        var accessToken = json.get("access_token");
+        var refreshToken = json.get("refresh_token");
+        var idToken = json.get("id_token");
+
+        assertThat(accessToken).isNotNull();
+        assertThat(refreshToken).isNotNull();
+        assertThat(idToken).isNotNull();
+
+        var decoded = JWT.decode(idToken.asText());
+        var keyId = decoded.getKeyId();
+        var pub = (RSAPublicKey) KeySet.getInstance().publicKey(KeyId.of(keyId)).orElseThrow();
+        var priv = (RSAPrivateKey) KeySet.getInstance().privateKey(KeyId.of(keyId)).orElseThrow();
+        JWT.require(Algorithm.RSA256(pub, priv))
+                .build().verify(decoded);
+
+        assertThat(decoded.getSubject()).isEqualTo("cyrille");
 
     }
 
@@ -90,7 +149,7 @@ public class IntegrationTest {
     /**
      * Cannot find a way to have the java.net.httpClient follow relative redirects...
      */
-    private HttpResponse<String> followRedirects(HttpClient browser, HttpRequest req) throws IOException, InterruptedException, URISyntaxException {
+    private HttpResponse<String> followRedirects(HttpClient browser, HttpRequest req) throws IOException, InterruptedException, URISyntaxException, OutsideRedirect {
         var res = browser.send(req, ofString());
 
         var status = res.statusCode();
@@ -101,6 +160,10 @@ public class IntegrationTest {
 
             //fix relative redirects
             var redirectedTo = target.startsWith("http") ? new URI(target) : new URI(ROOT + locationHeader.get());
+
+            if (!(DOMAIN + ":" + PORT).equals(redirectedTo.getAuthority())) {
+                throw new OutsideRedirect("redirect outside of test scope!", redirectedTo);
+            }
             var redirectedRequest = HttpRequest.newBuilder()
                     .uri(redirectedTo)
                     .GET().build();
@@ -109,6 +172,19 @@ public class IntegrationTest {
         return res;
     }
 
+
+    static class OutsideRedirect extends Exception {
+        private final URI redirectTo;
+
+        public OutsideRedirect(String message, URI redirectTo) {
+            super(message);
+            this.redirectTo = redirectTo;
+        }
+
+        public URI redirectTo() {
+            return this.redirectTo;
+        }
+    }
 
     static class MyCookies extends CookieHandler {
 

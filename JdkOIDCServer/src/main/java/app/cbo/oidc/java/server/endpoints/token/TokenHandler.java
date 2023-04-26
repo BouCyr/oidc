@@ -1,14 +1,12 @@
 package app.cbo.oidc.java.server.endpoints.token;
 
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
+import app.cbo.oidc.java.server.utils.HttpCode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 
@@ -23,6 +21,10 @@ public class TokenHandler implements HttpHandler {
             TokenParams param = new TokenParams(raw);
 
             var clientCreds = exchange.getRequestHeaders().get("Authorization");
+            if (clientCreds == null)
+                clientCreds = Collections.emptyList();
+
+
             var basicCreds = clientCreds.stream()
                     .filter(s -> s.toLowerCase(Locale.ROOT).startsWith("basic "))
                     .map(s -> s.substring("basic ".length()))
@@ -42,10 +44,10 @@ public class TokenHandler implements HttpHandler {
                     .handle(exchange);
 
 
-        } catch (AuthErrorInteraction errorInteraction) {
+        } catch (AuthErrorInteraction | JsonError errorInteraction) {
             errorInteraction.handle(exchange);
         } catch (Exception e) {
-            System.out.println("?");
+            new JsonError(HttpCode.SERVER_ERROR, "unexpected error in code/token handling").handle(exchange);
         }
 
     }
