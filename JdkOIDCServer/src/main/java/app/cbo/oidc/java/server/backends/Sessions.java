@@ -58,8 +58,7 @@ public class Sessions {
 
     @NotNull public SessionId createSession(@NotNull User user, @NotNull EnumSet<AuthenticationMode> authenticationModes){
 
-        //TODO [05/04/2023] ACRs
-        var newSession = new Session(user::sub);
+        var newSession = new Session(user::sub, authenticationModes);
         this.sessions.put(newSession.id(), newSession);
         return SessionId.of(newSession.id());
     }
