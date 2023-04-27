@@ -10,12 +10,12 @@ import java.util.UUID;
 public record Session(String id, UserId userId, LocalDateTime authTime, LocalDateTime refreshTime, EnumSet<AuthenticationMode> authentications) {
     //TODO [CBO] acr level
 
-    public Session(@NotNull UserId user) {
+    public Session(@NotNull UserId user, EnumSet<AuthenticationMode> validatedAuthentication) {
         this(UUID.randomUUID().toString(),
                 user,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                EnumSet.noneOf(AuthenticationMode.class));
+                validatedAuthentication);
     }
 
     public static Session refreshed(@NotNull Session original) {
