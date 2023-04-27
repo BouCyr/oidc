@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-//TODO [20/03/2023] is the front end OIDC endpoint
 public class AuthorizeEndpoint {
 
     private static AuthorizeEndpoint instance = null;
