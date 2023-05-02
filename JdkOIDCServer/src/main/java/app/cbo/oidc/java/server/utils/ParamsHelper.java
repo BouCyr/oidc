@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 public class ParamsHelper {
 
+
     public static Map<String, Collection<String>> extractParams(HttpExchange exchange) throws AuthErrorInteraction {
         Map<String, Collection<String>> params;
         if ("GET".equals(exchange.getRequestMethod())) {

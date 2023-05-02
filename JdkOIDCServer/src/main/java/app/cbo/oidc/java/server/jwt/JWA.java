@@ -1,5 +1,8 @@
 package app.cbo.oidc.java.server.jwt;
 
+import java.util.Optional;
+import java.util.stream.Stream;
+
 public enum JWA {
     RS256("RSA", "RS256", "SHA256withRSA"),
     NONE("none", "none", null);
@@ -24,5 +27,12 @@ public enum JWA {
 
     public String javaName() {
         return javaName;
+    }
+
+    public static Optional<JWA> fromRFC(String rfcName) {
+        return Stream.of(JWA.values())
+                .filter(jwa -> jwa.rfcName().equals(rfcName))
+                .findFirst();
+
     }
 }

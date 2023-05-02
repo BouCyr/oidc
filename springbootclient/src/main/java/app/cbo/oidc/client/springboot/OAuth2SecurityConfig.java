@@ -40,8 +40,8 @@ public class OAuth2SecurityConfig {
                 .tokenUri(this.baseUrl + "/token")
                 .jwkSetUri(this.baseUrl + "/jwks")
                 //TODO [27/04/2023] uncomment the following lines to have the SB client call the OIDC userInfo endpoint
-//                .userInfoUri(this.baseUrl + "/userInfo")
-//                .userNameAttributeName("sub")
+                .userInfoUri(this.baseUrl + "/userinfo")
+                .userNameAttributeName("sub")
                 .build();
     }
 

@@ -67,14 +67,16 @@ public class AuthenticateEndpoint {
                 }
             }
 
-            if(!Utils.isBlank(params.totp())){
-                if(TOTP.confront (params.totp(), user.totpKey())){
+            if (!Utils.isBlank(params.totp())) {
+                if (TOTP.confront(params.totp(), user.totpKey())) {
                     authentications.add(TOTP_OK);
-                }else{
+                } else {
                     throw new AuthErrorInteraction(AuthErrorInteraction.Code.access_denied, "Invalid credentials");
                 }
             }
 
+            //Note : once a login form is validated, a new session WILL be created and WILL erase any previous existing sessions
+            //this could happen if a client sent an authorization request with a required acr above the one linked to the existing session
             var sessionId = Sessions.getInstance().createSession(user, authentications);
             var originalAuthorizeParams = OngoingAuths.getInstance().retrieve(params::ongoing);
             return new AuthenticationSuccessfulInteraction(sessionId, originalAuthorizeParams.orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to retrieve the original authorization request")));

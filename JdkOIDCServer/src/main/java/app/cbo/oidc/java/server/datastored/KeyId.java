@@ -1,5 +1,7 @@
 package app.cbo.oidc.java.server.datastored;
 
+import app.cbo.oidc.java.server.jsr305.NotNull;
+
 import java.util.function.Supplier;
 
 public interface KeyId extends Supplier<String> {
@@ -7,10 +9,11 @@ public interface KeyId extends Supplier<String> {
     /**
      * Returns a basic impl of ClientId
      */
-    static KeyId of(String value) {
+    static KeyId of(@NotNull String value) {
         return new Simple(value);
     }
 
+    @NotNull
     default String getKeyId() {
         return this.get();
     }
@@ -18,7 +21,7 @@ public interface KeyId extends Supplier<String> {
     /**
      * Basic impl
      */
-    record Simple(String value) implements KeyId {
+    record Simple(@NotNull String value) implements KeyId {
         @Override
         public String get() {
             return value();

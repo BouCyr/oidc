@@ -2,6 +2,7 @@ package app.cbo.oidc.java.server.endpoints.authorize;
 
 import app.cbo.oidc.java.server.backends.Codes;
 import app.cbo.oidc.java.server.backends.Users;
+import app.cbo.oidc.java.server.credentials.AuthenticationLevel;
 import app.cbo.oidc.java.server.datastored.*;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.endpoints.Interaction;
@@ -11,13 +12,11 @@ import app.cbo.oidc.java.server.endpoints.consent.ConsentParams;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.oidc.OIDCFlow;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
+import app.cbo.oidc.java.server.utils.Utils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -93,13 +92,38 @@ public class AuthorizeEndpoint {
                 throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "max_age should be parsable as a long");
             }
             var sessionAge = Duration.between(session.authTime(), LocalDateTime.now());
-            if(sessionAge.toSeconds() > maxAge ){
+            if (sessionAge.toSeconds() > maxAge) {
                 return new RedirectToLoginInteraction(params);
             }
         }
 
         //TODO [20/03/2023] check ACR - if current authentication has acr < requested, a new authentication should be done with the "updated" acr value check
         //[03/04/2023] OIDC specs is not very clear...
+        if (!Utils.isEmpty(params.acrValues())) {
+
+            //from what I understand, the client gives the accepted acr in acr_values.
+            //if any of the acr values of acr_values is compatible with the acr of the session, we are good
+
+
+            //in our case, acr supported by the system takes the form of 'levelX', where X will be the number of authentication methods used when authenticating
+            //so if any acr in acr_values has X below session.acr, we are good
+            //so if the min acr of acr_values is below session.acr, we are good!
+
+            var minimumAcr = params.acrValues().stream().map(AuthenticationLevel::fromAcr)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .min(Comparator.comparingInt(AuthenticationLevel::level));
+
+            var sessionAcr = new AuthenticationLevel(session.authentications());
+
+            //the least secured acr accepted is above the current session ACR. Must reauthenticate
+            if (minimumAcr.isPresent() && minimumAcr.get().level() > sessionAcr.level()) {
+                LOGGER.info("client requested an acr of at least " + minimumAcr.get().level() + ", current session acr is " + sessionAcr.level());
+                LOGGER.info("User must use additional authentication factors");
+                //TODO [27/04/2023] We should tell the login form the required acr / number of amr
+                return new RedirectToLoginInteraction(params);
+            }
+        }
 
         LOGGER.info("User has a valid, active session matching the client requirements");
         return this.checkConsent(flow, user, params, session);
@@ -161,6 +185,11 @@ public class AuthorizeEndpoint {
         if (originalParams.state().isPresent()) {
             params.put("state", originalParams.state().get());
         }
+
+        //OIDC core 5.4
+        // The Claims requested by the profile, email, address, and phone scope values are returned from the UserInfo Endpoint,
+        // as described in Section 5.3.2, when a response_type value is used that results in an Access Token being issued. However, when no Access Token is issued
+        // (which is the case for the response_type value id_token), the resulting Claims are returned in the ID Token.
 
         LOGGER.info("Authorization OK for flow " + flow.name() + ". Redirecting the userId to redirect uri with the code");
         return RedirectInteraction.external(originalParams.redirectUri().get(), params);

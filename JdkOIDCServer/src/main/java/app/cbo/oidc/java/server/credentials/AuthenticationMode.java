@@ -7,4 +7,6 @@ public enum AuthenticationMode {
     TOTP_OK,
     //BIOMETRICS,
     //CERTIFICATE
+
+
 }

@@ -4,6 +4,7 @@ import app.cbo.oidc.java.server.backends.Codes;
 import app.cbo.oidc.java.server.backends.KeySet;
 import app.cbo.oidc.java.server.backends.Sessions;
 import app.cbo.oidc.java.server.backends.Users;
+import app.cbo.oidc.java.server.credentials.AuthenticationLevel;
 import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Code;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
@@ -19,7 +20,10 @@ import app.cbo.oidc.java.server.utils.HttpCode;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.time.*;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -104,13 +108,13 @@ public class TokenEndpoint {
 
         var idToken = new IdToken(
                 user.sub(),
-                "http://localhost:4951",//TODO [14/04/2023] props ?
+                "http://localhost:4951",
                 List.of(clientId.getClientId()),
-                Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(), //TODO [14/04/2023] props?
+                Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
                 Instant.now(clock).getEpochSecond(),
                 session.authTime().toEpochSecond(ZoneOffset.UTC),
                 Optional.of(codeData.nonce()),
-                "level" + session.authentications().size(),
+                new AuthenticationLevel(session.authentications()).name(),
                 session.authentications().stream().map(Enum::name).toList(),
                 Optional.of(clientId.getClientId()),
                 new HashMap<>());
@@ -122,21 +126,23 @@ public class TokenEndpoint {
         //access and refresh tokens will be transmitted as JWS, so we do not have to store them
         //any token received will be valid if signature is OK.
         var accessToken = new AccessOrRefreshToken(
+                AccessOrRefreshToken.TYPE_ACCESS,
                 user.sub(),
-                LocalDateTime.now().plusMinutes(5L).toEpochSecond(ZoneOffset.UTC),
+                Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
                 codeData.scopes());
         var refreshToken = new AccessOrRefreshToken(
+                AccessOrRefreshToken.TYPE_REFRESH,
                 user.sub(),
-                LocalDateTime.now().plusMinutes(5L).toEpochSecond(ZoneOffset.UTC),
+                Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
                 codeData.scopes());
 
         var currentPrivateKeyId = KeySet.getInstance().current();
         var currentPrivateKey = KeySet.getInstance().privateKey(currentPrivateKeyId)
                 .orElseThrow(() -> new RuntimeException("No current private key found (?)"));
         var response = new TokenResponse(
-                JWS.jwsWrap(JWA.RS256, accessToken, currentPrivateKeyId.getKeyId(), currentPrivateKey),
-                JWS.jwsWrap(JWA.RS256, refreshToken, currentPrivateKeyId.getKeyId(), currentPrivateKey),
-                JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId.getKeyId(), currentPrivateKey),
+                JWS.jwsWrap(JWA.RS256, accessToken, currentPrivateKeyId, currentPrivateKey),
+                JWS.jwsWrap(JWA.RS256, refreshToken, currentPrivateKeyId, currentPrivateKey),
+                JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey),
                 Duration.ofMinutes(5L),
                 codeData.scopes()
         );
@@ -153,7 +159,7 @@ public class TokenEndpoint {
         if (clientId == null)
             return clientSecret == null;
         else
-            return clientId.equals(clientSecret);//TODO [14/04/2023] something smarter
+            return clientId.equals(clientSecret);//TODO [14/04/2023] client registry ?
     }
 
 

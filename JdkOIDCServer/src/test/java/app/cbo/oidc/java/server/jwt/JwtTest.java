@@ -1,5 +1,7 @@
 package app.cbo.oidc.java.server.jwt;
 
+import app.cbo.oidc.java.server.backends.KeySet;
+import app.cbo.oidc.java.server.datastored.KeyId;
 import app.cbo.oidc.java.server.oidc.tokens.IdToken;
 import com.auth0.jwt.algorithms.Algorithm;
 import org.junit.jupiter.api.Test;
@@ -59,10 +61,11 @@ class JwtTest {
     void wrongKey() throws NoSuchAlgorithmException {
         var ecdsaPriv = KeyPairGenerator.getInstance("EC").generateKeyPair().getPrivate();
         IdToken payload = testToken("cyrille", "http://auth0.com");
-        assertThatThrownBy(() -> JWS.jwsWrap(JWA.RS256, payload, "kid", ecdsaPriv))
+        assertThatThrownBy(() -> JWS.jwsWrap(JWA.RS256, payload, KeyId.of("kid"), ecdsaPriv))
                 .isInstanceOf(RuntimeException.class)
                 .hasRootCauseInstanceOf(InvalidKeyException.class);
     }
+
 
     @Test
     void none() {
@@ -87,7 +90,7 @@ class JwtTest {
     void RSA256() {
 
         IdToken payload = testToken("cyrille", "http://auth0.com");
-        String token = JWS.jwsWrap(JWA.RS256, payload, "kid", this.privateK);
+        String token = JWS.jwsWrap(JWA.RS256, payload, KeyId.of("kid"), this.privateK);
 
         var decoded = com.auth0.jwt.JWT.decode(token);
         assertThat(decoded.getIssuer()).isEqualTo("http://auth0.com");
@@ -98,6 +101,22 @@ class JwtTest {
 
         assertThat(verified.getIssuer()).isEqualTo("http://auth0.com");
         assertThat(verified.getSubject()).isEqualTo("cyrille");
+
+    }
+
+    @Test
+    void checkSignature() {
+        IdToken payload = testToken("cyrille", "http://auth0.com");
+
+        var current = KeySet.getInstance().current();
+        String token = JWS.jwsWrap(JWA.RS256, payload, current, KeySet.getInstance().privateKey(current).get());
+
+
+        var parts = token.split("\\.");
+        JWSHeader header = JWSHeader.fromJson(new String(JWS.base64urldecode(parts[0])));
+        var check = JWS.checkSignature(parts[0] + "." + parts[1], parts[2], header);
+
+        assertThat(check).isTrue();
 
     }
 

@@ -6,6 +6,7 @@ import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
 import app.cbo.oidc.java.server.endpoints.consent.ConsentHandler;
 import app.cbo.oidc.java.server.endpoints.jwks.JWKSHandler;
 import app.cbo.oidc.java.server.endpoints.token.TokenHandler;
+import app.cbo.oidc.java.server.endpoints.userinfo.UserInfoHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
@@ -38,6 +39,7 @@ public class Server {
         server.createContext(AuthenticateHandler.AUTHENTICATE_ENDPOINT, new AuthenticateHandler());
         server.createContext(ConsentHandler.CONSENT_ENDPOINT, new ConsentHandler());
         server.createContext(TokenHandler.TOKEN_ENDPOINT, new TokenHandler());
+        server.createContext(UserInfoHandler.TOKEN_ENDPOINT, new UserInfoHandler());
         server.createContext(JWKSHandler.JWKS_ENDPOINT, new JWKSHandler());
         server.createContext("/sc/", exchange -> new ResourceInteraction(exchange.getRequestURI().getPath()).handle(exchange));
 

@@ -10,6 +10,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 public class KeySet {
 
@@ -17,6 +18,7 @@ public class KeySet {
     private final KeyId currentKp;
     private final Map<String, KeyPair> pairs = new HashMap<>();
 
+    //TODO [28/04/2023] store on disk (java keystore ?)
     private KeySet() {
         KeyPairGenerator kpg;
         try {
@@ -25,7 +27,9 @@ public class KeySet {
             kpg.initialize(2048);
             var kp = kpg.generateKeyPair();
 
-            this.currentKp = KeyId.of("k1");
+
+            //randomize the kid, so we do not reuse a kid (if we did, a client could store the 'old' key value in some cache)
+            this.currentKp = KeyId.of(UUID.randomUUID().toString());
             this.pairs.put(currentKp.get(), kp);
 
         } catch (NoSuchAlgorithmException e) {
