@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.endpoints.userinfo;
 
-import app.cbo.oidc.java.server.backends.UserInfos;
+import app.cbo.oidc.java.server.backends.Claims;
+import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jwt.JWS;
@@ -73,8 +74,11 @@ public class UserInfoEndpoint {
         }
         LOGGER.info("Token signature is valid");
 
-        var userInfo = UserInfos.getInstance().userInfo(decodedPayload.sub(), new HashSet<>(decodedPayload.scopes()));
+        LOGGER.info("Retrieving claims of users for agreed scopes");
+        var userInfo = Claims.getInstance().claimsFor(UserId.of(decodedPayload.sub()), new HashSet<>(decodedPayload.scopes()));
 
-        return new ForbiddenResponse(HttpCode.FORBIDDEN, ForbiddenResponse.INVALID_TOKEN);
+        //5.3.2 > The sub (subject) Claim MUST always be returned in the UserInfo Response.
+        userInfo.put("sub", decodedPayload.sub());
+        return new UserInfoResponse(userInfo);
     }
 }

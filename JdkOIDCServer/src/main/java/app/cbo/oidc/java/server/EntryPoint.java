@@ -1,12 +1,23 @@
 package app.cbo.oidc.java.server;
 
+import app.cbo.oidc.java.server.backends.Claims;
 import app.cbo.oidc.java.server.backends.Users;
+import app.cbo.oidc.java.server.datastored.user.UserId;
+import app.cbo.oidc.java.server.datastored.user.claims.Address;
+import app.cbo.oidc.java.server.datastored.user.claims.Mail;
+import app.cbo.oidc.java.server.datastored.user.claims.Phone;
+import app.cbo.oidc.java.server.datastored.user.claims.Profile;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.logging.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,20 +27,15 @@ public class EntryPoint {
 
     public static void main(String... args) throws IOException {
 
-        configureLogging();
 
+        LOGGER.info("Starting");
+        long start = System.nanoTime();
         setupData();
-
-        Logger parent = Logger.getLogger("");
-        parent.setLevel(Level.FINE);  // Loggers will now publish more messages.
-
-        LOGGER.info("SAMPLE : http://localhost:9451/authorize?redirect_uri=http://www.google.fr&client_id=test&scope=openid&response_type=code");
-
-
+        configureLogging();
         var parsedArgs = StartupArgs.from(args);
         var server = new Server(parsedArgs);
         server.start();
-
+        LOGGER.info("Started in " + Duration.ofNanos(System.nanoTime() - start).toMillis() + "ms");
 
     }
 
@@ -80,6 +86,29 @@ public class EntryPoint {
     private static void setupData() {
 
 
-        Users.getInstance().create("cyrille", "sesame", "ALBACORE");
+        var uid = UserId.of("cyrille");
+        Users.getInstance().create(uid.getUserId(), "sesame", "ALBACORE");
+
+        Phone phone = new Phone(uid, "0682738532", false);
+        Mail mail = new Mail(uid, "cyrille@example.com", false);
+        Address address = new Address(uid, "17 place de la République, 59000 Lille, NORD, FRANCE", "17 place de la République", "LILLE", "NORD", "59000", "FRANCE");
+        Profile profile = new Profile(
+                uid,
+                "Cyrille BOUCHER",
+                "Cyrille",
+                "BOUCHER",
+                "Charles",
+                "cbo",
+                "cbo@cbo.app",
+                "http://profile.cbo.app/me", //URL
+                "http://profile.cbo.app/picture", //URL
+                "http://profile.cbo.app/", //URL
+                "mind your business",
+                "1982-11-29",
+                "Europe/Paris",
+                "fr-FR",
+                LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+        );
+        Claims.getInstance().store(phone, mail, address, profile);
     }
 }

@@ -127,13 +127,15 @@ public class IntegrationTest {
 
         var decoded = JWT.decode(idToken.asText());
         var keyId = decoded.getKeyId();
+
+        //TODO call jwks endpoint instead
         var pub = (RSAPublicKey) KeySet.getInstance().publicKey(KeyId.of(keyId)).orElseThrow();
         var priv = (RSAPrivateKey) KeySet.getInstance().privateKey(KeyId.of(keyId)).orElseThrow();
         JWT.require(Algorithm.RSA256(pub, priv))
                 .build().verify(decoded);
 
         assertThat(decoded.getSubject()).isEqualTo("cyrille");
-
+        //TODO : calls userinfo endpoint
     }
 
     private String readOngoingInputField(String html) {

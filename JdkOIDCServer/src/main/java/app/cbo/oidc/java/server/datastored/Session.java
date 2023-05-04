@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.datastored;
 
 import app.cbo.oidc.java.server.credentials.AuthenticationMode;
+import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 
 import java.time.LocalDateTime;

@@ -3,7 +3,7 @@ package app.cbo.oidc.java.server.backends;
 import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Code;
 import app.cbo.oidc.java.server.datastored.SessionId;
-import app.cbo.oidc.java.server.datastored.UserId;
+import app.cbo.oidc.java.server.datastored.user.UserId;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

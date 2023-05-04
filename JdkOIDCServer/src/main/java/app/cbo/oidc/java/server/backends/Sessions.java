@@ -3,7 +3,7 @@ package app.cbo.oidc.java.server.backends;
 import app.cbo.oidc.java.server.credentials.AuthenticationMode;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.datastored.SessionId;
-import app.cbo.oidc.java.server.datastored.User;
+import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.Utils;
 

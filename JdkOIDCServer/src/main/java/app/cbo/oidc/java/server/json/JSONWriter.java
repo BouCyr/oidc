@@ -1,15 +1,18 @@
 package app.cbo.oidc.java.server.json;
 
 import app.cbo.oidc.java.server.jsr305.NotNull;
-import app.cbo.oidc.java.server.jsr305.Nullable;
+import app.cbo.oidc.java.server.utils.ReflectionUtils;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static app.cbo.oidc.java.server.utils.ReflectionUtils.NameAndValue;
+import static app.cbo.oidc.java.server.utils.ReflectionUtils.toNameAndValue;
 import static java.lang.System.lineSeparator;
 
 /**
@@ -53,25 +56,23 @@ class JSONWriter {
         buffer.append("{").append(lineSeparator());
 
         //find all getters & record accessors
-        List<String> lines = new ArrayList<>(Arrays.stream(o.getClass().getMethods())
-                .filter(method -> method.getParameterCount() == 0)
-                .filter(method -> !Void.TYPE.equals(method.getReturnType()))
-                //remove hashcode, getClass & toString
-                .filter(method -> !isFromObject(method.getName()))
-                .filter(method -> !isExtraNodes(method.getName()))
-                .map(method -> new NameAndValue(method, o))
-                .map(JSONWriter::toJson)//magic!
-                .toList());
+        //we create a new ArrayList ; we need to be sure sure list is mutable, since we are going to add a few more lines
+        var lines = new ArrayList<String>();
+
+        if (!(o instanceof Map<?, ?>)) {
+            lines.addAll(
+                    toNameAndValue(o)
+                            .stream()
+                            .map(JSONWriter::toJson)//magic!
+                            .toList());
+        }
+
+        if (o instanceof Map<?, ?> map && map.keySet().stream().allMatch(k -> k instanceof String)) {
+            writeMap((Map<String, Object>) map, lines::add);
+        }
 
         if (o instanceof WithExtraNode wen) {
-
-            wen.extranodes().keySet()
-                    .stream()
-                    .map(k -> new NameAndValue(wen.extranodes(), k))
-                    .map(JSONWriter::toJson)
-                    .forEach(lines::add);
-
-
+            writeMap(wen.extranodes(), lines::add);
         }
 
         buffer.append(lines.stream().collect(Collectors.joining("," + lineSeparator())));
@@ -79,6 +80,14 @@ class JSONWriter {
         buffer.append(lineSeparator()).append("}");
         return buffer.toString();
 
+    }
+
+    private static void writeMap(Map<String, Object> map, Consumer<String> lineAdder) {
+        map.keySet()
+                .stream()
+                .map(k -> new NameAndValue(map, k))
+                .map(JSONWriter::toJson)
+                .forEach(lineAdder);
     }
 
     /**
@@ -93,17 +102,9 @@ class JSONWriter {
         return in.length() - in.replaceAll(what, "").length();
     }
 
-    private static boolean isExtraNodes(String methodName) {
-        return "extranodes".equals(methodName);
-    }
-
-    //list the method inherited from Object
-    private static boolean isFromObject(@Nullable String methodName) {
-        return Set.of("toString", "hashCode", "getClass").contains(methodName);
-    }
 
     @NotNull
-    private static String toJson(@NotNull NameAndValue node) {
+    private static String toJson(@NotNull ReflectionUtils.NameAndValue node) {
         var buffer = new StringBuilder();
 
 
@@ -133,7 +134,9 @@ class JSONWriter {
     }
 
     private static String value(Object result) {
-        if (result instanceof Number n) {
+        if (result instanceof Boolean b) {
+            return b.toString();
+        } else if (result instanceof Number n) {
             return n.toString();
         } else if (result instanceof Character c) {
             return "\"" + c + "\"";
@@ -183,44 +186,7 @@ class JSONWriter {
         return buffer.toString();
     }
 
-    static class NameAndValue {
-        private final String name;
-        private final Supplier<Object> value;
 
-        public NameAndValue(String name, Supplier<Object> value) {
-            this.name = name;
-            this.value = value;
-        }
-
-        public NameAndValue(Map<String, ?> map, String key) {
-            this(key, () -> map.get(key));
-        }
-
-        public NameAndValue(Method method, Object target) {
-            String baseName = method.getName();
-            if (baseName.startsWith("get")) {
-                baseName = baseName.substring(3);
-                name = Character.toLowerCase(baseName.charAt(0)) + baseName.substring(1);
-            } else {
-                name = baseName;
-            }
-            this.value = () -> {
-                try {
-                    return method.invoke(target);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new JsonProcessingException(e);
-                }
-            };
-        }
-
-        public String name() {
-            return name;
-        }
-
-        public Supplier<Object> getValue() {
-            return value;
-        }
-    }
 
 
 }

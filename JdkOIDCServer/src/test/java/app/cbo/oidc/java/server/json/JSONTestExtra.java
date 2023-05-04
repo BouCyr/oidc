@@ -63,7 +63,7 @@ public class JSONTestExtra {
 
     }
 
-    record WithExtraNodes(String str, int i, Map<String, Object> extranodes) implements WithExtraNode {
+    public static record WithExtraNodes(String str, int i, Map<String, Object> extranodes) implements WithExtraNode {
 
     }
 }

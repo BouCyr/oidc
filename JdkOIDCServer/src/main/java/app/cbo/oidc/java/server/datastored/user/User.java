@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.datastored;
+package app.cbo.oidc.java.server.datastored.user;
 
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;

@@ -305,19 +305,19 @@ class JSONTest {
         }
     }
 
-    static record FlatRecord(int integer, String myString) {
+    public static record FlatRecord(int integer, String myString) {
     }
 
-    static record MasterRecord(float integer, String myString, FlatRecord sub) {
+    public static record MasterRecord(float integer, String myString, FlatRecord sub) {
     }
 
-    static record WithListRecord(float integer, String myString, Collection<FlatRecord> subs) {
+    public static record WithListRecord(float integer, String myString, Collection<FlatRecord> subs) {
     }
 
-    static record WithListOfString(Collection<String> strings) {
+    public static record WithListOfString(Collection<String> strings) {
     }
 
-    static record WithMapRecord(float integer, String myString, Map<String, FlatRecord> subs) {
+    public static record WithMapRecord(float integer, String myString, Map<String, FlatRecord> subs) {
     }
 
 

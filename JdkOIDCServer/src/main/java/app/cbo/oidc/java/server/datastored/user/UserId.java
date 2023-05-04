@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.datastored;
+package app.cbo.oidc.java.server.datastored.user;
 
 import java.util.function.Supplier;
 

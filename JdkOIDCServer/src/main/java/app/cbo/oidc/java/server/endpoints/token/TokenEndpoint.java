@@ -58,7 +58,7 @@ public class TokenEndpoint {
         Verify that the Authorization Code used was issued in response to an OpenID Connect Authentication Request (so that an ID Token will be returned from the Token Endpoint).
         */
 
-        LOGGER.info(("'+" + authClientId + "' tries to consume a code"));
+        LOGGER.info(("'" + (authClientId != null ? authClientId : "?") + "' tries to consume a code"));
 
         //Are the client credentials OK ? (none would be OK for the moment)
         if (!this.authenticateClient(authClientId, clientSecret)) {

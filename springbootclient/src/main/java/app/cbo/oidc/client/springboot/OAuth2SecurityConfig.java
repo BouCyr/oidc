@@ -10,7 +10,6 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 
 @Configuration
-
 public class OAuth2SecurityConfig {
 
     @Value("${oidc.client-id}")
@@ -28,7 +27,7 @@ public class OAuth2SecurityConfig {
     }
 
     private ClientRegistration keycloakClientRegistration() {
-        return ClientRegistration.withRegistrationId("jdkserver")
+        return ClientRegistration.withRegistrationId("clientweb")
                 .clientId(this.clientId)
                 .clientSecret(this.clientSecret)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)

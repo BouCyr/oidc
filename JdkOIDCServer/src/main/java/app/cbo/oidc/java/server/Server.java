@@ -17,7 +17,7 @@ public class Server {
 
 
     private static final Logger LOGGER = Logger.getLogger(Server.class.getCanonicalName());
-    public static final String HOST_NAME = "localhost";
+    public static final String HOST_NAME = "0.0.0.0";
 
 
     private final int port;
@@ -34,6 +34,7 @@ public class Server {
 
     public void start() {
 
+        LOGGER.info(String.format("Server starting on host %s and port %s ", HOST_NAME, port));
 
         server.createContext(AuthorizeHandler.AUTHORIZE_ENDPOINT, new AuthorizeHandler());
         server.createContext(AuthenticateHandler.AUTHENTICATE_ENDPOINT, new AuthenticateHandler());
@@ -47,7 +48,7 @@ public class Server {
 
         // start the server
         server.start();
-        System.out.printf("Server started on host %s and port %s %n", HOST_NAME, port);
+        LOGGER.info(String.format("Server started on host %s and port %s ", HOST_NAME, port));
     }
 
     public void stop() {

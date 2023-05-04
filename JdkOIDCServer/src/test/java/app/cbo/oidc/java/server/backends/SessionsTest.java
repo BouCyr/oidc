@@ -2,7 +2,7 @@ package app.cbo.oidc.java.server.backends;
 
 import app.cbo.oidc.java.server.credentials.AuthenticationMode;
 import app.cbo.oidc.java.server.datastored.SessionId;
-import app.cbo.oidc.java.server.datastored.User;
+import app.cbo.oidc.java.server.datastored.user.User;
 import org.assertj.core.data.TemporalUnitWithinOffset;
 import org.junit.jupiter.api.Test;
 

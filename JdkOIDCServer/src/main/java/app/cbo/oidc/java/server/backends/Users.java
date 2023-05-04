@@ -1,8 +1,8 @@
 package app.cbo.oidc.java.server.backends;
 
 import app.cbo.oidc.java.server.credentials.PasswordEncoder;
-import app.cbo.oidc.java.server.datastored.User;
-import app.cbo.oidc.java.server.datastored.UserId;
+import app.cbo.oidc.java.server.datastored.user.User;
+import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
 
