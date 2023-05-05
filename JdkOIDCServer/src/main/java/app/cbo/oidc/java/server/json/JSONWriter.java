@@ -4,10 +4,7 @@ import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.ReflectionUtils;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -68,7 +65,17 @@ class JSONWriter {
         }
 
         if (o instanceof Map<?, ?> map && map.keySet().stream().allMatch(k -> k instanceof String)) {
-            writeMap((Map<String, Object>) map, lines::add);
+
+            Map<String, Object> copyWithStringKeys = new HashMap<>();
+            map.forEach((k, v) -> {
+                if (k instanceof String s) {
+                    copyWithStringKeys.put(s, v);
+                } else {
+                    throw new JsonProcessingException("Key should be strings ; found a :" + k.getClass().getSimpleName());
+                }
+            });
+
+            writeMap(copyWithStringKeys, lines::add);
         }
 
         if (o instanceof WithExtraNode wen) {
