@@ -9,7 +9,6 @@ import java.util.EnumSet;
 import java.util.UUID;
 
 public record Session(String id, UserId userId, LocalDateTime authTime, LocalDateTime refreshTime, EnumSet<AuthenticationMode> authentications) {
-    //TODO [CBO] acr level
 
     public Session(@NotNull UserId user, EnumSet<AuthenticationMode> validatedAuthentication) {
         this(UUID.randomUUID().toString(),

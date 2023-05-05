@@ -51,9 +51,5 @@ public class Server {
         LOGGER.info(String.format("Server started on host %s and port %s ", HOST_NAME, port));
     }
 
-    public void stop() {
-        //TODO [15/03/2023] add message, maybe delay.
-        this.server.stop(0);
-    }
 
 }

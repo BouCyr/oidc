@@ -70,7 +70,8 @@ public class JWS {
             privateSignature.update(signedPart.getBytes(StandardCharsets.UTF_8));
             s = privateSignature.sign();
         } catch (Exception e) {
-            throw new RuntimeException(e);//TODO [13/04/2023]
+            LOGGER.severe("Exception while computing JWS signature : " + e.getMessage());
+            throw new RuntimeException(e);
         }
         var signature = base64urlencode(s);
 

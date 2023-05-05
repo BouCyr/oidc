@@ -33,7 +33,7 @@ public record AuthorizeParams(
         List<String> acrValues
 
         //TODO [17/03/2023] cf 5.5 'claims'
-        //TODO [17/03/2023] cf 6  "Passing Request Parameters as JWTs" - this will be another nightmare
+        //TODO [17/03/2023] cf 6  "Passing Request Parameters as JWTs" - this will be another knightmare
 ){
 
 

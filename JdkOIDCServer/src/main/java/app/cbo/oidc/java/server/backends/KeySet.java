@@ -11,8 +11,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class KeySet {
+
+    private final static Logger LOGGER = Logger.getLogger(KeySet.class.getCanonicalName());
+
 
     private static KeySet instance = null;
     private final KeyId currentKp;
@@ -33,7 +37,8 @@ public class KeySet {
             this.pairs.put(currentKp.get(), kp);
 
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e); //TODO [14/04/2023]
+            LOGGER.severe("NoSuchAlgorithmException when building keyset : " + e.getMessage());
+            throw new RuntimeException(e);
         }
 
 

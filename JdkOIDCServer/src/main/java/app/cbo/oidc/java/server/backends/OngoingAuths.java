@@ -12,7 +12,6 @@ import java.util.UUID;
 public class OngoingAuths {
 
 
-    //TODO [20/03/2023] Cleanup/regular cleanup / max life time before error
 
     private static final OngoingAuths instance = new OngoingAuths();
     public static OngoingAuths getInstance() {return instance;}
