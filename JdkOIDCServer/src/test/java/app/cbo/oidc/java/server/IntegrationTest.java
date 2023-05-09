@@ -2,21 +2,28 @@ package app.cbo.oidc.java.server;
 
 import app.cbo.oidc.java.server.credentials.TOTP;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.endpoints.jwks.JWKSHandler;
 import app.cbo.oidc.java.server.endpoints.token.TokenHandler;
 import app.cbo.oidc.java.server.utils.MimeType;
 import app.cbo.oidc.java.server.utils.QueryStringParser;
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.CookieHandler;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +31,7 @@ import java.util.Map;
 
 import static java.net.http.HttpResponse.BodyHandlers.ofString;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class IntegrationTest {
 
@@ -34,7 +42,7 @@ public class IntegrationTest {
 
 
     @Test
-    public void authorizationFlow() throws IOException, URISyntaxException, InterruptedException, OutsideRedirect {
+    public void authorizationFlow() throws IOException, URISyntaxException, InterruptedException, OutsideRedirect, JOSEException {
         EntryPoint.main("port=" + PORT);
 
 
@@ -124,7 +132,25 @@ public class IntegrationTest {
         var keyId = decoded.getKeyId();
 
         //TODO call jwks endpoint instead
+        JWKSet jwkSet;
+        try {
+            jwkSet = JWKSet.load(new URL(ROOT + JWKSHandler.JWKS_ENDPOINT));
+        } catch (Exception e) {
+            fail("cannot load JKWSet");
+            return;
+        }
+        var key = jwkSet.getKeys().stream().filter(jwk -> jwk.getKeyID().equals(keyId)).findFirst();
+        if (key.isEmpty()) {
+            fail("Cannot find signature key in keyset");
+            return;
+        }
+        var publicKey = key.get();
 
+        if (publicKey instanceof RSAKey rsaKey) {
+            var javaKey = (RSAPublicKey) rsaKey.toPublicKey();
+
+            JWT.require(Algorithm.RSA256(javaKey)).build().verify(decoded);
+        }
 
 
         /*var pub = (RSAPublicKey) KeySet.getInstance().publicKey(KeyId.of(keyId)).orElseThrow();
@@ -134,6 +160,11 @@ public class IntegrationTest {
 
         assertThat(decoded.getSubject()).isEqualTo("cyrille");
         //TODO : calls userinfo endpoint
+//        var userInfoRequest = HttpRequest.newBuilder()
+//                .uri(new.uri())
+//                .header("Content-Type", MimeType.FORM.mimeType())
+//                .POST(HttpRequest.BodyPublishers.ofString("backFromForm=true&scope_openid=on&scope_profile=on&ongoing=" + consentOngoing))
+//                .build();
     }
 
     private String readOngoingInputField(String html) {
