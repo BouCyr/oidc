@@ -18,12 +18,11 @@ public class KeySet {
     private final static Logger LOGGER = Logger.getLogger(KeySet.class.getCanonicalName());
 
 
-    private static KeySet instance = null;
     private final KeyId currentKp;
     private final Map<String, KeyPair> pairs = new HashMap<>();
 
     //TODO [28/04/2023] store on disk (java keystore ?)
-    private KeySet() {
+    public KeySet() {
         KeyPairGenerator kpg;
         try {
             kpg = KeyPairGenerator.getInstance("RSA");
@@ -42,13 +41,6 @@ public class KeySet {
         }
 
 
-    }
-
-    public static KeySet getInstance() {
-        if (instance == null) {
-            instance = new KeySet();
-        }
-        return instance;
     }
 
     @NotNull

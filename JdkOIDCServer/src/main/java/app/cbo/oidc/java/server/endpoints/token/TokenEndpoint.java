@@ -1,9 +1,9 @@
 package app.cbo.oidc.java.server.endpoints.token;
 
-import app.cbo.oidc.java.server.backends.Codes;
 import app.cbo.oidc.java.server.backends.KeySet;
-import app.cbo.oidc.java.server.backends.Sessions;
-import app.cbo.oidc.java.server.backends.Users;
+import app.cbo.oidc.java.server.backends.codes.CodeConsumer;
+import app.cbo.oidc.java.server.backends.sessions.SessionFinder;
+import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.AuthenticationLevel;
 import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Code;
@@ -33,16 +33,16 @@ public class TokenEndpoint {
 
     private final static Logger LOGGER = Logger.getLogger(TokenEndpoint.class.getCanonicalName());
 
-    private static TokenEndpoint instance = null;
+    private final CodeConsumer codeConsumer;
+    private final UserFinder userFinder;
+    private final SessionFinder sessionFinder;
+    private final KeySet keySet;
 
-    private TokenEndpoint() {
-    }
-
-    public static TokenEndpoint getInstance() {
-        if (instance == null) {
-            instance = new TokenEndpoint();
-        }
-        return instance;
+    public TokenEndpoint(CodeConsumer codeConsumer, UserFinder userFinder, SessionFinder sessionFinder, KeySet keySet) {
+        this.codeConsumer = codeConsumer;
+        this.userFinder = userFinder;
+        this.sessionFinder = sessionFinder;
+        this.keySet = keySet;
     }
 
     @NotNull
@@ -92,15 +92,15 @@ public class TokenEndpoint {
         }
 
 
-        var codeData = Codes.getInstance().consume(Code.of(params.code()), clientId, URLDecoder.decode(params.redirectUri(), StandardCharsets.UTF_8))
+        var codeData = this.codeConsumer.consume(Code.of(params.code()), clientId, URLDecoder.decode(params.redirectUri(), StandardCharsets.UTF_8))
                 .orElseThrow(() -> new JsonError(HttpCode.BAD_REQUEST, AuthErrorInteraction.Code.invalid_grant.name()));
         LOGGER.info("Code is retrieved");
 
-        var user = Users.getInstance().find(codeData.userId())
+        var user = this.userFinder.find(codeData.userId())
                 .orElseThrow(() -> new JsonError(HttpCode.BAD_REQUEST, AuthErrorInteraction.Code.invalid_grant.name()));
         LOGGER.info("User is found");
 
-        var session = Sessions.getInstance().find(codeData.sessionId())
+        var session = this.sessionFinder.find(codeData.sessionId())
                 .orElseThrow(() -> new JsonError(HttpCode.BAD_REQUEST, AuthErrorInteraction.Code.invalid_grant.name()));
         LOGGER.info("User session the code was generated from is found");
 
@@ -136,8 +136,8 @@ public class TokenEndpoint {
                 Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
                 codeData.scopes());
 
-        var currentPrivateKeyId = KeySet.getInstance().current();
-        var currentPrivateKey = KeySet.getInstance().privateKey(currentPrivateKeyId)
+        var currentPrivateKeyId = this.keySet.current();
+        var currentPrivateKey = this.keySet.privateKey(currentPrivateKeyId)
                 .orElseThrow(() -> new RuntimeException("No current private key found (?)"));
         var response = new TokenResponse(
                 JWS.jwsWrap(JWA.RS256, accessToken, currentPrivateKeyId, currentPrivateKey),

@@ -108,13 +108,14 @@ class JwtTest {
     void checkSignature() {
         IdToken payload = testToken("cyrille", "http://auth0.com");
 
-        var current = KeySet.getInstance().current();
-        String token = JWS.jwsWrap(JWA.RS256, payload, current, KeySet.getInstance().privateKey(current).get());
+        var keyset = new KeySet();
+        var current = keyset.current();
+        String token = JWS.jwsWrap(JWA.RS256, payload, current, keyset.privateKey(current).get());
 
 
         var parts = token.split("\\.");
         JWSHeader header = JWSHeader.fromJson(new String(JWS.base64urldecode(parts[0])));
-        var check = JWS.checkSignature(parts[0] + "." + parts[1], parts[2], header);
+        var check = JWS.checkSignature(keyset, parts[0] + "." + parts[1], parts[2], header);
 
         assertThat(check).isTrue();
 

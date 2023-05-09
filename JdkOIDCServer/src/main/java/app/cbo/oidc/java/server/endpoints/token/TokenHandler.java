@@ -1,18 +1,29 @@
 package app.cbo.oidc.java.server.endpoints.token;
 
+import app.cbo.oidc.java.server.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.util.*;
 
 import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 
-public class TokenHandler implements HttpHandler {
+public class TokenHandler implements HttpHandlerWithPath {
 
     public static final String TOKEN_ENDPOINT = "/token";
+
+    private final TokenEndpoint tokenEndpoint;
+
+    public TokenHandler(TokenEndpoint tokenEndpoint) {
+        this.tokenEndpoint = tokenEndpoint;
+    }
+
+    @Override
+    public String path() {
+        return TOKEN_ENDPOINT;
+    }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -39,7 +50,7 @@ public class TokenHandler implements HttpHandler {
                 clientSecret = basicCreds.get().split(":")[1];
             }
 
-            TokenEndpoint.getInstance()
+            this.tokenEndpoint
                     .treatRequest(param, clientId, clientSecret)
                     .handle(exchange);
 

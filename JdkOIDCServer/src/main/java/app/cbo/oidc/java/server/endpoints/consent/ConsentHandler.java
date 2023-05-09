@@ -1,14 +1,14 @@
 package app.cbo.oidc.java.server.endpoints.consent;
 
-import app.cbo.oidc.java.server.backends.OngoingAuths;
-import app.cbo.oidc.java.server.backends.Sessions;
+import app.cbo.oidc.java.server.HttpHandlerWithPath;
+import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsFinder;
+import app.cbo.oidc.java.server.backends.sessions.SessionFinder;
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.utils.Cookies;
 import app.cbo.oidc.java.server.utils.ParamsHelper;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -19,9 +19,28 @@ import java.util.stream.Collectors;
 
 import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 
-public class ConsentHandler implements HttpHandler {
+public class ConsentHandler implements HttpHandlerWithPath {
 
     public static final String CONSENT_ENDPOINT = "/consent";
+
+    private final OngoingAuthsFinder ongoingAuthsFinder;
+    private final ConsentEndpoint consentEndpoint;
+    private final SessionFinder sessionFinder;
+
+
+    public ConsentHandler(
+            OngoingAuthsFinder ongoingAuthsFinder,
+            ConsentEndpoint consentEndpoint,
+            SessionFinder sessionFinder) {
+        this.ongoingAuthsFinder = ongoingAuthsFinder;
+        this.consentEndpoint = consentEndpoint;
+        this.sessionFinder = sessionFinder;
+    }
+
+    @Override
+    public String path() {
+        return CONSENT_ENDPOINT;
+    }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -30,12 +49,12 @@ public class ConsentHandler implements HttpHandler {
 
             ConsentParams params;
             if (!raw.containsKey(ConsentParams.BACK)) {
-                params = new ConsentParams(raw);
+                params = new ConsentParams(this.ongoingAuthsFinder, raw);
             } else {
                 var ongoingId = ParamsHelper.singleParam(raw.get(ConsentParams.ONGOING))
                         .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Cannot retrieve current authorization in request"));
 
-                var ongoingRequest = OngoingAuths.getInstance().retrieve(OngoingAuthId.of(ongoingId))
+                var ongoingRequest = this.ongoingAuthsFinder.find(OngoingAuthId.of(ongoingId))
                         .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Cannot retrieve current authorization in storage"));
 
                 var requested = Set.copyOf(ongoingRequest.scopes());
@@ -60,9 +79,9 @@ public class ConsentHandler implements HttpHandler {
 
             var cookies = Cookies.parseCookies(exchange);
             var sessionId = Cookies.findSessionCookie(cookies);
-            Optional<Session> session = sessionId.isEmpty() ? Optional.empty() : Sessions.getInstance().find(sessionId.get());
+            Optional<Session> session = sessionId.isEmpty() ? Optional.empty() : this.sessionFinder.find(sessionId.get());
 
-            ConsentEndpoint.getInstance()
+            this.consentEndpoint
                     .treatRequest(session, params)
                     .handle(exchange);
 

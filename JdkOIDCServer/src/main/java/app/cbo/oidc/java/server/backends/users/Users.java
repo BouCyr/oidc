@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.backends;
+package app.cbo.oidc.java.server.backends.users;
 
 import app.cbo.oidc.java.server.credentials.PasswordEncoder;
 import app.cbo.oidc.java.server.datastored.user.User;
@@ -10,35 +10,24 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Users {
-    
-    private static Users instance = null;
-    private Users(){ }
-    public static Users getInstance() {
-        if(instance == null){
-          instance = new Users();
-        }
-        return instance;
-    }
+public class Users implements UserFinder, UserCreator {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();
 
+    @Override
     @NotNull
     public Optional<User> find(@NotNull UserId userId) {
         return Optional.ofNullable(this.users.get(userId.getUserId()));
     }
 
+    public UserId create(@NotNull String login, @Nullable String clearPwd, @Nullable String totpKey) {
 
-
-
-
-    public void create(@NotNull String login, @Nullable String clearPwd, @Nullable String totpKey) {
-
-        if(this.find(UserId.of(login)).isPresent()){
+        if (this.find(UserId.of(login)).isPresent()) {
             throw new RuntimeException("Another user with this login already exists");
         }
         User newUser = new User(login, PasswordEncoder.getInstance().encodePassword(clearPwd), totpKey);
         this.users.put(newUser.sub(), newUser);
+        return UserId.of(newUser.sub());
     }
 
 

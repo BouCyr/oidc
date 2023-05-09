@@ -1,16 +1,10 @@
 package app.cbo.oidc.java.server;
 
-import app.cbo.oidc.java.server.endpoints.ResourceInteraction;
-import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateHandler;
-import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
-import app.cbo.oidc.java.server.endpoints.consent.ConsentHandler;
-import app.cbo.oidc.java.server.endpoints.jwks.JWKSHandler;
-import app.cbo.oidc.java.server.endpoints.token.TokenHandler;
-import app.cbo.oidc.java.server.endpoints.userinfo.UserInfoHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class Server {
@@ -24,11 +18,13 @@ public class Server {
     private final HttpServer server;
 
 
+    private final List<HttpHandlerWithPath> handlers;
 
 
-    public Server(StartupArgs from) throws IOException {
+    public Server(StartupArgs from, List<HttpHandlerWithPath> handlers) throws IOException {
         this.port = from.port();
         this.server = HttpServer.create(new InetSocketAddress(HOST_NAME, port), 50);
+        this.handlers = handlers;
 
     }
 
@@ -36,15 +32,11 @@ public class Server {
 
         LOGGER.info(String.format("Server starting on host %s and port %s ", HOST_NAME, port));
 
-        server.createContext(AuthorizeHandler.AUTHORIZE_ENDPOINT, new AuthorizeHandler());
-        server.createContext(AuthenticateHandler.AUTHENTICATE_ENDPOINT, new AuthenticateHandler());
-        server.createContext(ConsentHandler.CONSENT_ENDPOINT, new ConsentHandler());
-        server.createContext(TokenHandler.TOKEN_ENDPOINT, new TokenHandler());
-        server.createContext(UserInfoHandler.TOKEN_ENDPOINT, new UserInfoHandler());
-        server.createContext(JWKSHandler.JWKS_ENDPOINT, new JWKSHandler());
-        server.createContext("/sc/", exchange -> new ResourceInteraction(exchange.getRequestURI().getPath()).handle(exchange));
+        handlers.forEach(handler -> {
+            LOGGER.info("Adding handler '" + handler.getClass().getSimpleName() + "' matching path '" + handler.path() + "'.");
+            server.createContext(handler.path(), handler);
+        });
 
-        server.createContext("/", new NotFoundHandler());
 
         // start the server
         server.start();

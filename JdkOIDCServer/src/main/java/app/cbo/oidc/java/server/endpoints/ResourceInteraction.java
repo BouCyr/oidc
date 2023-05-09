@@ -1,6 +1,5 @@
 package app.cbo.oidc.java.server.endpoints;
 
-import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateEndpoint;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import app.cbo.oidc.java.server.utils.MimeType;
@@ -16,7 +15,7 @@ public record ResourceInteraction(String path) implements Interaction {
 
         var fileName = path.substring("/sc/".length());
 
-        try (var is = AuthenticateEndpoint.getInstance().getClass().getClassLoader().getResourceAsStream(fileName)) {
+        try (var is = this.getClass().getClassLoader().getResourceAsStream(fileName)) {
 
             boolean found = (is != null);
             if (!found) {

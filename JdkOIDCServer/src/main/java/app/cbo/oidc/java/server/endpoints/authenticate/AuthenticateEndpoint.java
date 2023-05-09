@@ -1,8 +1,8 @@
 package app.cbo.oidc.java.server.endpoints.authenticate;
 
-import app.cbo.oidc.java.server.backends.OngoingAuths;
-import app.cbo.oidc.java.server.backends.Sessions;
-import app.cbo.oidc.java.server.backends.Users;
+import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsFinder;
+import app.cbo.oidc.java.server.backends.sessions.SessionSupplier;
+import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.PasswordEncoder;
 import app.cbo.oidc.java.server.credentials.TOTP;
 import app.cbo.oidc.java.server.datastored.Session;
@@ -22,18 +22,25 @@ import static app.cbo.oidc.java.server.credentials.AuthenticationMode.*;
 
 public class AuthenticateEndpoint {
 
-   private static AuthenticateEndpoint instance = null;
-   private AuthenticateEndpoint(){ }
-   public static AuthenticateEndpoint getInstance() {
-       if(instance == null){
-         instance = new AuthenticateEndpoint();
-       }
-       return instance;
-   }
+
+    private final OngoingAuthsFinder ongoingAuthsFinder;
+    private final UserFinder userFinder;
+    private final SessionSupplier sessionSupplier;
+
+    public AuthenticateEndpoint(
+            OngoingAuthsFinder ongoingAuthsFinder,
+            UserFinder userFinder,
+            SessionSupplier sessionSupplier) {
+        this.ongoingAuthsFinder = ongoingAuthsFinder;
+        this.userFinder = userFinder;
+        this.sessionSupplier = sessionSupplier;
+    }
+
 
     private final static Logger LOGGER = Logger.getLogger(AuthenticateEndpoint.class.getCanonicalName());
 
-    @NotNull public Interaction treatRequest(
+    @NotNull
+    public Interaction treatRequest(
             @NotNull Optional<Session> currentSession, //TODO [05/04/2023]
             @NotNull Map<String, Collection<String>> rawParams) throws AuthErrorInteraction {
 
@@ -54,7 +61,7 @@ public class AuthenticateEndpoint {
             var authentications = EnumSet.of(DECLARATIVE);
             int acrLevel = 0;
 
-            var user = Users.getInstance().find(params::login)
+            var user = this.userFinder.find(params::login)
                     .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.access_denied, "Invalid credentials"));
 
             authentications.add(USER_FOUND);
@@ -77,8 +84,8 @@ public class AuthenticateEndpoint {
 
             //Note : once a login form is validated, a new session WILL be created and WILL erase any previous existing sessions
             //this could happen if a client sent an authorization request with a required acr above the one linked to the existing session
-            var sessionId = Sessions.getInstance().createSession(user, authentications);
-            var originalAuthorizeParams = OngoingAuths.getInstance().retrieve(params::ongoing);
+            var sessionId = this.sessionSupplier.createSession(user, authentications);
+            var originalAuthorizeParams = this.ongoingAuthsFinder.find(params::ongoing);
             return new AuthenticationSuccessfulInteraction(sessionId, originalAuthorizeParams.orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to retrieve the original authorization request")));
 
         }

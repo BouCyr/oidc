@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.backends;
 
+import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuths;
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.oidc.OIDCDisplayValues;
@@ -15,12 +16,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class OngoingAuthsTest {
 
     @Test
-    void nominal(){
+    void nominal() {
 
+
+        var auths = new OngoingAuths();
         AuthorizeParams p = createParams();
-        var code = OngoingAuths.getInstance().store(p);
+        var code = auths.store(p);
 
-        var foundBack = OngoingAuths.getInstance().retrieve(code);
+        var foundBack = auths.find(code);
 
         assertThat(foundBack).isPresent();
         var got = foundBack.get();
@@ -31,23 +34,25 @@ class OngoingAuthsTest {
     }
 
     @Test
-    void code_consumed(){
-        var code = OngoingAuths.getInstance().store(this.createParams());
+    void code_consumed() {
+        var auths = new OngoingAuths();
+        var code = auths.store(this.createParams());
 
-        var foundBack = OngoingAuths.getInstance().retrieve(code);
+        var foundBack = auths.find(code);
         assertThat(foundBack)
                 .isPresent();
 
-        var replay = OngoingAuths.getInstance().retrieve(code );
+        var replay = auths.find(code);
         assertThat(replay)
                 .isEmpty();
     }
 
     @Test
-    void wrong_code(){
-        var code = OngoingAuths.getInstance().store(this.createParams());
+    void wrong_code() {
+        var auths = new OngoingAuths();
+        var code = auths.store(this.createParams());
 
-        var foundBack = OngoingAuths.getInstance().retrieve(()->"??");
+        var foundBack = auths.find(() -> "??");
         assertThat(foundBack)
                 .isEmpty();
     }
@@ -57,10 +62,10 @@ class OngoingAuthsTest {
 
     @Test
     void nullability_consume() {
-
-        assertThatThrownBy(() -> OngoingAuths.getInstance().retrieve(null))
+        var auths = new OngoingAuths();
+        assertThatThrownBy(() -> auths.find(null))
                 .isInstanceOf(NullPointerException.class);
-        assertThat(OngoingAuths.getInstance().retrieve(OngoingAuthId.of(null)))
+        assertThat(auths.find(OngoingAuthId.of(null)))
                 .isEmpty();
 
     }

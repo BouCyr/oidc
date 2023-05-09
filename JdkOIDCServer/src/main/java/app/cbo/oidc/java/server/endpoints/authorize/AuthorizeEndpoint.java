@@ -1,7 +1,8 @@
 package app.cbo.oidc.java.server.endpoints.authorize;
 
-import app.cbo.oidc.java.server.backends.Codes;
-import app.cbo.oidc.java.server.backends.Users;
+import app.cbo.oidc.java.server.backends.codes.CodeSupplier;
+import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsStorer;
+import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.AuthenticationLevel;
 import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Code;
@@ -26,20 +27,26 @@ import java.util.stream.Collectors;
 
 public class AuthorizeEndpoint {
 
-    private static AuthorizeEndpoint instance = null;
-    private AuthorizeEndpoint(){ }
-    public static AuthorizeEndpoint getInstance() {
-        if(instance == null){
-          instance = new AuthorizeEndpoint();
-        }
-        return instance;
+
+    private final OngoingAuthsStorer ongoingAuthsStorer;
+    private final UserFinder userFinder;
+    private final CodeSupplier codeSupplier;
+
+
+    public AuthorizeEndpoint(
+            OngoingAuthsStorer ongoingAuthsStorer,
+            UserFinder userFinder,
+            CodeSupplier codeSupplier) {
+        this.ongoingAuthsStorer = ongoingAuthsStorer;
+        this.userFinder = userFinder;
+        this.codeSupplier = codeSupplier;
     }
-    
-    
-    
+
+
     private final static Logger LOGGER = Logger.getLogger(AuthorizeEndpoint.class.getCanonicalName());
 
-    @NotNull public Interaction treatRequest(
+    @NotNull
+    public Interaction treatRequest(
             @NotNull Optional<Session> session,
             @NotNull Map<String, Collection<String>> rawParams) throws AuthErrorInteraction {
 
@@ -78,11 +85,11 @@ public class AuthorizeEndpoint {
         }
         if(userSession.isEmpty() || params.prompt().contains(OIDCPromptValues.LOGIN)){
             LOGGER.info("User has no session or client required new authentication. Redirect to login page");
-            return new RedirectToLoginInteraction(params);
+            return new RedirectToLoginInteraction(ongoingAuthsStorer.store(params));
         }
 
         var session = userSession.get(); //userId has a valid session
-        var user = Users.getInstance().find(session.userId())
+        var user = this.userFinder.find(session.userId())
                 //user may have been deleted since the session was created...
                 .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to find user linked to session"));
 
@@ -97,7 +104,7 @@ public class AuthorizeEndpoint {
             }
             var sessionAge = Duration.between(session.authTime(), LocalDateTime.now());
             if (sessionAge.toSeconds() > maxAge) {
-                return new RedirectToLoginInteraction(params);
+                return new RedirectToLoginInteraction(ongoingAuthsStorer.store(params));
             }
         }
 
@@ -125,7 +132,7 @@ public class AuthorizeEndpoint {
                 LOGGER.info("client requested an acr of at least " + minimumAcr.get().level() + ", current session acr is " + sessionAcr.level());
                 LOGGER.info("User must use additional authentication factors");
                 //TODO [27/04/2023] We should tell the login form the required acr / number of amr
-                return new RedirectToLoginInteraction(params);
+                return new RedirectToLoginInteraction(ongoingAuthsStorer.store(params));
             }
         }
 
@@ -147,6 +154,7 @@ public class AuthorizeEndpoint {
         } else {
             LOGGER.info("Client is requesting scopes the userId has not yet consented to transmit.");
             return RedirectInteraction.internal(
+                    this.ongoingAuthsStorer,
                     ConsentHandler.CONSENT_ENDPOINT,
                     params,
                     Map.of(
@@ -177,7 +185,7 @@ public class AuthorizeEndpoint {
                    @NotNull String redirectUri,
                    @NotNull List<String> scopes) {
          */
-        Code authCode = Codes.getInstance().createFor(
+        Code authCode = this.codeSupplier.createFor(
                 user.getUserId(),
                 ClientId.of(originalParams.clientId().orElse("")),
                 SessionId.of(session.id()),
@@ -196,7 +204,8 @@ public class AuthorizeEndpoint {
         // (which is the case for the response_type value id_token), the resulting Claims are returned in the ID Token.
 
         LOGGER.info("Authorization OK for flow " + flow.name() + ". Redirecting the userId to redirect uri with the code");
-        return RedirectInteraction.external(originalParams.redirectUri().get(), params);
+        return RedirectInteraction.external(
+                this.ongoingAuthsStorer, originalParams.redirectUri().get(), params);
     }
 
 

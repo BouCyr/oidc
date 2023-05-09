@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.backends;
 
+import app.cbo.oidc.java.server.backends.sessions.Sessions;
 import app.cbo.oidc.java.server.credentials.AuthenticationMode;
 import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.datastored.user.User;
@@ -17,13 +18,14 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 class SessionsTest {
 
     @Test
-    void nominal(){
+    void nominal() {
 
-        var session = Sessions.getInstance().createSession(new User("cyrille", null, null), EnumSet.of(AuthenticationMode.PASSWORD_OK));
+        var sessions = new Sessions();
+        var session = sessions.createSession(new User("cyrille", null, null), EnumSet.of(AuthenticationMode.PASSWORD_OK));
 
-        Sessions.getInstance().addAuthentications(session, EnumSet.of(AuthenticationMode.PASSWORD_OK, AuthenticationMode.TOTP_OK));
+        sessions.addAuthentications(session, EnumSet.of(AuthenticationMode.PASSWORD_OK, AuthenticationMode.TOTP_OK));
 
-        var foundBack = Sessions.getInstance().find(session);
+        var foundBack = sessions.find(session);
         assertThat(foundBack)
                 .isPresent();
 
@@ -35,21 +37,21 @@ class SessionsTest {
 
     @Test
     void nullability() {
-
+        var sessions = new Sessions();
         var usr = new User("cyrille", null, null);
-        assertThatThrownBy(() -> Sessions.getInstance().createSession(null, EnumSet.of(AuthenticationMode.TOTP_OK)))
+        assertThatThrownBy(() -> sessions.createSession(null, EnumSet.of(AuthenticationMode.TOTP_OK)))
                 .isInstanceOf(NullPointerException.class);
 
-        assertDoesNotThrow(() -> Sessions.getInstance().createSession(usr, EnumSet.noneOf(AuthenticationMode.class)));
-        assertDoesNotThrow(() -> Sessions.getInstance().createSession(usr, null));
+        assertDoesNotThrow(() -> sessions.createSession(usr, EnumSet.noneOf(AuthenticationMode.class)));
+        assertDoesNotThrow(() -> sessions.createSession(usr, null));
 
-        assertThat(Sessions.getInstance().find(null)).isEmpty();
-        assertThat(Sessions.getInstance().find(() -> null)).isEmpty();
+        assertThat(sessions.find(null)).isEmpty();
+        assertThat(sessions.find(() -> null)).isEmpty();
 
-        assertThatThrownBy(() -> Sessions.getInstance().addAuthentications(null, EnumSet.of(AuthenticationMode.TOTP_OK)))
+        assertThatThrownBy(() -> sessions.addAuthentications(null, EnumSet.of(AuthenticationMode.TOTP_OK)))
                 .isInstanceOf(NullPointerException.class);
 
-        assertDoesNotThrow(() -> Sessions.getInstance().addAuthentications(SessionId.of(""), null));
+        assertDoesNotThrow(() -> sessions.addAuthentications(SessionId.of(""), null));
 
 
     }

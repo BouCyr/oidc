@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.backends;
+package app.cbo.oidc.java.server.backends.claims;
 
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.datastored.user.claims.*;
@@ -9,23 +9,17 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-public class Claims {
+public class Claims implements ClaimsStorer, ClaimsResolver {
 
     private final static Logger LOGGER = Logger.getLogger(Claims.class.getCanonicalName());
 
-    private static Claims instance = null;
     List<ScopedClaims> allClaims = new ArrayList<>();
 
-    private Claims() {
+    public Claims() {
     }
 
-    public static Claims getInstance() {
-        if (instance == null) {
-            instance = new Claims();
-        }
-        return instance;
-    }
 
+    @Override
     public void store(ScopedClaims... someClaims) {
         Stream.of(someClaims)
                 .forEach(scopedClaims -> {
@@ -37,6 +31,7 @@ public class Claims {
                 });
     }
 
+    @Override
     public Map<String, Object> claimsFor(UserId userId, Set<String> requestedScopes) {
 
         final Map<String, Object> result = new HashMap<>();

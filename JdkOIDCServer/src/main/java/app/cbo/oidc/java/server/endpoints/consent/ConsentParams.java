@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.endpoints.consent;
 
-import app.cbo.oidc.java.server.backends.OngoingAuths;
+import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsFinder;
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
@@ -26,7 +26,8 @@ public record ConsentParams(Set<String> scopesRequested,
     public static final String ONGOING = "ongoing";
     public static final String BACK = "backFromForm";
 
-    public ConsentParams(@NotNull Map<String, Collection<String>> params) throws AuthErrorInteraction {
+    //TODO [05/05/2023]  static method
+    public ConsentParams(@NotNull OngoingAuthsFinder finder, @NotNull Map<String, Collection<String>> params) throws AuthErrorInteraction {
         this(
                 singleParam(params.get(SCOPES_REQUESTED))
                         .map(ParamsHelper::spaceSeparatedList)
@@ -37,7 +38,7 @@ public record ConsentParams(Set<String> scopesRequested,
                         .map(Set::copyOf)
                         .orElse(Collections.emptySet()),
                 singleParam(params.get(CLIENT_ID)).orElse(null),
-                OngoingAuths.getInstance().retrieve(OngoingAuthId.of(singleParam(params.get(ONGOING)).orElse(null))).orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "unable to retrieve ongoing authentication")),
+                finder.find(OngoingAuthId.of(singleParam(params.get(ONGOING)).orElse(null))).orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "unable to retrieve ongoing authentication")),
                 singleParam(params.get(BACK)).map(Boolean::parseBoolean).orElse(false));
 
     }

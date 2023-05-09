@@ -16,7 +16,7 @@ public class JWS {
 
     private final static Logger LOGGER = Logger.getLogger(JWS.class.getCanonicalName());
 
-    public static boolean checkSignature(String signed, String b64signature, JWSHeader header) {
+    public static boolean checkSignature(KeySet keyset, String signed, String b64signature, JWSHeader header) {
 
         var foundAlgo = JWA.fromRFC(header.alg());
         if (foundAlgo.isEmpty()) {
@@ -25,7 +25,7 @@ public class JWS {
         }
         var algo = foundAlgo.get();
 
-        var foundKey = KeySet.getInstance().publicKey(KeyId.of(header.kid()));
+        var foundKey = keyset.publicKey(KeyId.of(header.kid()));
         if (foundKey.isEmpty()) {
             LOGGER.info("key '" + header.kid() + "' is not a known key");
             return false;

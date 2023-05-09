@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.backends;
+package app.cbo.oidc.java.server.backends.codes;
 
 import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Code;
@@ -14,19 +14,12 @@ import java.util.*;
 /**
  * OIDC code storage
  */
-public class Codes {
+public class Codes implements CodeSupplier, CodeConsumer {
 
-    final Map<String, CodeData> store = new HashMap<>();
+    private final Map<String, CodeData> store = new HashMap<>();
 
-    private static final Codes instance = new Codes();
 
-    public static Codes getInstance() {
-        return instance;
-    }
-
-    private Codes() {
-    }
-
+    @Override
     @NotNull
     public Code createFor(@NotNull UserId userId,
                           @NotNull ClientId clientId,
@@ -47,6 +40,7 @@ public class Codes {
 
     }
 
+    @Override
     @NotNull
     public Optional<CodeData> consume(@NotNull Code code, @NotNull ClientId clientId, @NotNull String redirectUri) {
 

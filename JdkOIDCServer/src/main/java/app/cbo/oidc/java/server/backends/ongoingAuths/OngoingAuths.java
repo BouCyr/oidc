@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.backends;
+package app.cbo.oidc.java.server.backends.ongoingAuths;
 
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
@@ -9,25 +9,26 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class OngoingAuths {
+public class OngoingAuths implements OngoingAuthsFinder, OngoingAuthsStorer {
 
 
-
-    private static final OngoingAuths instance = new OngoingAuths();
-    public static OngoingAuths getInstance() {return instance;}
-    private OngoingAuths(){ }
+    public OngoingAuths() {
+    }
 
 
     private final Map<String, AuthorizeParams> store = new HashMap<>();
-    @NotNull public OngoingAuthId store(@NotNull AuthorizeParams p){
+
+    @NotNull
+    public OngoingAuthId store(@NotNull AuthorizeParams p) {
 
         String key = UUID.randomUUID().toString();
         store.put(key, p);
         return OngoingAuthId.of(key);
     }
 
-    @NotNull  public Optional<AuthorizeParams> retrieve(@NotNull OngoingAuthId key){
-        if(key.getOngoingAuthId()==null) {
+    @NotNull
+    public Optional<AuthorizeParams> find(@NotNull OngoingAuthId key) {
+        if (key.getOngoingAuthId() == null) {
             return Optional.empty();
         }
         return Optional.ofNullable(store.remove(key.getOngoingAuthId()));

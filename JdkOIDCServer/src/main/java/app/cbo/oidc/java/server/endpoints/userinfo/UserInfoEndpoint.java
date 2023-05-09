@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.endpoints.userinfo;
 
-import app.cbo.oidc.java.server.backends.Claims;
+import app.cbo.oidc.java.server.backends.KeySet;
+import app.cbo.oidc.java.server.backends.claims.ClaimsResolver;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
@@ -18,17 +19,14 @@ public class UserInfoEndpoint {
 
     private final static Logger LOGGER = Logger.getLogger(UserInfoEndpoint.class.getCanonicalName());
 
-    private static UserInfoEndpoint instance = null;
+    private final ClaimsResolver claimsResolver;
+    private final KeySet keySet;
 
-    private UserInfoEndpoint() {
+    public UserInfoEndpoint(ClaimsResolver claimsResolver, KeySet keySet) {
+        this.claimsResolver = claimsResolver;
+        this.keySet = keySet;
     }
 
-    public static UserInfoEndpoint getInstance() {
-        if (instance == null) {
-            instance = new UserInfoEndpoint();
-        }
-        return instance;
-    }
 
     @NotNull
     public Interaction treatRequest(String accessToken) {
@@ -68,14 +66,14 @@ public class UserInfoEndpoint {
         var headerJson = new String(headerBytes);
         var header = JWSHeader.fromJson(headerJson);
 
-        if (!JWS.checkSignature(b64Metadata + "." + b64Payload, signature, header)) {
+        if (!JWS.checkSignature(this.keySet, b64Metadata + "." + b64Payload, signature, header)) {
             LOGGER.info("Token signature invalid");
             return new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.INVALID_TOKEN);
         }
         LOGGER.info("Token signature is valid");
 
         LOGGER.info("Retrieving claims of users for agreed scopes");
-        var userInfo = Claims.getInstance().claimsFor(UserId.of(decodedPayload.sub()), new HashSet<>(decodedPayload.scopes()));
+        var userInfo = claimsResolver.claimsFor(UserId.of(decodedPayload.sub()), new HashSet<>(decodedPayload.scopes()));
 
         //5.3.2 > The sub (subject) Claim MUST always be returned in the UserInfo Response.
         userInfo.put("sub", decodedPayload.sub());

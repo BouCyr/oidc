@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.endpoints.authenticate;
 
-import app.cbo.oidc.java.server.backends.Sessions;
+import app.cbo.oidc.java.server.backends.sessions.Sessions;
 import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;

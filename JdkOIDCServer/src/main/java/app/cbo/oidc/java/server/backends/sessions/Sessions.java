@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.backends;
+package app.cbo.oidc.java.server.backends.sessions;
 
 import app.cbo.oidc.java.server.credentials.AuthenticationMode;
 import app.cbo.oidc.java.server.datastored.Session;
@@ -12,21 +12,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Sessions {
+public class Sessions implements SessionFinder, SessionSupplier {
 
     public final static String SESSION_ID_COOKIE_NAME = "sessionId";
 
-    private static Sessions instance = null;
-    private Sessions(){ }
-    public static Sessions getInstance(){
-        if(instance == null)
-            instance = new Sessions();
-        return instance;
-    }
-    
-    
     private final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
+    @Override
     @NotNull
     public Optional<Session> find(@NotNull SessionId id) {
 
@@ -56,6 +48,7 @@ public class Sessions {
         this.sessions.put(session.id(), updated);
     }
 
+    @Override
     @NotNull public SessionId createSession(@NotNull User user, @NotNull EnumSet<AuthenticationMode> authenticationModes){
 
         var newSession = new Session(user::sub, authenticationModes);

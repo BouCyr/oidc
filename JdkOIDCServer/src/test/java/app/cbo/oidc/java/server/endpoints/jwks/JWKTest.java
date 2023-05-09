@@ -27,13 +27,14 @@ class JWKTest {
 
     @Test
     public void test() throws Exception {
+        var keyset = new KeySet();
         //the current kid
-        var kid = KeySet.getInstance().current();
+        var kid = keyset.current();
         //the corresponding public k
-        var publicKey = KeySet.getInstance().publicKey(kid)
+        var publicKey = keyset.publicKey(kid)
                 .orElseThrow(() -> new RuntimeException("No key found, test fails"));
         //the corresponding private key
-        var privateKey = KeySet.getInstance().privateKey(kid)
+        var privateKey = keyset.privateKey(kid)
                 .orElseThrow(() -> new RuntimeException("No key found, test fails"));
 
 

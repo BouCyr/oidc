@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.endpoints.consent;
 
-import app.cbo.oidc.java.server.backends.OngoingAuths;
+import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.jsr305.NotNull;
@@ -15,10 +15,11 @@ public class DisplayConsentFormInteraction implements Interaction {
 
     private final String payload;
 
-    public DisplayConsentFormInteraction(AuthorizeParams authorizeParams,
+    public DisplayConsentFormInteraction(OngoingAuthId ongoingAuthId,
+                                         AuthorizeParams authorizeParams,
                                          Set<String> consentsAlreadyGiven) {
 
-        var ongoingAuthId = OngoingAuths.getInstance().store(authorizeParams);
+
         StringBuilder html = new StringBuilder();
 
         var br = System.lineSeparator();

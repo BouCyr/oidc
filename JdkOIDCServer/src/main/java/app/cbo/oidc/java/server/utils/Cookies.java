@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.utils;
 
-import app.cbo.oidc.java.server.backends.Sessions;
+import app.cbo.oidc.java.server.backends.sessions.Sessions;
 import app.cbo.oidc.java.server.datastored.SessionId;
 import com.sun.net.httpserver.HttpExchange;
 

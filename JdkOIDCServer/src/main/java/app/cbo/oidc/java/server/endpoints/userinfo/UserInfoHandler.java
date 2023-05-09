@@ -1,17 +1,29 @@
 package app.cbo.oidc.java.server.endpoints.userinfo;
 
+import app.cbo.oidc.java.server.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.logging.Logger;
 
-public class UserInfoHandler implements HttpHandler {
+public class UserInfoHandler implements HttpHandlerWithPath {
 
-    public static final String TOKEN_ENDPOINT = "/userinfo";
+    public static final String USERINFO_ENDPOINT = "/userinfo";
     private final static Logger LOGGER = Logger.getLogger(UserInfoHandler.class.getCanonicalName());
+
+
+    private final UserInfoEndpoint userInfoEndpoint;
+
+    public UserInfoHandler(UserInfoEndpoint userInfoEndpoint) {
+        this.userInfoEndpoint = userInfoEndpoint;
+    }
+
+    @Override
+    public String path() {
+        return USERINFO_ENDPOINT;
+    }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -30,7 +42,7 @@ public class UserInfoHandler implements HttpHandler {
         if (accessToken.isPresent()) {
 
             LOGGER.info("Access token found in Authorization header");
-            UserInfoEndpoint.getInstance()
+            this.userInfoEndpoint
                     .treatRequest(accessToken.get())
                     .handle(exchange);
         } else {

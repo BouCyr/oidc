@@ -1,12 +1,12 @@
 package app.cbo.oidc.java.server.endpoints.authorize;
 
-import app.cbo.oidc.java.server.backends.Sessions;
+import app.cbo.oidc.java.server.HttpHandlerWithPath;
+import app.cbo.oidc.java.server.backends.sessions.SessionFinder;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.Cookies;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -19,11 +19,22 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 /**
  * Handles all HTTP reading/parsing,etc. for the "/authorize" url
  */
-public class AuthorizeHandler implements HttpHandler {
+public class AuthorizeHandler implements HttpHandlerWithPath {
 
     public static final String AUTHORIZE_ENDPOINT = "/authorize";
 
-    private final AuthorizeEndpoint endpoint = AuthorizeEndpoint.getInstance();
+    private final AuthorizeEndpoint endpoint;
+    private final SessionFinder sessionFinder;
+
+    public AuthorizeHandler(AuthorizeEndpoint endpoint, SessionFinder sessionFinder) {
+        this.endpoint = endpoint;
+        this.sessionFinder = sessionFinder;
+    }
+
+    @Override
+    public String path() {
+        return AUTHORIZE_ENDPOINT;
+    }
 
     @Override
     public void handle(@NotNull HttpExchange exchange) throws IOException {
@@ -34,7 +45,7 @@ public class AuthorizeHandler implements HttpHandler {
 
             var cookies = Cookies.parseCookies(exchange);
             var sessionId = Cookies.findSessionCookie(cookies);
-            Optional<Session> session = sessionId.isEmpty() ? Optional.empty() : Sessions.getInstance().find(sessionId.get());
+            Optional<Session> session = sessionId.isEmpty() ? Optional.empty() : this.sessionFinder.find(sessionId.get());
 
             var result = this.endpoint.treatRequest(session, params);
             result.handle(exchange);

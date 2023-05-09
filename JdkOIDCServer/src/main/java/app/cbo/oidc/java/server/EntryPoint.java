@@ -1,12 +1,13 @@
 package app.cbo.oidc.java.server;
 
-import app.cbo.oidc.java.server.backends.Claims;
-import app.cbo.oidc.java.server.backends.Users;
+import app.cbo.oidc.java.server.backends.claims.ClaimsStorer;
+import app.cbo.oidc.java.server.backends.users.UserCreator;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.datastored.user.claims.Address;
 import app.cbo.oidc.java.server.datastored.user.claims.Mail;
 import app.cbo.oidc.java.server.datastored.user.claims.Phone;
 import app.cbo.oidc.java.server.datastored.user.claims.Profile;
+import app.cbo.oidc.java.server.deps.DependenciesBuilder;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -30,10 +31,13 @@ public class EntryPoint {
 
         LOGGER.info("Starting");
         long start = System.nanoTime();
-        setupData();
+
         configureLogging();
         var parsedArgs = StartupArgs.from(args);
-        var server = new Server(parsedArgs);
+
+        var dependencies = new DependenciesBuilder(parsedArgs);
+        setupData(dependencies.users(), dependencies.claims());
+        var server = dependencies.server();
         server.start();
         LOGGER.info("Started in " + Duration.ofNanos(System.nanoTime() - start).toMillis() + "ms");
 
@@ -81,11 +85,11 @@ public class EntryPoint {
 
     @Deprecated
     //TODO [03/04/2023] read data on disk
-    private static void setupData() {
+    private static void setupData(UserCreator userCreator, ClaimsStorer claimsStorer) {
 
 
         var uid = UserId.of("cyrille");
-        Users.getInstance().create(uid.getUserId(), "sesame", "ALBACORE");
+        userCreator.create(uid.getUserId(), "sesame", "ALBACORE");
 
         Phone phone = new Phone(uid, "0682738532", false);
         Mail mail = new Mail(uid, "cyrille@example.com", false);
@@ -107,6 +111,6 @@ public class EntryPoint {
                 "fr-FR",
                 LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
         );
-        Claims.getInstance().store(phone, mail, address, profile);
+        claimsStorer.store(phone, mail, address, profile);
     }
 }

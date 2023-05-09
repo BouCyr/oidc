@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.backends;
 
+import app.cbo.oidc.java.server.backends.codes.Codes;
 import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Code;
 import app.cbo.oidc.java.server.datastored.SessionId;
@@ -22,14 +23,16 @@ class CodesTest {
 
     @Test
     void nominal() {
-        var code = Codes.getInstance().createFor(UserId.of(BOB),
+
+        var codes = new Codes();
+        var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
                 REDIRECT_URI,
                 SCOPES,
                 UUID.randomUUID().toString());
 
-        var userIdFoundBack = Codes.getInstance().consume(
+        var userIdFoundBack = codes.consume(
                 code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(userIdFoundBack)
                 .isPresent()
@@ -40,86 +43,97 @@ class CodesTest {
 
     @Test
     void code_consumed() {
-        var code = Codes.getInstance().createFor(UserId.of(BOB),
+        var codes = new Codes();
+        var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
                 REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
 
-        var userIdFoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
+        var userIdFoundBack = codes.consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(userIdFoundBack)
                 .isPresent();
 
-        var replay = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
+        var replay = codes.consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(replay)
                 .isEmpty();
     }
 
     @Test
     void wrong_code() {
-        var code = Codes.getInstance().createFor(UserId.of(BOB),
+        var codes = new Codes();
+
+        var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
                 REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
 
-        var userIdFoundBack = Codes.getInstance().consume(Code.of("??"), ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
+        var userIdFoundBack = codes.consume(Code.of("??"), ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(userIdFoundBack)
                 .isEmpty();
     }
 
     @Test
     void wrong_client() {
-        var code = Codes.getInstance().createFor(UserId.of(BOB),
+
+        var codes = new Codes();
+        var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
                 REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
 
-        var userIdFoundBack = Codes.getInstance().consume(code, ClientId.of("ANOTHER_client_id"), REDIRECT_URI);
+        var userIdFoundBack = codes.consume(code, ClientId.of("ANOTHER_client_id"), REDIRECT_URI);
         assertThat(userIdFoundBack)
                 .isEmpty();
     }
 
     @Test
     void wrong_redirectUri() {
-        var code = Codes.getInstance().createFor(UserId.of(BOB),
+
+        var codes = new Codes();
+        var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID), REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
 
-        var userIdFoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), "http://zombiecool.su");
+        var userIdFoundBack = codes.consume(code, ClientId.of(THE_CLIENT_ID), "http://zombiecool.su");
         assertThat(userIdFoundBack)
                 .isEmpty();
     }
 
     @Test
     void nullability_create() {
-        assertThatThrownBy(() -> Codes.getInstance().createFor(null, null, null, null, null, null))
+
+        var codes = new Codes();
+        assertThatThrownBy(() -> codes.createFor(null, null, null, null, null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> Codes.getInstance().createFor(UserId.of(BOB), null, null, null, null, null))
+        assertThatThrownBy(() -> codes.createFor(UserId.of(BOB), null, null, null, null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> Codes.getInstance().createFor(null, ClientId.of(THE_CLIENT_ID), null, null, null, null))
+        assertThatThrownBy(() -> codes.createFor(null, ClientId.of(THE_CLIENT_ID), null, null, null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> Codes.getInstance().createFor(null, null, null, REDIRECT_URI, null, null))
+        assertThatThrownBy(() -> codes.createFor(null, null, null, REDIRECT_URI, null, null))
                 .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void nullability_consume() {
-        var code = Codes.getInstance().createFor(UserId.of(BOB),
+
+        var codes = new Codes();
+        var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
                 REDIRECT_URI,
                 SCOPES, UUID.randomUUID().toString());
 
-        assertThatThrownBy(() -> Codes.getInstance().consume(null, null, null))
+        assertThatThrownBy(() -> codes.consume(null, null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> Codes.getInstance().consume(code, null, REDIRECT_URI))
+        assertThatThrownBy(() -> codes.consume(code, null, REDIRECT_URI))
                 .isInstanceOf(NullPointerException.class);
 
-        assertThatThrownBy(() -> Codes.getInstance().consume(null, ClientId.of(THE_CLIENT_ID), REDIRECT_URI))
+        assertThatThrownBy(() -> codes.consume(null, ClientId.of(THE_CLIENT_ID), REDIRECT_URI))
                 .isInstanceOf(NullPointerException.class);
-        assertThat(Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), null))
+        assertThat(codes.consume(code, ClientId.of(THE_CLIENT_ID), null))
                 .isEmpty();
 
-        var userIdFoundBack = Codes.getInstance().consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
+        var userIdFoundBack = codes.consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(userIdFoundBack)
                 .isNotEmpty();
     }

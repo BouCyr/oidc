@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.endpoints.consent;
 
-import app.cbo.oidc.java.server.backends.Users;
+import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsStorer;
+import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.endpoints.Interaction;
@@ -15,13 +16,13 @@ public class ConsentEndpoint {
 
     private final static Logger LOGGER = Logger.getLogger(ConsentEndpoint.class.getCanonicalName());
 
-    private static ConsentEndpoint instance = null;
-    private ConsentEndpoint(){ }
-    public static ConsentEndpoint getInstance() {
-        if(instance == null){
-          instance = new ConsentEndpoint();
-        }
-        return instance;
+
+    private final OngoingAuthsStorer ongoingAuthsStorer;
+    private final UserFinder userfinder;
+
+    public ConsentEndpoint(OngoingAuthsStorer ongoingAuthsStorer, UserFinder userfinder) {
+        this.ongoingAuthsStorer = ongoingAuthsStorer;
+        this.userfinder = userfinder;
     }
 
     @NotNull
@@ -38,7 +39,7 @@ public class ConsentEndpoint {
         }
 
         var session = maybeSession.get();
-        var user = Users.getInstance().find(session.userId())
+        var user = this.userfinder.find(session.userId())
                 .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to retrieve user"));
 
 
@@ -65,6 +66,7 @@ public class ConsentEndpoint {
             }else {
                 //some consents were never given byt his user to this client ; display the form
                 return new DisplayConsentFormInteraction(
+                        this.ongoingAuthsStorer.store(params.ongoing()),
                         params.ongoing(),
                         user.scopesConsentedTo(params.clientId())
                 );
