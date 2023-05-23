@@ -5,6 +5,7 @@ import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.HttpCode;
+import app.cbo.oidc.java.server.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
@@ -30,39 +31,47 @@ public class DisplayConsentFormInteraction implements Interaction {
                 .append("<head>").append(br)
                 .append("    <title>You okay with this ?</title>").append(br)
                 .append("    <link rel='icon' type='image/x-icon' href='/sc/favicon.ico'>").append(br)
-                .append("    <link href='/sc/pretty.css' rel='stylesheet'>").append(br)
+                .append("    <link href='/sc/clean.css' rel='stylesheet'>").append(br)
                 .append("</head>").append(br)
                 .append("<body>").append(br)
+                .append("  <div class='FORM'>").append(br)
                 .append("    <form class='container' method='POST' action='").append(ConsentHandler.CONSENT_ENDPOINT).append("'>").append(br)
                 .append("        <input type='hidden' name='")
                 .append(ConsentParams.ONGOING)
                 .append("' value='").append(ongoingAuthId.getOngoingAuthId())
                 .append("' />").append(br)
                 .append("        <input type='hidden' name='").append(ConsentParams.BACK).append("' value='true' />").append(br)
-                .append("        <div class='Title'><h1>").append(authorizeParams.clientId()).append(" want to access this data about you :</h1></div>").append(br)
+                .append("        <input type='hidden' name='OK' value='true' />").append(br)
+                .append("        <div class='Title'><h1>Consent required</h1></div>").append(br)
+                .append("        <p>Website <b>").append(authorizeParams.clientId().orElse("?")).append("</b> wants to access this data about you :</p>").append(br)
                 .append("        <div class='Fields'>").append(br)
-                .append("            <table>").append(br);
+                .append("            <ul>").append(br);
 
 
-        authorizeParams.scopes().forEach(consent ->
-                html
-                        .append("                <tr>").append(br)
-                        .append("                    <td><label for='scope_").append(consent).append("' >").append(consent).append("</label></td>")
-                        .append(br)
-                        .append("                    <td><input type='checkbox' name='scope_").append(consent).append("' id='scope_").append(consent).append("' ></td>")
-                        .append(br)
-                        .append("                </tr>").append(br)
-        );
+        var notYetGiven = authorizeParams.scopes().stream()
+                .filter(consent -> !consentsAlreadyGiven.contains(consent))
+                .toList();
+
+        notYetGiven.forEach(consent -> html.append("<li>").append(consent).append("</li>").append(br));
+        html
+                .append("            </ul>").append(br);
+
+        var alreadyGiven = authorizeParams.scopes().stream()
+                .filter(consentsAlreadyGiven::contains)
+                .toList();
+        if (!Utils.isEmpty(alreadyGiven)) {
+            html
+                    .append("        <p>You already gave Website <b>").append(authorizeParams.clientId().orElse("?")).append("</b> access to this data about you :</p>").append(br)
+                    .append("        <ul>").append(br);
+            alreadyGiven.forEach(scope -> html.append("<li>").append(scope).append("</li>").append(br));
+            html.append("            </ul>").append(br);
+        }
 
         html
-                .append("                <tr>").append(br)
-                .append("                    <td colspan='2' class='submitRow'>").append(br)
-                .append("                        <input type='submit' class='submit' value='Go on'/>").append(br)
-                .append("                    </td>").append(br)
-                .append("                </tr>").append(br)
-                .append("            </table>").append(br)
                 .append("        </div>").append(br)
+                .append("                        <input type='submit' class='submit' value='Ok!'/>").append(br)
                 .append("    </form>").append(br)
+                .append("  </div>").append(br)
                 .append("</body>").append(br)
                 .append("</html>").append(br);
 

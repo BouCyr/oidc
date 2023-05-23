@@ -44,12 +44,9 @@ public class ConsentEndpoint {
 
 
 
-        if(params.backFromForm()){
+        if (params.backFromForm() && params.consentGiven()) {
             //user just submitted the consent form ; add given consents
-            params.consentGiven()
-                    .stream()
-                    .filter(scope -> params.scopesRequested().contains(scope))
-                    .forEach(consentedTo -> user.consentsTo(params.clientId(), consentedTo));
+            params.scopesRequested().forEach(scope -> user.consentsTo(params.clientId(), scope));
         }
         var missingConsents = params.scopesRequested()
                 .stream()

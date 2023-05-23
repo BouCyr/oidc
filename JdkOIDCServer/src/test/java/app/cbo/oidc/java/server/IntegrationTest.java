@@ -146,7 +146,7 @@ public class IntegrationTest {
         var consentRequest = HttpRequest.newBuilder()
                 .uri(consentPage.uri())
                 .header("Content-Type", MimeType.FORM.mimeType())
-                .POST(HttpRequest.BodyPublishers.ofString("backFromForm=true&scope_openid=on&scope_profile=on&ongoing=" + consentOngoing))
+                .POST(HttpRequest.BodyPublishers.ofString("backFromForm=true&OK=true&ongoing=" + consentOngoing))
                 .build();
 
         URI sentToclient = null;
