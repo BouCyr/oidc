@@ -31,13 +31,17 @@ public class EntryPoint {
 
         LOGGER.info("Starting");
         long start = System.nanoTime();
-
+        LOGGER.info("Configuring logging");
         configureLogging();
+        LOGGER.info("Configured logging");
         var parsedArgs = StartupArgs.from(args);
-
+        LOGGER.info("Building dependencies");
         var dependencies = new DependenciesBuilder(parsedArgs);
+        LOGGER.info("Dependencies built");
         setupData(dependencies.users(), dependencies.claims());
+        LOGGER.info("Sample data built");
         var server = dependencies.server();
+        LOGGER.info("Starting server");
         server.start();
         LOGGER.info("Started in " + Duration.ofNanos(System.nanoTime() - start).toMillis() + "ms");
 
@@ -89,8 +93,10 @@ public class EntryPoint {
 
 
         var uid = UserId.of("cyrille");
+        LOGGER.info("Creating user");
         userCreator.create(uid.getUserId(), "sesame", "ALBACORE");
 
+        LOGGER.info("Creating user data");
         Phone phone = new Phone(uid, "0682738532", false);
         Mail mail = new Mail(uid, "cyrille@example.com", false);
         Address address = new Address(uid, "17 place de la République, 59000 Lille, NORD, FRANCE", "17 place de la République", "LILLE", "NORD", "59000", "FRANCE");
@@ -112,5 +118,6 @@ public class EntryPoint {
                 LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
         );
         claimsStorer.store(phone, mail, address, profile);
+        LOGGER.info("All data created & stored");
     }
 }

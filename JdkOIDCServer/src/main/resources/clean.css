@@ -14,10 +14,8 @@ body{
   font-family: raleway, sans-serif;
   font-size: 150%;
   margin: 0;
-  background: linear-gradient(59deg, #2875c1 50%, #07c4c9 50.2%);
-  background: url('./bg.jpeg');
-  background-size:cover;
-  color:  white;
+  background: linear-gradient(223deg,#ff00491f, transparent), linear-gradient(76deg, #dfcd9e,#fff6de);
+  color:  black;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -29,16 +27,17 @@ input, label{
 }
 
 input{
-    border: 2px solid white;
-    background: transparent;
+    border: 0;
+    background: rgb(240 211 182 / 49%);
     border-radius: 20px;
     height: 30px;
     font-size: 16px;
-    color: white;
+    color: black;
     font-family: monospace;
     font-weight: 300;
     padding: 3px 10px 3px 10px;
     margin-bottom: 10px;
+    transition: 0.25s;
 }
 
 input[type="number"]{
@@ -56,7 +55,7 @@ input::-webkit-inner-spin-button {
 }
 
 input[type="submit"]{
-    background: rgba(255,255,255,0.1);
+    background: rgb(240 211 182);
     width: 100%;
     padding-top: 7px;
     padding-bottom: 30px;
@@ -65,15 +64,16 @@ input[type="submit"]{
     margin-top: 40px;
 }
 input:hover, input:focus{
-  background: rgba(255,255,255,0.2);
-  outline: 3px solid rgba(255,255,255,0.5);
+  background: white;
+  outline: 3px solid rgb(240 211 182);
 }
 
-.FORM{
+.FORM {
+  box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.1),0px 10px 35px -19px rgba(0,0,0,0.5);
   margin-top: 75px;
   border:  2px solid white;
 
-  background: rgba(255,255,255,0.05);
+  background: white;
   backdrop-filter: blur(5px) saturate(1.15);
   border-radius: 20px;
   padding: 20px;
