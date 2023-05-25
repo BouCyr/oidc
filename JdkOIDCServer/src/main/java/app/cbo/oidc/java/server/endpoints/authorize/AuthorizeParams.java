@@ -8,10 +8,7 @@ import app.cbo.oidc.java.server.utils.EnumValuesHelper;
 import app.cbo.oidc.java.server.utils.QueryStringBuilder;
 import app.cbo.oidc.java.server.utils.Utils;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static app.cbo.oidc.java.server.utils.ParamsHelper.singleParam;
 import static app.cbo.oidc.java.server.utils.ParamsHelper.spaceSeparatedList;
@@ -85,6 +82,7 @@ public record AuthorizeParams(
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'client_id' param is REQUIRED'",p);
         }
         if(Utils.isBlank(p.redirectUri())){
+
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'redirect_uri' param is REQUIRED'",p);
         }
         if(p.maxAge().isPresent()) {
@@ -103,9 +101,21 @@ public record AuthorizeParams(
      * @throws AuthErrorInteraction if some params were invalid
      */
     public static void checkParamsForFlow(AuthorizeParams params, OIDCFlow flow) throws AuthErrorInteraction {
-        //AFAIK, only specific requirement is "nonce is REQUIRED" for implicit flow
-        if(flow == OIDCFlow.IMPLICIT && Utils.isBlank(params.nonce()))
-            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "'nonce' param is REQUIRED'", params);
+        //RQ :
+        // redirect_uri MUST be https for auhtorization flow, exepct if the client is 'confidential'
+        // redirect_uri MUST be https OR http://localhost for implicit flow. I chose not to implement this .
+        //TODO [25/05/2023] check what is a 'confidential' client
+
+        //"nonce is REQUIRED" for implicit flow
+        if (flow == OIDCFlow.IMPLICIT && Utils.isBlank(params.nonce()))
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "'nonce' param is REQUIRED", params);
+
+        //query response_mode is forbidden for IMPLICIT & HYBRID flow
+        if (EnumSet.of(OIDCFlow.IMPLICIT, OIDCFlow.HYBRID).contains(flow)
+                && params.responseMode.isPresent() && params.responseMode.get().equals("query")) {
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "'query' response mode is forbidden for flow '" + flow + "'", params);
+        }
+
     }
 
 

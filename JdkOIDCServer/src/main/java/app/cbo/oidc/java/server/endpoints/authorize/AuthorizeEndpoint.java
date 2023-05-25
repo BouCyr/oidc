@@ -11,9 +11,6 @@ import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.endpoints.Interaction;
-import app.cbo.oidc.java.server.endpoints.RedirectInteraction;
-import app.cbo.oidc.java.server.endpoints.consent.ConsentHandler;
-import app.cbo.oidc.java.server.endpoints.consent.ConsentParams;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.oidc.OIDCFlow;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
@@ -21,7 +18,10 @@ import app.cbo.oidc.java.server.utils.Utils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -141,7 +141,7 @@ public class AuthorizeEndpoint {
     }
 
 
-    private Interaction checkConsent(OIDCFlow flow, User user, AuthorizeParams params, Session session) {
+    private Interaction checkConsent(OIDCFlow flow, User user, AuthorizeParams params, Session session) throws AuthErrorInteraction {
 
         var notYetConsentedTo = params.scopes()
                 .stream()
@@ -153,13 +153,8 @@ public class AuthorizeEndpoint {
             return this.authSuccess(flow, user, params, session);
         } else {
             LOGGER.info("Client is requesting scopes the userId has not yet consented to transmit.");
-            return RedirectInteraction.internal(
-                    this.ongoingAuthsStorer,
-                    ConsentHandler.CONSENT_ENDPOINT,
-                    params,
-                    Map.of(
-                            ConsentParams.SCOPES_REQUESTED, String.join(" ", notYetConsentedTo),
-                            ConsentParams.CLIENT_ID, params.clientId().get()));
+            return new RedirectToConsentInteraction(ongoingAuthsStorer.store(params),
+                    params.clientId().orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "ClientId si required")), params.scopes());
         }
 
 
@@ -170,7 +165,6 @@ public class AuthorizeEndpoint {
 
         //cf 3.1.2.5
         // HTTP/1.1 302 Found  Location: https://client.example.org/cb?code=SplxlOBeZQQYbYS6WxSbIA&state=af0ifjsldkj
-
         //the Authorization Response MUST return the parameters defined in Section 4.1.2 of OAuth 2.0
 
         if (originalParams.redirectUri().isEmpty()) {
@@ -178,13 +172,6 @@ public class AuthorizeEndpoint {
             return new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Missing redirect_uri");
         }
 
-        /*
-            Code createFor(@NotNull UserId userId,
-                   @NotNull ClientId clientId,
-                   @NotNull SessionId sessionId,
-                   @NotNull String redirectUri,
-                   @NotNull List<String> scopes) {
-         */
         Code authCode = this.codeSupplier.createFor(
                 user.getUserId(),
                 ClientId.of(originalParams.clientId().orElse("")),
@@ -192,11 +179,6 @@ public class AuthorizeEndpoint {
                 originalParams.redirectUri().orElse(""),
                 originalParams.scopes(),
                 originalParams.nonce().orElse(null));
-        Map<String, String> params = new HashMap<>();
-        params.put("code", authCode.getCode());
-        if (originalParams.state().isPresent()) {
-            params.put("state", originalParams.state().get());
-        }
 
         //OIDC core 5.4
         // The Claims requested by the profile, email, address, and phone scope values are returned from the UserInfo Endpoint,
@@ -204,8 +186,7 @@ public class AuthorizeEndpoint {
         // (which is the case for the response_type value id_token), the resulting Claims are returned in the ID Token.
 
         LOGGER.info("Authorization OK for flow " + flow.name() + ". Redirecting the userId to redirect uri with the code");
-        return RedirectInteraction.external(
-                this.ongoingAuthsStorer, originalParams.redirectUri().get(), params);
+        return new SuccessInteraction(originalParams, authCode);
     }
 
 
