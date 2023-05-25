@@ -171,12 +171,16 @@ public class AuthorizeEndpoint {
             //should not happens here, but...
             return new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Missing redirect_uri");
         }
+        if (originalParams.clientId().isEmpty()) {
+            //should not happens here, but...
+            return new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Missing clientid");
+        }
 
         Code authCode = this.codeSupplier.createFor(
                 user.getUserId(),
-                ClientId.of(originalParams.clientId().orElse("")),
+                ClientId.of(originalParams.clientId().get()),
                 SessionId.of(session.id()),
-                originalParams.redirectUri().orElse(""),
+                originalParams.redirectUri().get(),
                 originalParams.scopes(),
                 originalParams.nonce().orElse(null));
 
