@@ -25,7 +25,7 @@ public record ConsentParams(Set<String> scopesRequested,
     public static final String ONGOING = "ongoing";
     public static final String BACK = "backFromForm";
 
-    //TODO [05/05/2023]  static method
+
     public ConsentParams(@NotNull OngoingAuthsFinder finder, @NotNull Map<String, Collection<String>> params) throws AuthErrorInteraction {
         this(
                 singleParam(params.get(SCOPES_REQUESTED))

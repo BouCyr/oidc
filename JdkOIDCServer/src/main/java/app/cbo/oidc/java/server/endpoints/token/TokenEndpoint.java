@@ -120,7 +120,7 @@ public class TokenEndpoint {
                 new HashMap<>());
 
 
-        idToken.extranodes().put("at_hash", "rooooo"); //TODO [25/04/2023]
+        idToken.extranodes().put("at_hash", "rooooo"); //TODO [25/04/2023] at_hash management
         LOGGER.info("idToken is : " + JSON.jsonify(idToken));
 
         //access and refresh tokens will be transmitted as JWS, so we do not have to store them

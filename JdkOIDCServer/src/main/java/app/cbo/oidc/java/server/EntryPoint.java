@@ -68,16 +68,10 @@ public class EntryPoint {
                     className = basePackageShort + className.substring(basePackageFull.length());
                 }
 
-                //TODO [24/04/2023] use String format
-                //TODO [24/04/2023] : align date to a fixed length
                 return LocalDateTime.ofInstant(logRecord.getInstant(), ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) +
                         " " + logRecord.getLevel() +
-                        //TODO find thread name ? align to fixed length
                         " thread#" + logRecord.getLongThreadID() +
-                        //TODO right align method name (with truncate to the left ?)
                         " " + className +
-                        //TODO align to fixed length (truncate to the right)
-
                         "." + logRecord.getSourceMethodName() + "(...)" +
                         " : " + logRecord.getMessage() +
                         System.lineSeparator();

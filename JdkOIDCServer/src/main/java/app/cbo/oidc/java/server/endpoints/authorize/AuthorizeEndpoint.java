@@ -149,7 +149,7 @@ public class AuthorizeEndpoint {
 
         var notYetConsentedTo = params.scopes()
                 .stream()
-                .filter(scope -> !user.hasConsentedTo(params.clientId().orElse("..."), scope)) //TODO [20/03/2023] handle (...) in User
+                .filter(scope -> !user.hasConsentedTo(params.clientId().orElse("..."), scope)) //TODO [20/03/2023] handle orElse(...) in User
                 .collect(Collectors.toSet());
 
         if (notYetConsentedTo.isEmpty()) {
@@ -235,7 +235,7 @@ public class AuthorizeEndpoint {
             var atWrapped = JWS.jwsWrap(JWA.RS256, accessToken, currentPrivateKeyId, currentPrivateKey);
             return ImplicitFlowSuccessInteraction.withAccessToken(originalParams, itWrapped, atWrapped, ttl);
         } else {
-            //TODO [26/05/2023]
+            //TODO [26/05/2023] add scoped data in id_token
             //OIDC core 5.4
             // The Claims requested by the profile, email, address, and phone scope values are returned from the UserInfo Endpoint,
             // as described in Section 5.3.2, when a response_type value is used that results in an Access Token being issued. However, when no Access Token is issued

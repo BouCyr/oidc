@@ -80,7 +80,6 @@ public class IntegrationTest {
 
 
         assertThat(decoded.getSubject()).isEqualTo("cyrille");
-        //TODO : calls userinfo endpoint
         var userInfoRequest = HttpRequest.newBuilder()
                 .uri(new URI(ROOT + UserInfoHandler.USERINFO_ENDPOINT))
                 .header("Content-Type", MimeType.FORM.mimeType())
@@ -103,7 +102,6 @@ public class IntegrationTest {
         var decoded = JWT.decode(idToken.asText());
         var keyId = decoded.getKeyId();
 
-        //TODO call jwks endpoint instead
         JWKSet jwkSet;
         try {
             jwkSet = JWKSet.load(new URL(ROOT + JWKSHandler.JWKS_ENDPOINT));
@@ -182,9 +180,9 @@ public class IntegrationTest {
         var loginOngoing = loginOngoings.iterator().next();
 
 
-        var encodeduri = new URI(loginPage.uri().toString().replace(" ", "%20"));
+        var encodedUri = new URI(loginPage.uri().toString().replace(" ", "%20"));
         var authenticationRequest = HttpRequest.newBuilder()
-                .uri(encodeduri)
+                .uri(encodedUri)
                 .header("Content-Type", MimeType.FORM.mimeType())
                 .POST(HttpRequest.BodyPublishers.ofString("login=cyrille&pwd=sesame&totp=" + totp + "&ongoing=" + loginOngoing))
                 .build();
