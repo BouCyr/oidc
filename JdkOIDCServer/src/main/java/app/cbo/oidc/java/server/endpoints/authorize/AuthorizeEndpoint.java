@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.endpoints.authorize;
 
 import app.cbo.oidc.java.server.backends.KeySet;
+import app.cbo.oidc.java.server.backends.claims.ClaimsResolver;
 import app.cbo.oidc.java.server.backends.codes.CodeSupplier;
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsStorer;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
@@ -33,17 +34,20 @@ public class AuthorizeEndpoint {
     private final UserFinder userFinder;
     private final CodeSupplier codeSupplier;
     private final KeySet keySet;
+    private final ClaimsResolver claimsResolver;
 
 
     public AuthorizeEndpoint(
             OngoingAuthsStorer ongoingAuthsStorer,
             UserFinder userFinder,
             CodeSupplier codeSupplier,
-            KeySet keySet) {
+            KeySet keySet,
+            ClaimsResolver claimsResolver) {
         this.ongoingAuthsStorer = ongoingAuthsStorer;
         this.userFinder = userFinder;
         this.codeSupplier = codeSupplier;
         this.keySet = keySet;
+        this.claimsResolver = claimsResolver;
     }
 
 
@@ -222,7 +226,7 @@ public class AuthorizeEndpoint {
         var currentPrivateKeyId = this.keySet.current();
         var currentPrivateKey = this.keySet.privateKey(currentPrivateKeyId)
                 .orElseThrow(() -> new RuntimeException("No current private key found (?)"));
-        var itWrapped = JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey);
+
 
         boolean withAccessToken = originalParams.responseTypes().contains("token");
         if (withAccessToken) {
@@ -233,14 +237,19 @@ public class AuthorizeEndpoint {
                     Instant.now(clock).plus(ttl).getEpochSecond(),
                     originalParams.scopes());
             var atWrapped = JWS.jwsWrap(JWA.RS256, accessToken, currentPrivateKeyId, currentPrivateKey);
+
+            var itWrapped = JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey);
             return ImplicitFlowSuccessInteraction.withAccessToken(originalParams, itWrapped, atWrapped, ttl);
         } else {
-            //TODO [26/05/2023] add scoped data in id_token
             //OIDC core 5.4
             // The Claims requested by the profile, email, address, and phone scope values are returned from the UserInfo Endpoint,
             // as described in Section 5.3.2, when a response_type value is used that results in an Access Token being issued. However, when no Access Token is issued
             // (which is the case for the response_type value id_token), the resulting Claims are returned in the ID Token.
 
+            var claims = this.claimsResolver.claimsFor(user.getUserId(), Set.copyOf(originalParams.scopes()));
+            claims.forEach((claim, val) -> idToken.extranodes().put(claim, val));
+
+            var itWrapped = JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey);
             return ImplicitFlowSuccessInteraction.withoutAccessToken(originalParams, itWrapped);
         }
     }

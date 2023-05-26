@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -25,6 +26,9 @@ import java.util.stream.Stream;
 public class EntryPoint {
 
     private final static Logger LOGGER = Logger.getLogger(EntryPoint.class.getCanonicalName());
+
+
+    private static Server server;
 
     public static void main(String... args) throws IOException {
 
@@ -38,14 +42,16 @@ public class EntryPoint {
         LOGGER.info("Building dependencies");
         var dependencies = new DependenciesBuilder(parsedArgs);
         LOGGER.info("Dependencies built");
-        setupData(dependencies.users(), dependencies.claims());
+        setupData("Cyrille", dependencies.users(), dependencies.claims());
+        setupData("Caroline", dependencies.users(), dependencies.claims());
         LOGGER.info("Sample data built");
-        var server = dependencies.server();
+        server = dependencies.server();
         LOGGER.info("Starting server");
         server.start();
         LOGGER.info("Started in " + Duration.ofNanos(System.nanoTime() - start).toMillis() + "ms");
 
     }
+
 
     private static void configureLogging() {
 
@@ -83,21 +89,19 @@ public class EntryPoint {
 
     @Deprecated
     //TODO [03/04/2023] read data on disk
-    private static void setupData(UserCreator userCreator, ClaimsStorer claimsStorer) {
-
-
-        var uid = UserId.of("cyrille");
+    private static void setupData(String firstName, UserCreator userCreator, ClaimsStorer claimsStorer) {
+        var uid = UserId.of(firstName.toLowerCase(Locale.ROOT));
         LOGGER.info("Creating user");
         userCreator.create(uid.getUserId(), "sesame", "ALBACORE");
 
         LOGGER.info("Creating user data");
         Phone phone = new Phone(uid, "0682738532", false);
-        Mail mail = new Mail(uid, "cyrille@example.com", false);
+        Mail mail = new Mail(uid, firstName.toLowerCase(Locale.ROOT) + "@example.com", false);
         Address address = new Address(uid, "17 place de la République, 59000 Lille, NORD, FRANCE", "17 place de la République", "LILLE", "NORD", "59000", "FRANCE");
         Profile profile = new Profile(
                 uid,
-                "Cyrille BOUCHER",
-                "Cyrille",
+                firstName + " BOUCHER",
+                firstName,
                 "BOUCHER",
                 "Charles",
                 "cbo",

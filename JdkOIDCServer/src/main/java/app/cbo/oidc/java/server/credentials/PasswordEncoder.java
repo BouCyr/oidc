@@ -14,15 +14,21 @@ import java.util.Base64;
 public class PasswordEncoder {
 
     private static PasswordEncoder instance = null;
+
+    @Deprecated
+    /**
+     * @deprecated use deps package
+     */
     public static PasswordEncoder getInstance() {
-        if(instance == null){
-          instance = new PasswordEncoder();
+        if (instance == null) {
+            instance = new PasswordEncoder();
         }
         return instance;
     }
 
 
-    private PasswordEncoder(){ }
+    private PasswordEncoder() {
+    }
 
 
     public String encodePassword(@NotNull String clear){

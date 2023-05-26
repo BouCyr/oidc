@@ -136,8 +136,8 @@ public class DependenciesBuilder {
                         this.ongoingAuths(),
                         this.users(),
                         this.codes(),
-                        this.keyset()
-                ));
+                        this.keyset(),
+                        this.claims()));
     }
 
     public OngoingAuths ongoingAuths() {

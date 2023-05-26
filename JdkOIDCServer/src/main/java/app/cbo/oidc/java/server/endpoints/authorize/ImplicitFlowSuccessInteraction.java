@@ -65,7 +65,7 @@ REQUIRED if the state parameter is present in the Authorization Request. Clients
         }
 
         if (accessToken() != null) {
-            uri += "access_token=" + accessToken() + "&token_type=bearer";
+            uri += "&access_token=" + accessToken() + "&token_type=bearer";
             if (accessTokenTTL() != null) {
                 uri += "&expires_in=" + accessTokenTTL().toSeconds();
             }

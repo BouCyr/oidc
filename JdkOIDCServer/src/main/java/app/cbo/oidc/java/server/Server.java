@@ -44,4 +44,7 @@ public class Server {
     }
 
 
+    public void shutdown() {
+        this.server.stop(0);
+    }
 }
