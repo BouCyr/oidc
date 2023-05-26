@@ -135,7 +135,8 @@ public class DependenciesBuilder {
                 () -> new AuthorizeEndpoint(
                         this.ongoingAuths(),
                         this.users(),
-                        this.codes()
+                        this.codes(),
+                        this.keyset()
                 ));
     }
 

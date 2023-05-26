@@ -43,6 +43,7 @@ public class IntegrationTest {
     private static final String DOMAIN = "localhost";
     private static final String ROOT = SCHEME + DOMAIN + ":" + PORT;
 
+    //TODO [26/05/2023] implicit flow integration testing
 
     @Test
     public void authorizationFlow() throws IOException, URISyntaxException, InterruptedException, OutsideRedirect, JOSEException {
@@ -91,7 +92,7 @@ public class IntegrationTest {
         assertThat(userInfoResponse.statusCode()).isEqualTo(200);
         var userInfo = new ObjectMapper().reader().readTree(userInfoResponse.body());
 
-        userInfo.toString();
+
         assertThat(userInfo).isNotNull();
         assertThat(userInfo.get("name").asText()).isEqualToIgnoringCase("cyrille boucher");
         assertThat(userInfo.get("phone")).isNull(); //did not ask for 'phone' scope
@@ -138,8 +139,7 @@ public class IntegrationTest {
 
         var tokenResponse = codeRes.body();
 
-        var json = new ObjectMapper().reader().readTree(tokenResponse);
-        return json;
+        return new ObjectMapper().reader().readTree(tokenResponse);
     }
 
     private String submitConsentAndRedirectToClientWithCode(HttpClient browser, HttpResponse<String> consentPage, String consentOngoing) throws IOException, InterruptedException, URISyntaxException {
@@ -151,8 +151,8 @@ public class IntegrationTest {
 
         URI sentToclient = null;
         try {
-            var codeSentToClient = followRedirects(browser, consentRequest);
-
+            followRedirects(browser, consentRequest);
+            fail("Should have been redirected");
         } catch (OutsideRedirect e) {
             sentToclient = e.redirectTo();
         }
@@ -170,8 +170,7 @@ public class IntegrationTest {
                 .isNotEmpty()
                 .hasSize(1);
 
-        var code = codeParam.iterator().next();
-        return code;
+        return codeParam.iterator().next();
     }
 
     private HttpResponse<String> submitCredentialsAndRedirectToConsents(HttpClient browser, HttpResponse<String> loginPage) throws IOException, InterruptedException, URISyntaxException, OutsideRedirect {
@@ -190,8 +189,7 @@ public class IntegrationTest {
                 .POST(HttpRequest.BodyPublishers.ofString("login=cyrille&pwd=sesame&totp=" + totp + "&ongoing=" + loginOngoing))
                 .build();
 
-        var consentPage = followRedirects(browser, authenticationRequest);
-        return consentPage;
+        return followRedirects(browser, authenticationRequest);
     }
 
     private HttpResponse<String> callAuthorizeAndRedirectToLogin(HttpClient browser) throws URISyntaxException, IOException, InterruptedException, OutsideRedirect {

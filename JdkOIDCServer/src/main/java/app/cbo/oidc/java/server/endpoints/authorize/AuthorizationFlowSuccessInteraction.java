@@ -8,7 +8,7 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 
-public record SuccessInteraction(AuthorizeParams params, Code code) implements Interaction {
+public record AuthorizationFlowSuccessInteraction(AuthorizeParams params, Code code) implements Interaction {
 
 
     @Override

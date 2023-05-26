@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.endpoints.authorize;
 
+import app.cbo.oidc.java.server.backends.KeySet;
 import app.cbo.oidc.java.server.backends.codes.CodeSupplier;
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsStorer;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
@@ -12,16 +13,16 @@ import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.jwt.JWA;
+import app.cbo.oidc.java.server.jwt.JWS;
 import app.cbo.oidc.java.server.oidc.OIDCFlow;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
+import app.cbo.oidc.java.server.oidc.tokens.AccessOrRefreshToken;
+import app.cbo.oidc.java.server.oidc.tokens.IdToken;
 import app.cbo.oidc.java.server.utils.Utils;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Optional;
+import java.time.*;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -31,15 +32,18 @@ public class AuthorizeEndpoint {
     private final OngoingAuthsStorer ongoingAuthsStorer;
     private final UserFinder userFinder;
     private final CodeSupplier codeSupplier;
+    private final KeySet keySet;
 
 
     public AuthorizeEndpoint(
             OngoingAuthsStorer ongoingAuthsStorer,
             UserFinder userFinder,
-            CodeSupplier codeSupplier) {
+            CodeSupplier codeSupplier,
+            KeySet keySet) {
         this.ongoingAuthsStorer = ongoingAuthsStorer;
         this.userFinder = userFinder;
         this.codeSupplier = codeSupplier;
+        this.keySet = keySet;
     }
 
 
@@ -176,6 +180,18 @@ public class AuthorizeEndpoint {
             return new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Missing clientid");
         }
 
+
+        LOGGER.info("Authorization OK for flow " + flow.name() + ". Redirecting the user to redirect uri with the code");
+        if (flow == OIDCFlow.AUTHORIZATION) {
+            return authorizationFlowSuccess(user, originalParams, session);
+        } else if (flow == OIDCFlow.IMPLICIT) {
+            return implicitFlowSuccess(user, originalParams, session);
+        } else {
+            throw new IllegalArgumentException("Hybrid flow not implemented");
+        }
+    }
+
+    private AuthorizationFlowSuccessInteraction authorizationFlowSuccess(User user, AuthorizeParams originalParams, Session session) {
         Code authCode = this.codeSupplier.createFor(
                 user.getUserId(),
                 ClientId.of(originalParams.clientId().get()),
@@ -184,16 +200,50 @@ public class AuthorizeEndpoint {
                 originalParams.scopes(),
                 originalParams.nonce().orElse(null));
 
-        //OIDC core 5.4
-        // The Claims requested by the profile, email, address, and phone scope values are returned from the UserInfo Endpoint,
-        // as described in Section 5.3.2, when a response_type value is used that results in an Access Token being issued. However, when no Access Token is issued
-        // (which is the case for the response_type value id_token), the resulting Claims are returned in the ID Token.
-
-        LOGGER.info("Authorization OK for flow " + flow.name() + ". Redirecting the user to redirect uri with the code");
-        return new SuccessInteraction(originalParams, authCode);
+        return new AuthorizationFlowSuccessInteraction(originalParams, authCode);
     }
 
+    private ImplicitFlowSuccessInteraction implicitFlowSuccess(User user, AuthorizeParams originalParams, Session session) {
+        var clock = Clock.systemUTC();
+        //TODO [26/05/2023] extract idtoken generation, clock handling and keyset mgt in a dedicated service (done twice here & code endpoint)
+        var idToken = new IdToken(
+                user.sub(),
+                "http://localhost:4951",
+                List.of(originalParams.clientId().get()),
+                Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
+                Instant.now(clock).getEpochSecond(),
+                session.authTime().toEpochSecond(ZoneOffset.UTC),
+                originalParams.nonce(),
+                new AuthenticationLevel(session.authentications()).name(),
+                session.authentications().stream().map(Enum::name).toList(),
+                originalParams.clientId(),
+                new HashMap<>());
 
+        var currentPrivateKeyId = this.keySet.current();
+        var currentPrivateKey = this.keySet.privateKey(currentPrivateKeyId)
+                .orElseThrow(() -> new RuntimeException("No current private key found (?)"));
+        var itWrapped = JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey);
+
+        boolean withAccessToken = originalParams.responseTypes().contains("token");
+        if (withAccessToken) {
+            var ttl = Duration.ofMinutes(5L);
+            var accessToken = new AccessOrRefreshToken(
+                    AccessOrRefreshToken.TYPE_ACCESS,
+                    user.sub(),
+                    Instant.now(clock).plus(ttl).getEpochSecond(),
+                    originalParams.scopes());
+            var atWrapped = JWS.jwsWrap(JWA.RS256, accessToken, currentPrivateKeyId, currentPrivateKey);
+            return ImplicitFlowSuccessInteraction.withAccessToken(originalParams, itWrapped, atWrapped, ttl);
+        } else {
+            //TODO [26/05/2023]
+            //OIDC core 5.4
+            // The Claims requested by the profile, email, address, and phone scope values are returned from the UserInfo Endpoint,
+            // as described in Section 5.3.2, when a response_type value is used that results in an Access Token being issued. However, when no Access Token is issued
+            // (which is the case for the response_type value id_token), the resulting Claims are returned in the ID Token.
+
+            return ImplicitFlowSuccessInteraction.withoutAccessToken(originalParams, itWrapped);
+        }
+    }
 
 
 }

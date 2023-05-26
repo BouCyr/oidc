@@ -120,8 +120,8 @@ public class TokenEndpoint {
                 new HashMap<>());
 
 
-        LOGGER.info("idToken is : " + JSON.jsonify(idToken));
         idToken.extranodes().put("at_hash", "rooooo"); //TODO [25/04/2023]
+        LOGGER.info("idToken is : " + JSON.jsonify(idToken));
 
         //access and refresh tokens will be transmitted as JWS, so we do not have to store them
         //any token received will be valid if signature is OK.
