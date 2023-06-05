@@ -6,7 +6,7 @@ import app.cbo.oidc.java.server.backends.claims.Claims;
 import app.cbo.oidc.java.server.backends.codes.Codes;
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuths;
 import app.cbo.oidc.java.server.backends.sessions.Sessions;
-import app.cbo.oidc.java.server.backends.users.Users;
+import app.cbo.oidc.java.server.backends.users.MemUsers;
 import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateEndpoint;
 import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateHandler;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpoint;
@@ -150,9 +150,9 @@ public class DependenciesBuilder {
                 Sessions::new);
     }
 
-    public Users users() {
-        return this.getInstance(Users.class,
-                Users::new);
+    public MemUsers users() {
+        return this.getInstance(MemUsers.class,
+                MemUsers::new);
     }
 
     public Codes codes() {

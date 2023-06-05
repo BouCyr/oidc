@@ -9,6 +9,9 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+/**
+ * Stores the claims/user fino/user data of every registered users
+ */
 public class Claims implements ClaimsStorer, ClaimsResolver {
 
     private final static Logger LOGGER = Logger.getLogger(Claims.class.getCanonicalName());
@@ -19,6 +22,9 @@ public class Claims implements ClaimsStorer, ClaimsResolver {
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void store(ScopedClaims... someClaims) {
         Stream.of(someClaims)
@@ -31,13 +37,16 @@ public class Claims implements ClaimsStorer, ClaimsResolver {
                 });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Map<String, Object> claimsFor(UserId userId, Set<String> requestedScopes) {
 
         final Map<String, Object> result = new HashMap<>();
         this.filterByUser(userId)
                 .stream()
-                .filter(claims -> this.isInScope(requestedScopes, claims))
+                .filter(claim -> this.isInScope(requestedScopes, claim))
                 .forEach(claims -> toNameAndValue(claims).forEach(pair -> result.put(pair.left(), pair.right())));
 
         result.remove("userId");
@@ -45,6 +54,13 @@ public class Claims implements ClaimsStorer, ClaimsResolver {
         return result;
     }
 
+    /**
+     * Checks if a specificic ScopedClaim is requested
+     *
+     * @param scopes       the list of scopes requested
+     * @param scopedClaims the scope being checked
+     * @return true if @param scopedClaims is requested
+     */
     private boolean isInScope(Set<String> scopes, ScopedClaims scopedClaims) {
         return (
                 (scopes.contains("profile") && scopedClaims instanceof Profile)
@@ -54,6 +70,12 @@ public class Claims implements ClaimsStorer, ClaimsResolver {
         );
     }
 
+    /**
+     * Returns all known info for a user
+     *
+     * @param userId the userId
+     * @return every ScopedClaims of this user
+     */
     List<ScopedClaims> filterByUser(UserId userId) {
 
         return this.allClaims
@@ -63,6 +85,12 @@ public class Claims implements ClaimsStorer, ClaimsResolver {
 
     }
 
+    /**
+     * TRansfomr a ScopedClaims into a Collection of key/value pair, vith the field name as key and the user info in value
+     *
+     * @param scopedClaims the user ScopedClaims being trnasformed
+     * @return a Collection of key/value pair, vith the field name as key and the user info in value
+     */
     Collection<Pair<String, Object>> toNameAndValue(ScopedClaims scopedClaims) {
         return ReflectionUtils.toNameAndValue(scopedClaims)
                 .stream()
@@ -72,6 +100,12 @@ public class Claims implements ClaimsStorer, ClaimsResolver {
 
     }
 
+    /**
+     * Transform a NameAndValue into a pait<String, Object></String,>
+     *
+     * @param nv being transforms
+     * @return a Pair, with the name as Left and the value as Right
+     */
     private Pair<String, Object> toPair(ReflectionUtils.NameAndValue nv) {
         var name = nv.name();
         Object value;

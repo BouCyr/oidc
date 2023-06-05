@@ -10,9 +10,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Users implements UserFinder, UserCreator {
+public class MemUsers implements UserFinder, UserCreator, UserUpdate {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();
+
 
     @Override
     @NotNull
@@ -20,6 +21,16 @@ public class Users implements UserFinder, UserCreator {
         return Optional.ofNullable(this.users.get(userId.getUserId()));
     }
 
+    public boolean update(@NotNull User user) {
+        if (this.users.containsKey(user.sub())) {
+            users.put(user.sub(), user);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public UserId create(@NotNull String login, @Nullable String clearPwd, @Nullable String totpKey) {
 
         if (this.find(UserId.of(login)).isPresent()) {

@@ -19,6 +19,9 @@ public class Codes implements CodeSupplier, CodeConsumer {
     private final Map<String, CodeData> store = new HashMap<>();
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public Code createFor(@NotNull UserId userId,
@@ -40,6 +43,9 @@ public class Codes implements CodeSupplier, CodeConsumer {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NotNull
     public Optional<CodeData> consume(@NotNull Code code, @NotNull ClientId clientId, @NotNull String redirectUri) {
@@ -51,7 +57,13 @@ public class Codes implements CodeSupplier, CodeConsumer {
         return Optional.ofNullable(this.store.remove(this.computeKey(code, clientId, redirectUri)));
     }
 
-    //code is only valid for ONE client_id
+    /**
+     * computes a unique key id for an authentication request (in order to retrieve it later)
+     * TODO this is a strictly related to Map handling ; once on FS, we should use a random code, and store data in a file named with the random part.
+     *
+     * @deprecated change implementation when using File Storage
+     */
+    @Deprecated
     @NotNull
     private String computeKey(
             @NotNull Code code,
