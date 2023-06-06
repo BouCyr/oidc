@@ -1,18 +1,24 @@
 package app.cbo.oidc.java.server.backends.filesystem;
 
 import app.cbo.oidc.java.server.datastored.user.UserId;
+import app.cbo.oidc.java.server.utils.Pair;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.RecordComponent;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Class that reads and writes data linked to a user in the fileSystem
@@ -38,6 +44,56 @@ public class UserDataFileStorage {
         }
     }
 
+    public static String toLine(String key, String val) {
+        return key + ":" + val;
+    }
+
+    public static Pair<String, String> fromLine(String line) {
+        var key = line.split(":")[0];
+        var val = line.substring((key + ":").length());
+        return Pair.of(key, val);
+    }
+
+    /**
+     * Returns the canonical constructor of a record class
+     *
+     * @param recordClass the record class
+     * @param <T>         the record type
+     * @return the canonical constructor
+     */
+    public static <T extends Record> Constructor<T> constructorOf(Class<T> recordClass) {
+        Class<?>[] componentTypes = Arrays.stream(recordClass.getRecordComponents())
+                .map(RecordComponent::getType)
+                .toArray(Class<?>[]::new);
+        try {
+            return recordClass.getDeclaredConstructor(componentTypes);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("Reflection error... ");
+        }
+    }
+
+    public Optional<Map<String, String>> readMap(UserId userId, UserDataStorageSpecifications storageSpecs) throws IOException {
+        var file = this.reader(userId, storageSpecs);
+
+        if (file.isEmpty()) {
+            return Optional.empty();
+        }
+
+        try (var reader = file.get()) {
+            return Optional.of(reader.lines()
+                    .map(UserDataFileStorage::fromLine)
+                    .collect(Collectors.toMap(Pair::left, Pair::right)));
+        }
+    }
+
+    public void writeMap(UserId userId, UserDataStorageSpecifications storageSpecs, Map<String, String> record) throws IOException {
+        try (var writer = this.writer(userId, storageSpecs)) {
+            for (var kv : record.entrySet()) {
+                writer.write(toLine(kv.getKey(), kv.getValue()));
+                writer.newLine();
+            }
+        }
+    }
 
     /**
      * Opens a reader on some user info

@@ -2,7 +2,7 @@ package app.cbo.oidc.java.server.deps;
 
 import app.cbo.oidc.java.server.*;
 import app.cbo.oidc.java.server.backends.KeySet;
-import app.cbo.oidc.java.server.backends.claims.Claims;
+import app.cbo.oidc.java.server.backends.claims.MemClaims;
 import app.cbo.oidc.java.server.backends.codes.Codes;
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuths;
 import app.cbo.oidc.java.server.backends.sessions.Sessions;
@@ -160,8 +160,8 @@ public class DependenciesBuilder {
                 Codes::new);
     }
 
-    public Claims claims() {
-        return this.getInstance(Claims.class, Claims::new);
+    public MemClaims claims() {
+        return this.getInstance(MemClaims.class, MemClaims::new);
     }
 
     public KeySet keyset() {

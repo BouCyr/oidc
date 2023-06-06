@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MemUsers implements UserFinder, UserCreator, UserUpdate {
+public class MemUsers implements Users {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();
 

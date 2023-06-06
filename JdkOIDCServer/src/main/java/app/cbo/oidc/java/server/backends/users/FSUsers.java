@@ -14,20 +14,20 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class FSUsers implements UserFinder, UserCreator, UserUpdate {
+import static app.cbo.oidc.java.server.backends.filesystem.UserDataFileStorage.fromLine;
+import static app.cbo.oidc.java.server.backends.filesystem.UserDataFileStorage.toLine;
 
-    static final String USER_FILENAME = "user.txt";
-    public static final UserDataStorageSpecifications USERWRITEABLE = () -> USER_FILENAME;
-    static final String SUBK = "sub";
-    static final String PWDK = "pwd";
-    static final String TOTPK = "totp";
-    static final String CONSENTSK = "consents";
+public record FSUsers(UserDataFileStorage fsUserStorage) implements Users {
+
     private final static Logger LOGGER = Logger.getLogger(FSUsers.class.getCanonicalName());
-    private final UserDataFileStorage fsUserStorage;
 
-    public FSUsers(UserDataFileStorage fsUserStorage) {
-        this.fsUserStorage = fsUserStorage;
-    }
+
+    private static final String USER_FILENAME = "user.txt";
+    public static final UserDataStorageSpecifications USERWRITEABLE = () -> USER_FILENAME;
+    private static final String SUB_K = "sub";
+    private static final String PWD_K = "pwd";
+    private static final String TOTP_K = "totp";
+    private static final String CONSENTS_K = "consents";
 
     @Override
     public UserId create(@NotNull String login, @Nullable String clearPwd, @Nullable String totpKey) {
@@ -44,6 +44,7 @@ public class FSUsers implements UserFinder, UserCreator, UserUpdate {
                 clearPwd != null ? PasswordEncoder.getInstance().encodePassword(clearPwd) : null,
                 totpKey);
 
+        LOGGER.info("Writing credentials of '" + login + "' on disk");
         try (var writer = this.fsUserStorage.writer(newUser.getUserId(), USERWRITEABLE)) {
             for (var dataLine : this.userToStrings(newUser)) {
                 writer.write(dataLine);
@@ -58,6 +59,7 @@ public class FSUsers implements UserFinder, UserCreator, UserUpdate {
     @NotNull
     @Override
     public Optional<User> find(@NotNull UserId userId) {
+        LOGGER.info("Reading user data of #" + userId.get());
 
         try {
             var findFile = this.fsUserStorage.reader(userId, USERWRITEABLE);
@@ -70,6 +72,7 @@ public class FSUsers implements UserFinder, UserCreator, UserUpdate {
             }
 
         } catch (IOException e) {
+            LOGGER.severe("IOException while reading user. This is not normal. " + e.getMessage());
             return Optional.empty();
         }
 
@@ -77,15 +80,18 @@ public class FSUsers implements UserFinder, UserCreator, UserUpdate {
 
     @Override
     public boolean update(@NotNull User user) {
-        return false;
+        //TODO [06/06/2023]
+        throw new RuntimeException("NOT IMPLEMENTED YET");
     }
+
+    //TODO [06/06/2023] patch ? for consents ?
 
     protected Collection<String> userToStrings(@NotNull User user) {
         return List.of(
-                SUBK + ":" + user.sub(),
-                PWDK + ":" + user.pwd(),
-                TOTPK + ":" + user.totpKey(),
-                CONSENTSK + ":" + this.consentsToString(user.consentedTo())
+                toLine(SUB_K, user.sub()),
+                toLine(PWD_K, user.pwd()),
+                toLine(TOTP_K, user.totpKey()),
+                toLine(CONSENTS_K, this.consentsToString(user.consentedTo()))
         );
 
     }
@@ -106,23 +112,13 @@ public class FSUsers implements UserFinder, UserCreator, UserUpdate {
         Map<String, Set<String>> consents = null;
 
         for (var line : stringified) {
-            var key = line.split(":")[0];
-            var val = line.substring((key + ":").length());
-            switch (key) {
-                case SUBK:
-                    sub = val;
-                    break;
-                case PWDK:
-                    pwd = val;
-                    break;
-                case TOTPK:
-                    totpKey = val;
-                    break;
-                case CONSENTSK:
-                    consents = this.readStringConsents(val);
-                    break;
-                default:
-                    LOGGER.info("unknown key found in file '" + USERWRITEABLE.fileName() + "' : " + key);
+            var pair = fromLine(line);
+            switch (pair.left()) {
+                case SUB_K -> sub = pair.right();
+                case PWD_K -> pwd = pair.right();
+                case TOTP_K -> totpKey = pair.right();
+                case CONSENTS_K -> consents = this.readStringConsents(pair.right());
+                default -> LOGGER.info("unknown key found in file '" + USERWRITEABLE.fileName() + "' : " + pair.right());
             }
         }
 
