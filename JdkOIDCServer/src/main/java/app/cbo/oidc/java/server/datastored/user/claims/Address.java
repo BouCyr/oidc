@@ -17,7 +17,7 @@ public record Address(UserId userId, String address) implements ScopedClaims {
     }
 
     public Address(UserId userId, AddressPayload addressPayload) {
-        this(userId, JSON.jsonify(addressPayload));
+        this(userId, JSON.jsonifyOneline(addressPayload));
     }
 
     public static record AddressPayload(String formatted,

@@ -95,8 +95,22 @@ class FSClaimsTest {
                         "1911-05-08",
                         "us-east",
                         "en-EN",
-                        System.currentTimeMillis()
+                        421L
                 ));
 
+        retrieved = tested.claimsFor(user, Set.of("phone", "profile"));
+        Assertions.assertThat(retrieved).extractingByKey("phone").isEqualTo("monumero");
+        Assertions.assertThat(retrieved).extractingByKey("phone_verified").isEqualTo(true);
+        Assertions.assertThat(retrieved).extractingByKey("given_name").isEqualTo("Robert");
+        Assertions.assertThat(retrieved).extractingByKey("updated_at").isEqualTo(421L);
+
+        retrieved = tested.claimsFor(user, Set.of("phone", "profile", "email", "address"));
+        Assertions.assertThat(retrieved).extractingByKey("phone").isEqualTo("monumero");
+        Assertions.assertThat(retrieved).extractingByKey("phone_verified").isEqualTo(true);
+        Assertions.assertThat(retrieved).extractingByKey("given_name").isEqualTo("Robert");
+        Assertions.assertThat(retrieved).extractingByKey("updated_at").isEqualTo(421L);
+        Assertions.assertThat(retrieved)
+                .containsKey("address")
+                .extractingByKey("address").isInstanceOf(String.class);
     }
 }

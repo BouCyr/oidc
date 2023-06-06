@@ -50,8 +50,13 @@ public class UserDataFileStorage {
 
     public static Pair<String, String> fromLine(String line) {
         var key = line.split(":")[0];
-        var val = line.substring((key + ":").length());
-        return Pair.of(key, val);
+        try {
+            var val = line.substring((key + ":").length());
+            return Pair.of(key, val);
+        } catch (IndexOutOfBoundsException e) {
+            e.toString();
+            throw e;
+        }
     }
 
     /**
