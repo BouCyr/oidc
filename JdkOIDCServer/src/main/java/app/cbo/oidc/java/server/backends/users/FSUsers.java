@@ -44,7 +44,11 @@ public record FSUsers(UserDataFileStorage fsUserStorage) implements Users {
                 clearPwd != null ? PasswordEncoder.getInstance().encodePassword(clearPwd) : null,
                 totpKey);
 
-        LOGGER.info("Writing credentials of '" + login + "' on disk");
+        LOGGER.info("Writing credentials of new user '" + login + "' on disk");
+        return writeUSer(newUser);
+    }
+
+    private UserId writeUSer(User newUser) {
         try (var writer = this.fsUserStorage.writer(newUser.getUserId(), USERWRITEABLE)) {
             for (var dataLine : this.userToStrings(newUser)) {
                 writer.write(dataLine);
@@ -80,11 +84,15 @@ public record FSUsers(UserDataFileStorage fsUserStorage) implements Users {
 
     @Override
     public boolean update(@NotNull User user) {
-        //TODO [06/06/2023]
-        throw new RuntimeException("NOT IMPLEMENTED YET");
+        try {
+            this.writeUSer(user);
+            return true;
+        } catch (Exception e) {
+            LOGGER.severe("IOException while updating user. This is not normal. " + e.getMessage());
+            return false;
+        }
     }
 
-    //TODO [06/06/2023] patch ? for consents ?
 
     protected Collection<String> userToStrings(@NotNull User user) {
         return List.of(

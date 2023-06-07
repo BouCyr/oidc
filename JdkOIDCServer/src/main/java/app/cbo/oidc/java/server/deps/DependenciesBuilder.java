@@ -115,6 +115,7 @@ public class DependenciesBuilder {
         return this.getInstance(ConsentEndpoint.class,
                 () -> new ConsentEndpoint(
                         this.ongoingAuths(),
+                        this.users(),
                         this.users()
                 ));
     }
