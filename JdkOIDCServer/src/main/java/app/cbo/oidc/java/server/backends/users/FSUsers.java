@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server.backends.users;
 
-import app.cbo.oidc.java.server.backends.filesystem.UserDataFileStorage;
-import app.cbo.oidc.java.server.backends.filesystem.UserDataStorageSpecifications;
+import app.cbo.oidc.java.server.backends.filesystem.UserFileStorage;
+import app.cbo.oidc.java.server.backends.filesystem.fileSpecifications;
 import app.cbo.oidc.java.server.credentials.PasswordEncoder;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.datastored.user.UserId;
@@ -14,16 +14,16 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static app.cbo.oidc.java.server.backends.filesystem.UserDataFileStorage.fromLine;
-import static app.cbo.oidc.java.server.backends.filesystem.UserDataFileStorage.toLine;
+import static app.cbo.oidc.java.server.backends.filesystem.UserFileStorage.fromLine;
+import static app.cbo.oidc.java.server.backends.filesystem.UserFileStorage.toLine;
 
-public record FSUsers(UserDataFileStorage fsUserStorage) implements Users {
+public record FSUsers(UserFileStorage fsUserStorage) implements Users {
 
     private final static Logger LOGGER = Logger.getLogger(FSUsers.class.getCanonicalName());
 
 
     private static final String USER_FILENAME = "user.txt";
-    public static final UserDataStorageSpecifications USERWRITEABLE = () -> USER_FILENAME;
+    public static final fileSpecifications USERWRITEABLE = () -> USER_FILENAME;
     private static final String SUB_K = "sub";
     private static final String PWD_K = "pwd";
     private static final String TOTP_K = "totp";

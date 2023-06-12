@@ -57,7 +57,7 @@ class FSUserDataWriterTest {
 
     @Test
     void fileNotFound() throws IOException {
-        var tested = new UserDataFileStorage(folder);
+        var tested = new UserFileStorage(folder);
         var opt = tested.reader(() -> "bof", () -> "wat");
 
         assertThat(opt).isEmpty();
@@ -67,7 +67,7 @@ class FSUserDataWriterTest {
     @Test
     void nominal() throws IOException {
 
-        var tested = new UserDataFileStorage(folder);
+        var tested = new UserFileStorage(folder);
 
 
         writeThenRead(tested, UserId.of("testUser"), () -> "monFichier", HUGO);
@@ -77,7 +77,7 @@ class FSUserDataWriterTest {
         writeThenRead(tested, UserId.of("testUser"), () -> "monFichierC", HUGO);
     }
 
-    private void writeThenRead(UserDataFileStorage tested, UserId userId, UserDataStorageSpecifications writeable, String... lyrics) throws IOException {
+    private void writeThenRead(UserFileStorage tested, UserId userId, fileSpecifications writeable, String... lyrics) throws IOException {
 
         //write
         try (var writer = tested.writer(userId, writeable)) {
@@ -138,9 +138,9 @@ class FSUserDataWriterTest {
     @Test
     void withSubFolder() throws IOException {
 
-        var tested = new UserDataFileStorage(folder);
+        var tested = new UserFileStorage(folder);
 
-        UserDataStorageSpecifications withSubFolder = new UserDataStorageSpecifications() {
+        fileSpecifications withSubFolder = new fileSpecifications() {
             @Override
             public String fileName() {
                 return "monAutreFichier";

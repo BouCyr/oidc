@@ -2,11 +2,15 @@ package app.cbo.oidc.java.server.deps;
 
 import app.cbo.oidc.java.server.*;
 import app.cbo.oidc.java.server.backends.KeySet;
+import app.cbo.oidc.java.server.backends.claims.Claims;
 import app.cbo.oidc.java.server.backends.claims.MemClaims;
-import app.cbo.oidc.java.server.backends.codes.Codes;
+import app.cbo.oidc.java.server.backends.codes.MemCodes;
+import app.cbo.oidc.java.server.backends.filesystem.UserFileStorage;
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuths;
 import app.cbo.oidc.java.server.backends.sessions.Sessions;
+import app.cbo.oidc.java.server.backends.users.FSUsers;
 import app.cbo.oidc.java.server.backends.users.MemUsers;
+import app.cbo.oidc.java.server.backends.users.Users;
 import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateEndpoint;
 import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateHandler;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpoint;
@@ -151,22 +155,41 @@ public class DependenciesBuilder {
                 Sessions::new);
     }
 
-    public MemUsers users() {
-        return this.getInstance(MemUsers.class,
-                MemUsers::new);
+    public Users users() {
+        Users val;
+        if (args.fsBackEnd()) {
+            val = this.getInstance(
+                    FSUsers.class,
+                    () -> new FSUsers(this.userDataFileStorage()));
+        } else {
+            val = this.getInstance(MemUsers.class,
+                    MemUsers::new);
+        }
+        return val;
     }
 
-    public Codes codes() {
-        return this.getInstance(Codes.class,
-                Codes::new);
+    public MemCodes codes() {
+        return this.getInstance(MemCodes.class,
+                MemCodes::new);
     }
 
-    public MemClaims claims() {
+    public Claims claims() {
         return this.getInstance(MemClaims.class, MemClaims::new);
     }
 
     public KeySet keyset() {
         return this.getInstance(KeySet.class, KeySet::new);
+    }
+
+    public UserFileStorage userDataFileStorage() {
+        return this.getInstance(UserFileStorage.class, () -> {
+            try {
+                return new UserFileStorage(args.basePath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
     }
 
     private <U> U getInstance(Class<U> clazz, Supplier<U> cr) {

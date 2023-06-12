@@ -6,7 +6,7 @@ import app.cbo.oidc.java.server.utils.Utils;
  * Defines how (and where) data should be written : filename, subfolder if needed
  */
 @FunctionalInterface
-public interface UserDataStorageSpecifications {
+public interface fileSpecifications {
 
     String fileName();
 

@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
 /**
  * Class that reads and writes data linked to a user in the fileSystem
  */
-public class UserDataFileStorage {
+public class UserFileStorage {
 
 
-    private static final Logger LOGGER = Logger.getLogger(UserDataFileStorage.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(UserFileStorage.class.getCanonicalName());
     private final Path basePath;
 
 
@@ -36,7 +36,7 @@ public class UserDataFileStorage {
      * @param basePath root path for user data
      * @throws IOException if root path is missing from the FS and cannot be created
      */
-    public UserDataFileStorage(Path basePath) throws IOException {
+    public UserFileStorage(Path basePath) throws IOException {
         this.basePath = basePath;
 
         if (!Files.exists(basePath)) {
@@ -77,7 +77,7 @@ public class UserDataFileStorage {
         }
     }
 
-    public Optional<Map<String, String>> readMap(UserId userId, UserDataStorageSpecifications storageSpecs) throws IOException {
+    public Optional<Map<String, String>> readMap(UserId userId, fileSpecifications storageSpecs) throws IOException {
         var file = this.reader(userId, storageSpecs);
 
         if (file.isEmpty()) {
@@ -86,12 +86,12 @@ public class UserDataFileStorage {
 
         try (var reader = file.get()) {
             return Optional.of(reader.lines()
-                    .map(UserDataFileStorage::fromLine)
+                    .map(UserFileStorage::fromLine)
                     .collect(Collectors.toMap(Pair::left, Pair::right)));
         }
     }
 
-    public void writeMap(UserId userId, UserDataStorageSpecifications storageSpecs, Map<String, String> record) throws IOException {
+    public void writeMap(UserId userId, fileSpecifications storageSpecs, Map<String, String> record) throws IOException {
         try (var writer = this.writer(userId, storageSpecs)) {
             for (var kv : record.entrySet()) {
                 writer.write(toLine(kv.getKey(), kv.getValue()));
@@ -108,7 +108,7 @@ public class UserDataFileStorage {
      * @return A bufferedReader on the data, or EMPTY if the requested file cannot be found
      * @throws IOException when something goes wrong when opening the file. Please note that FileNotFound/NoSuchFileException will not be thrown, but will return Optional.empty instead
      */
-    public Optional<BufferedReader> reader(UserId userId, UserDataStorageSpecifications writeable) throws IOException {
+    public Optional<BufferedReader> reader(UserId userId, fileSpecifications writeable) throws IOException {
 
         try {
             return Optional.of(Files.newBufferedReader(file(userId, writeable), StandardCharsets.UTF_8));
@@ -126,7 +126,7 @@ public class UserDataFileStorage {
      * @return A BufferedWriter on the data ; file will be created if missing
      * @throws IOException when something goes wrong when opening/creating the file
      */
-    public BufferedWriter writer(UserId userId, UserDataStorageSpecifications writeable) throws IOException {
+    public BufferedWriter writer(UserId userId, fileSpecifications writeable) throws IOException {
         return Files.newBufferedWriter(file(userId, writeable), StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.SYNC, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
@@ -138,7 +138,7 @@ public class UserDataFileStorage {
      * @return path for the requested file
      * @throws IOException when something goes wrong when opening/creating the file
      */
-    protected Path file(UserId userId, UserDataStorageSpecifications writeable) throws IOException {
+    protected Path file(UserId userId, fileSpecifications writeable) throws IOException {
         return directory(userId, writeable).resolve(writeable.fileName());
     }
 
@@ -150,7 +150,7 @@ public class UserDataFileStorage {
      * @return path for the requested file
      * @throws IOException when something goes wrong when opening/creating the file
      */
-    protected Path directory(UserId userId, UserDataStorageSpecifications writeable) throws IOException {
+    protected Path directory(UserId userId, fileSpecifications writeable) throws IOException {
         var userDirectory = basePath.resolve(userId.getUserId());
         if (!Files.exists(userDirectory)) {
             Files.createDirectory(userDirectory);

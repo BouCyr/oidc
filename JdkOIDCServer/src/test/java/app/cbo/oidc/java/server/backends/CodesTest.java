@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.backends;
 
-import app.cbo.oidc.java.server.backends.codes.Codes;
+import app.cbo.oidc.java.server.backends.codes.MemCodes;
 import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Code;
 import app.cbo.oidc.java.server.datastored.SessionId;
@@ -24,7 +24,7 @@ class CodesTest {
     @Test
     void nominal() {
 
-        var codes = new Codes();
+        var codes = new MemCodes();
         var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
@@ -43,7 +43,7 @@ class CodesTest {
 
     @Test
     void code_consumed() {
-        var codes = new Codes();
+        var codes = new MemCodes();
         var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
@@ -60,7 +60,7 @@ class CodesTest {
 
     @Test
     void wrong_code() {
-        var codes = new Codes();
+        var codes = new MemCodes();
 
         var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
@@ -75,7 +75,7 @@ class CodesTest {
     @Test
     void wrong_client() {
 
-        var codes = new Codes();
+        var codes = new MemCodes();
         var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
@@ -89,7 +89,7 @@ class CodesTest {
     @Test
     void wrong_redirectUri() {
 
-        var codes = new Codes();
+        var codes = new MemCodes();
         var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID), REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
@@ -102,7 +102,7 @@ class CodesTest {
     @Test
     void nullability_create() {
 
-        var codes = new Codes();
+        var codes = new MemCodes();
         assertThatThrownBy(() -> codes.createFor(null, null, null, null, null, null))
                 .isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> codes.createFor(UserId.of(BOB), null, null, null, null, null))
@@ -116,7 +116,7 @@ class CodesTest {
     @Test
     void nullability_consume() {
 
-        var codes = new Codes();
+        var codes = new MemCodes();
         var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),

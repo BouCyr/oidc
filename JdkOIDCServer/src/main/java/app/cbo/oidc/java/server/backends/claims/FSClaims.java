@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server.backends.claims;
 
-import app.cbo.oidc.java.server.backends.filesystem.UserDataFileStorage;
-import app.cbo.oidc.java.server.backends.filesystem.UserDataStorageSpecifications;
+import app.cbo.oidc.java.server.backends.filesystem.UserFileStorage;
+import app.cbo.oidc.java.server.backends.filesystem.fileSpecifications;
 import app.cbo.oidc.java.server.backends.users.FSUsers;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.datastored.user.claims.*;
@@ -12,18 +12,18 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-public record FSClaims(UserDataFileStorage fsUserStorage) implements Claims {
+public record FSClaims(UserFileStorage fsUserStorage) implements Claims {
 
 
     private final static Logger LOGGER = Logger.getLogger(FSUsers.class.getCanonicalName());
 
 
-    private UserDataStorageSpecifications fsSpecs(ScopedClaims scopedClaims) {
+    private fileSpecifications fsSpecs(ScopedClaims scopedClaims) {
         return fsSpecs(scopedClaims.getClass());
     }
 
-    private UserDataStorageSpecifications fsSpecs(Class<? extends ScopedClaims> scopedClaimType) {
-        return new UserDataStorageSpecifications() {
+    private fileSpecifications fsSpecs(Class<? extends ScopedClaims> scopedClaimType) {
+        return new fileSpecifications() {
             @Override
             public String fileName() {
                 return scopedClaimType.getSimpleName().toLowerCase(Locale.ROOT) + ".txt";
