@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.jwt;
 
-import app.cbo.oidc.java.server.backends.KeySet;
+import app.cbo.oidc.java.server.backends.keys.MemKeySet;
 import app.cbo.oidc.java.server.datastored.KeyId;
 import app.cbo.oidc.java.server.oidc.tokens.IdToken;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -108,7 +108,7 @@ class JwtTest {
     void checkSignature() {
         IdToken payload = testToken("cyrille", "http://auth0.com");
 
-        var keyset = new KeySet();
+        var keyset = new MemKeySet();
         var current = keyset.current();
         String token = JWS.jwsWrap(JWA.RS256, payload, current, keyset.privateKey(current).get());
 

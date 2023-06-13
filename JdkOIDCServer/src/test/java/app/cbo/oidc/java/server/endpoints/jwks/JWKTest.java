@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.endpoints.jwks;
 
-import app.cbo.oidc.java.server.backends.KeySet;
+import app.cbo.oidc.java.server.backends.keys.MemKeySet;
 import app.cbo.oidc.java.server.json.JSON;
 import app.cbo.oidc.java.server.jwt.JWK;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +27,7 @@ class JWKTest {
 
     @Test
     public void test() throws Exception {
-        var keyset = new KeySet();
+        var keyset = new MemKeySet();
         //the current kid
         var kid = keyset.current();
         //the corresponding public k

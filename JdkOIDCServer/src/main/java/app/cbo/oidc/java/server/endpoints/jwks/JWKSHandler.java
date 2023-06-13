@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server.endpoints.jwks;
 
 import app.cbo.oidc.java.server.HttpHandlerWithPath;
-import app.cbo.oidc.java.server.backends.KeySet;
+import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.json.JSON;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import app.cbo.oidc.java.server.utils.MimeType;

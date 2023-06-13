@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server.endpoints.token;
 
-import app.cbo.oidc.java.server.backends.KeySet;
 import app.cbo.oidc.java.server.backends.codes.CodeConsumer;
+import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.backends.sessions.SessionFinder;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.AuthenticationLevel;

@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server.endpoints.userinfo;
 
-import app.cbo.oidc.java.server.backends.KeySet;
 import app.cbo.oidc.java.server.backends.claims.ClaimsResolver;
+import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.endpoints.Interaction;
 import app.cbo.oidc.java.server.jsr305.NotNull;

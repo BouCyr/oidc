@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.backends.users;
 
-import app.cbo.oidc.java.server.backends.filesystem.UserFileStorage;
+import app.cbo.oidc.java.server.backends.filesystem.FileStorage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 class FSUsersTest {
 
     Path folder;
-    UserFileStorage storage;
+    FileStorage storage;
 
 
     @Test
@@ -35,7 +35,7 @@ class FSUsersTest {
     @BeforeEach
     void setup() throws IOException {
         folder = Files.createTempDirectory("testFs");
-        storage = new UserFileStorage(folder);
+        storage = new FileStorage(folder);
     }
 
     @AfterEach

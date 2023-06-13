@@ -1,7 +1,8 @@
 package app.cbo.oidc.java.server.backends.claims;
 
-import app.cbo.oidc.java.server.backends.filesystem.UserFileStorage;
-import app.cbo.oidc.java.server.backends.filesystem.fileSpecifications;
+import app.cbo.oidc.java.server.backends.filesystem.FileSpecification;
+import app.cbo.oidc.java.server.backends.filesystem.FileSpecifications;
+import app.cbo.oidc.java.server.backends.filesystem.FileStorage;
 import app.cbo.oidc.java.server.backends.users.FSUsers;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.datastored.user.claims.*;
@@ -12,28 +13,18 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-public record FSClaims(UserFileStorage fsUserStorage) implements Claims {
+public record FSClaims(FileStorage fsUserStorage) implements Claims {
 
 
     private final static Logger LOGGER = Logger.getLogger(FSUsers.class.getCanonicalName());
 
 
-    private fileSpecifications fsSpecs(ScopedClaims scopedClaims) {
-        return fsSpecs(scopedClaims.getClass());
+    private FileSpecification file(ScopedClaims scopedClaims, UserId userId) {
+        return file(scopedClaims.getClass(), userId);
     }
 
-    private fileSpecifications fsSpecs(Class<? extends ScopedClaims> scopedClaimType) {
-        return new fileSpecifications() {
-            @Override
-            public String fileName() {
-                return scopedClaimType.getSimpleName().toLowerCase(Locale.ROOT) + ".txt";
-            }
-
-            @Override
-            public String subFolder() {
-                return "scopes";
-            }
-        };
+    private FileSpecification file(Class<? extends ScopedClaims> scopedClaimType, UserId userId) {
+        return FileSpecifications.forUser(userId).in("claims").fileName(scopedClaimType.getSimpleName());
     }
 
 
@@ -50,7 +41,7 @@ public record FSClaims(UserFileStorage fsUserStorage) implements Claims {
             }
 
             try {
-                var map = this.fsUserStorage().readMap(userId, this.fsSpecs(scopeClass.get()));
+                var map = this.fsUserStorage().readMap(this.file(scopeClass.get(), userId));
                 map.ifPresent(vals -> result.putAll(this.readMap(vals, requestedScope)));
 
             } catch (IOException e) {
@@ -110,7 +101,7 @@ public record FSClaims(UserFileStorage fsUserStorage) implements Claims {
                     "userId", p.userId().get(),
                     "address", p.address()
             );
-            this.fsUserStorage.writeMap(p.userId(), this.fsSpecs(p), vals);
+            this.fsUserStorage.writeMap(this.file(p, p.userId()), vals);
         } catch (IOException e) {
             LOGGER.severe("IOEXCEPTION while writing Address");
         }
@@ -133,7 +124,7 @@ public record FSClaims(UserFileStorage fsUserStorage) implements Claims {
                     "email_verified", Boolean.toString(p.email_verified())
             );
 
-            this.fsUserStorage.writeMap(p.userId(), this.fsSpecs(p), vals);
+            this.fsUserStorage.writeMap(this.file(p, p.userId()), vals);
         } catch (IOException e) {
             LOGGER.severe("IOEXCEPTION while writing Address");
         }
@@ -200,7 +191,7 @@ public record FSClaims(UserFileStorage fsUserStorage) implements Claims {
             vals.put("locale", p.locale());
             vals.put("updated_at", Long.toString(p.updated_at()));
 
-            this.fsUserStorage.writeMap(p.userId(), this.fsSpecs(p), vals);
+            this.fsUserStorage.writeMap(this.file(p, p.userId()), vals);
         } catch (IOException e) {
             LOGGER.severe("IOEXCEPTION while writing Address");
         }
@@ -213,7 +204,7 @@ public record FSClaims(UserFileStorage fsUserStorage) implements Claims {
                     "userId", p.userId().get(),
                     "phone_verified", Boolean.toString(p.phone_verified())
             );
-            this.fsUserStorage.writeMap(p.userId(), this.fsSpecs(p), vals);
+            this.fsUserStorage.writeMap(this.file(p, p.userId()), vals);
         } catch (IOException e) {
             LOGGER.severe("IOEXCEPTION while writing Address");
         }

@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.jwt;
 
-import app.cbo.oidc.java.server.backends.KeySet;
+import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.datastored.KeyId;
 import app.cbo.oidc.java.server.json.JSON;
 import app.cbo.oidc.java.server.jsr305.NotNull;

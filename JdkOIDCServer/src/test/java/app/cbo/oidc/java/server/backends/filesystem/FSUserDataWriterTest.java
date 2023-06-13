@@ -6,7 +6,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -31,16 +30,16 @@ class FSUserDataWriterTest {
     };
 
 
-    Path folder;
+    Path testBase;
 
     @BeforeEach
     void setup() throws IOException {
-        folder = Files.createTempDirectory("testFs");
+        testBase = Files.createTempDirectory("testFs");
     }
 
     @AfterEach
     void teardown() throws IOException {
-        Files.walkFileTree(folder, new SimpleFileVisitor<>() {
+        Files.walkFileTree(testBase, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 Files.delete(file);
@@ -57,8 +56,8 @@ class FSUserDataWriterTest {
 
     @Test
     void fileNotFound() throws IOException {
-        var tested = new UserFileStorage(folder);
-        var opt = tested.reader(() -> "bof", () -> "wat");
+        var tested = new FileStorage(testBase);
+        var opt = tested.reader(FileSpecifications.fileName("bof"));
 
         assertThat(opt).isEmpty();
 
@@ -67,20 +66,25 @@ class FSUserDataWriterTest {
     @Test
     void nominal() throws IOException {
 
-        var tested = new UserFileStorage(folder);
+        var tested = new FileStorage(testBase);
 
 
-        writeThenRead(tested, UserId.of("testUser"), () -> "monFichier", HUGO);
-        writeThenRead(tested, UserId.of("testUser2"), () -> "monFichierA", HUGO);
-        writeThenRead(tested, UserId.of("testUser3"), () -> "monFichierB", HUGO);
-        writeThenRead(tested, UserId.of("testUser"), () -> "monFichier", HUGO2);
-        writeThenRead(tested, UserId.of("testUser"), () -> "monFichierC", HUGO);
+        var file = FileSpecifications.forUser(UserId.of("testUser")).fileName("monFichier");
+
+        writeThenRead(tested, UserId.of("testUser"), FileSpecifications.forUser(UserId.of("testUser")).fileName("monFichier"), HUGO);
+        writeThenRead(tested, UserId.of("testUser2"), FileSpecifications.forUser(UserId.of("testUser2")).fileName("monFichierA"), HUGO);
+        writeThenRead(tested, UserId.of("testUser2"), FileSpecifications.forUser(UserId.of("testUser2")).fileName("monFichierA"), HUGO);
+        writeThenRead(tested, UserId.of("testUser3"), FileSpecifications.forUser(UserId.of("testUser3")).fileName("monFichierB"), HUGO);
+        writeThenRead(tested, UserId.of("testUser"), FileSpecifications.forUser(UserId.of("testUser")).fileName("monFichier"), HUGO2);
+        writeThenRead(tested, UserId.of("testUser"), FileSpecifications.forUser(UserId.of("testUser")).fileName("monFichierC"), HUGO);
+        writeThenRead(tested, UserId.of("testUser"), FileSpecifications.forUser(UserId.of("testUser")).fileName("monFichierB"), HUGO);
+
     }
 
-    private void writeThenRead(UserFileStorage tested, UserId userId, fileSpecifications writeable, String... lyrics) throws IOException {
+    private void writeThenRead(FileStorage tested, UserId userId, FileSpecification writeable, String... lyrics) throws IOException {
 
         //write
-        try (var writer = tested.writer(userId, writeable)) {
+        try (var writer = tested.writer(writeable)) {
 
             for (var verse : lyrics) {
                 writer.write(verse);
@@ -88,38 +92,27 @@ class FSUserDataWriterTest {
             }
         }
 
-        assertThat(folder).exists()
-                .isDirectory();
-        var userFolder = folder.resolve(userId.getUserId());
-        assertThat(userFolder).exists()
+        assertThat(testBase).exists()
                 .isDirectory();
 
-        Path userFile;
-        if (writeable.hasSubfolder()) {
-            var subFolder = userFolder.resolve(writeable.subFolder());
-            assertThat(subFolder).exists()
+        Path userFile = testBase;
+        for (String folder : writeable.folders()) {
+            userFile = userFile.resolve(folder);
+            assertThat(userFile).exists()
                     .isDirectory();
 
-            userFile = subFolder.resolve(writeable.fileName());
-        } else {
-            userFile = userFolder.resolve(writeable.fileName());
+
         }
+        userFile = userFile.resolve(writeable.fileName());
         assertThat(userFile)
                 .exists()
                 .isRegularFile()
                 .isNotEmptyFile();
 
-        String path = folder.toString() + File.separator
-                + userId.getUserId() + File.separator
-                + (writeable.hasSubfolder() ? writeable.subFolder() + File.separator : "")
-                + writeable.fileName();
-        assertThat(new File(path))
-                .exists()
-                .isFile()
-                .isNotEmpty();
+
 
         //read
-        var optReader = tested.reader(userId, writeable);
+        var optReader = tested.reader(writeable);
 
         if (optReader.isEmpty()) {
             fail("file not found");
@@ -138,22 +131,18 @@ class FSUserDataWriterTest {
     @Test
     void withSubFolder() throws IOException {
 
-        var tested = new UserFileStorage(folder);
+        var tested = new FileStorage(testBase);
 
-        fileSpecifications withSubFolder = new fileSpecifications() {
-            @Override
-            public String fileName() {
-                return "monAutreFichier";
-            }
 
-            @Override
-            public String subFolder() {
-                return "sub";
-            }
-        };
+        FileSpecification withSubFolder = FileSpecifications
+                .forUser(UserId.of("testUser"))
+                .in("sub")
+                .fileName("monAutreFichier");
+
         writeThenRead(tested, UserId.of("testUser"), withSubFolder, HUGO2);
         writeThenRead(tested, UserId.of("testUser"), withSubFolder, HUGO);
         writeThenRead(tested, UserId.of("testUser"), withSubFolder, HUGO2);
+        withSubFolder = FileSpecifications.forUser(UserId.of("anotherUser")).in("sub").fileName("monAutreFichier");
         writeThenRead(tested, UserId.of("anotherUser"), withSubFolder, HUGO2);
     }
 }

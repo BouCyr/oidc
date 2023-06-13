@@ -1,8 +1,8 @@
 package app.cbo.oidc.java.server.endpoints.authorize;
 
-import app.cbo.oidc.java.server.backends.KeySet;
 import app.cbo.oidc.java.server.backends.claims.ClaimsResolver;
 import app.cbo.oidc.java.server.backends.codes.CodeSupplier;
+import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsStorer;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.AuthenticationLevel;

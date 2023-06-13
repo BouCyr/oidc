@@ -38,7 +38,7 @@ public class ImplicitFlowIntegrationTest {
     public void implicitFlowWithoutAccessToken() throws IOException, URISyntaxException, InterruptedException, AuthFlowIntegrationTest.OutsideRedirect, JOSEException {
 
         int PORT = 4547;
-        EntryPoint.main("port=" + PORT);
+        EntryPoint.main("port=" + PORT, "backend=mem");
 
         var cookies = new AuthFlowIntegrationTest.MyCookies();
         var browser = HttpClient.newBuilder()
@@ -77,7 +77,7 @@ public class ImplicitFlowIntegrationTest {
     public void implicitFlowWithAccessToken() throws IOException, URISyntaxException, InterruptedException, AuthFlowIntegrationTest.OutsideRedirect, JOSEException {
 
         int PORT = 4548;
-        EntryPoint.main("port=" + PORT);
+        EntryPoint.main("port=" + PORT, "backend=mem");
 
         var cookies = new AuthFlowIntegrationTest.MyCookies();
         var browser = HttpClient.newBuilder()

@@ -1,11 +1,12 @@
 package app.cbo.oidc.java.server.deps;
 
 import app.cbo.oidc.java.server.*;
-import app.cbo.oidc.java.server.backends.KeySet;
 import app.cbo.oidc.java.server.backends.claims.Claims;
 import app.cbo.oidc.java.server.backends.claims.MemClaims;
 import app.cbo.oidc.java.server.backends.codes.MemCodes;
-import app.cbo.oidc.java.server.backends.filesystem.UserFileStorage;
+import app.cbo.oidc.java.server.backends.filesystem.FileStorage;
+import app.cbo.oidc.java.server.backends.keys.KeySet;
+import app.cbo.oidc.java.server.backends.keys.MemKeySet;
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuths;
 import app.cbo.oidc.java.server.backends.sessions.Sessions;
 import app.cbo.oidc.java.server.backends.users.FSUsers;
@@ -178,13 +179,13 @@ public class DependenciesBuilder {
     }
 
     public KeySet keyset() {
-        return this.getInstance(KeySet.class, KeySet::new);
+        return this.getInstance(MemKeySet.class, MemKeySet::new);
     }
 
-    public UserFileStorage userDataFileStorage() {
-        return this.getInstance(UserFileStorage.class, () -> {
+    public FileStorage userDataFileStorage() {
+        return this.getInstance(FileStorage.class, () -> {
             try {
-                return new UserFileStorage(args.basePath());
+                return new FileStorage(args.basePath());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

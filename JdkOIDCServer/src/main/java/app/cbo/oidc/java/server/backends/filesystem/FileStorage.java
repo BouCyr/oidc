@@ -1,29 +1,28 @@
 package app.cbo.oidc.java.server.backends.filesystem;
 
-import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.utils.Pair;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.RecordComponent;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+/**
+ * Class that reads and writes data linked in the fileSystem
+ */
 public class FileStorage {
 
 
-    private static final Logger LOGGER = Logger.getLogger(UserFileStorage.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(FileStorage.class.getCanonicalName());
     private final Path basePath;
 
 
@@ -56,26 +55,9 @@ public class FileStorage {
         }
     }
 
-    /**
-     * Returns the canonical constructor of a record class
-     *
-     * @param recordClass the record class
-     * @param <T>         the record type
-     * @return the canonical constructor
-     */
-    public static <T extends Record> Constructor<T> constructorOf(Class<T> recordClass) {
-        Class<?>[] componentTypes = Arrays.stream(recordClass.getRecordComponents())
-                .map(RecordComponent::getType)
-                .toArray(Class<?>[]::new);
-        try {
-            return recordClass.getDeclaredConstructor(componentTypes);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Reflection error... ");
-        }
-    }
 
-    public Optional<Map<String, String>> readMap(UserId userId, FileSpecifications storageSpecs) throws IOException {
-        var file = this.reader(userId, storageSpecs);
+    public Optional<Map<String, String>> readMap(FileSpecification storageSpecs) throws IOException {
+        var file = this.reader(storageSpecs);
 
         if (file.isEmpty()) {
             return Optional.empty();
@@ -83,13 +65,13 @@ public class FileStorage {
 
         try (var reader = file.get()) {
             return Optional.of(reader.lines()
-                    .map(UserFileStorage::fromLine)
+                    .map(FileStorage::fromLine)
                     .collect(Collectors.toMap(Pair::left, Pair::right)));
         }
     }
 
-    public void writeMap(UserId userId, FileSpecifications storageSpecs, Map<String, String> record) throws IOException {
-        try (var writer = this.writer(userId, storageSpecs)) {
+    public void writeMap(FileSpecification storageSpecs, Map<String, String> record) throws IOException {
+        try (var writer = this.writer(storageSpecs)) {
             for (var kv : record.entrySet()) {
                 writer.write(toLine(kv.getKey(), kv.getValue()));
                 writer.newLine();
@@ -100,17 +82,18 @@ public class FileStorage {
     /**
      * Opens a reader on some user info
      *
-     * @param userId    the user we want to read data for
      * @param writeable definition of the data being read
      * @return A bufferedReader on the data, or EMPTY if the requested file cannot be found
      * @throws IOException when something goes wrong when opening the file. Please note that FileNotFound/NoSuchFileException will not be thrown, but will return Optional.empty instead
      */
-    public Optional<BufferedReader> reader(UserId userId, FileSpecifications writeable) throws IOException {
+    public Optional<BufferedReader> reader(FileSpecification writeable) throws IOException {
 
         try {
-            return Optional.of(Files.newBufferedReader(file(userId, writeable), StandardCharsets.UTF_8));
+            var filePath = file(writeable);
+            LOGGER.info("Opening reader on " + filePath.toString());
+            return Optional.of(Files.newBufferedReader(filePath, StandardCharsets.UTF_8));
         } catch (FileNotFoundException | NoSuchFileException e) {
-            LOGGER.info(String.format("File '%s' not found for user with id '%s' %n", writeable.fileName(), userId.getUserId()));
+            LOGGER.info(String.format("File '%s' not found  %n", writeable.fileName()));
             return Optional.empty();
         }
     }
@@ -118,49 +101,62 @@ public class FileStorage {
     /**
      * Opens a reader on some user info
      *
-     * @param userId    the user we want to read data for
      * @param writeable definition of the data being read
      * @return A BufferedWriter on the data ; file will be created if missing
      * @throws IOException when something goes wrong when opening/creating the file
      */
-    public BufferedWriter writer(UserId userId, FileSpecifications writeable) throws IOException {
-        return Files.newBufferedWriter(file(userId, writeable), StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.SYNC, StandardOpenOption.TRUNCATE_EXISTING);
+    public BufferedWriter writer(FileSpecification writeable) throws IOException {
+        var filePath = file(writeable);
+        LOGGER.info("Opening writer on " + filePath.toString());
+        return Files.newBufferedWriter(filePath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.SYNC, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    public void delete(FileSpecification file) throws IOException {
+        var filePath = file(file);
+        LOGGER.info("Deleting " + filePath.toString());
+        Files.delete(filePath);
+
     }
 
     /**
      * Find the complete path, including fileName and potential subfolder, for specific data linked to a user
      *
-     * @param userId    the user we want to read data for
      * @param writeable definition of the data being read/written
      * @return path for the requested file
      * @throws IOException when something goes wrong when opening/creating the file
      */
-    protected Path file(UserId userId, FileSpecifications writeable) throws IOException {
-        return directory(userId, writeable).resolve(writeable.fileName());
+    protected Path file(FileSpecification writeable) throws IOException {
+        try {
+            return directory(writeable).resolve(writeable.fileName());
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
     }
+
 
     /**
      * Find the folder path for specific data linked to a user (user folder and potential subfolder depending on the daata)
      *
-     * @param userId    the user we want to read data for
      * @param writeable definition of the data being read/written
      * @return path for the requested file
      * @throws IOException when something goes wrong when opening/creating the file
      */
-    protected Path directory(UserId userId, FileSpecifications writeable) throws IOException {
-        var userDirectory = basePath.resolve(userId.getUserId());
-        if (!Files.exists(userDirectory)) {
-            Files.createDirectory(userDirectory);
+    protected Path directory(FileSpecification writeable) throws IOException {
+
+        Path cur = basePath;
+
+        for (String subFold : writeable.folders()) {
+
+            cur = cur.resolve(subFold);
+
+            if (!Files.exists(cur)) {
+                Files.createDirectory(cur);
+            }
         }
 
-        if (!writeable.hasSubfolder()) {
-            return userDirectory;
-        }
-        var dataFolder = userDirectory.resolve(writeable.subFolder());
-        if (!Files.exists(dataFolder)) {
-            Files.createDirectory(dataFolder);
-        }
-        return dataFolder;
+
+        return cur;
     }
+
 
 }

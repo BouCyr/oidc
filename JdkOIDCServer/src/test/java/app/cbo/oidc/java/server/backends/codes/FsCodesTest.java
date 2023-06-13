@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.backends.claims;
+package app.cbo.oidc.java.server.backends.codes;
 
 import app.cbo.oidc.java.server.backends.filesystem.FileStorage;
 import org.junit.jupiter.api.AfterEach;
@@ -12,9 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
-
-class FSClaimsTest {
-
+class FsCodesTest extends CodesTest {
 
     Path folder;
     FileStorage storage;
@@ -43,11 +41,44 @@ class FSClaimsTest {
     }
 
     @Test
-    void testReadWrite() {
-        //GIVEN
-        var tested = new FSClaims(this.storage);
+    void nominal() {
 
-        ClaimsTest.testReadWrite(tested);
+        nominal(new FSCodes(storage));
+    }
+
+    @Test
+    void code_consumed() {
+        code_consumed(new FSCodes(storage));
+    }
+
+    @Test
+    void wrong_code() {
+
+        wrongCode(new FSCodes(storage));
+    }
+
+    @Test
+    void wrong_client() {
+
+        wrong_client(new FSCodes(storage));
+    }
+
+    @Test
+    void wrong_redirectUri() {
+
+        wrong_redirecturi(new FSCodes(storage));
+    }
+
+    @Test
+    void nullability_create() {
+
+        nullability(new FSCodes(storage));
+    }
+
+    @Test
+    void nullability_consume() {
+
+        nullability_consume(new FSCodes(storage));
     }
 
 

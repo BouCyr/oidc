@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.backends;
+package app.cbo.oidc.java.server.backends.keys;
 
 import app.cbo.oidc.java.server.datastored.KeyId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
@@ -13,16 +13,15 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-public class KeySet {
+public class MemKeySet implements KeySet {
 
-    private final static Logger LOGGER = Logger.getLogger(KeySet.class.getCanonicalName());
+    private final static Logger LOGGER = Logger.getLogger(MemKeySet.class.getCanonicalName());
 
 
     private final KeyId currentKp;
     private final Map<String, KeyPair> pairs = new HashMap<>();
 
-    //TODO [28/04/2023] store on disk (java keystore ?)
-    public KeySet() {
+    public MemKeySet() {
         KeyPairGenerator kpg;
         try {
             kpg = KeyPairGenerator.getInstance("RSA");
@@ -43,6 +42,7 @@ public class KeySet {
 
     }
 
+    @Override
     @NotNull
     public JWKSet asJWKSet() {
         return new JWKSet(pairs.entrySet().stream()
@@ -51,16 +51,19 @@ public class KeySet {
                 .toList());
     }
 
+    @Override
     @NotNull
     public KeyId current() {
         return this.currentKp;
     }
 
+    @Override
     @NotNull
     public Optional<PrivateKey> privateKey(@NotNull KeyId keyId) {
         return Optional.ofNullable(pairs.get(keyId.getKeyId())).map(KeyPair::getPrivate);
     }
 
+    @Override
     @NotNull
     public Optional<PublicKey> publicKey(@NotNull KeyId keyId) {
         return Optional.ofNullable(pairs.get(keyId.getKeyId())).map(KeyPair::getPublic);
