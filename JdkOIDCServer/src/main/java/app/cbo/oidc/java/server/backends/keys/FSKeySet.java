@@ -15,41 +15,15 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.EncodedKeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
-public record FSKeySet(FileStorage userDataFileStorage) implements KeySet {
+public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeySet {
     public static final FileSpecification KeyFile = FileSpecifications.in("keys").fileName("keySet.txt");
-    /*
-     String algorithm = "DSA"; // or RSA, DH, etc.
 
-        // Generate a 1024-bit Digital Signature Algorithm (DSA) key pair
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance(algorithm);
-        keyGen.initialize(1024);//from   w w  w  . j  a va 2  s  .c  o m
-        KeyPair keypair = keyGen.genKeyPair();
-        PrivateKey privateKey = keypair.getPrivate();
-        PublicKey publicKey = keypair.getPublic();
-
-        byte[] privateKeyBytes = privateKey.getEncoded();
-        byte[] publicKeyBytes = publicKey.getEncoded();
-
-        KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
-        EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
-        PrivateKey privateKey2 = keyFactory.generatePrivate(privateKeySpec);
-
-        EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
-        PublicKey publicKey2 = keyFactory.generatePublic(publicKeySpec);
-
-        // The orginal and new keys are the same
-        boolean same = privateKey.equals(privateKey2);
-        same = publicKey.equals(publicKey2);
-     */
     private final static Logger LOGGER = Logger.getLogger(FSKeySet.class.getCanonicalName());
 
-    public FSKeySet(FileStorage userDataFileStorage) {
+    public FSKeySet(@NotNull FileStorage userDataFileStorage) {
         this.userDataFileStorage = userDataFileStorage;
 
         Optional<BufferedReader> keyStore;
@@ -63,19 +37,18 @@ public record FSKeySet(FileStorage userDataFileStorage) implements KeySet {
         }
     }
 
+    private static KeyId findCurrent(List<KeyPair> stored) {
+        return stored.stream()
+                .filter(KeyPair::current)
+                .map(KeyPair::keyId)
+                .findAny().orElseThrow(() -> new RuntimeException("No current key found"));
+    }
+
     private void init() {
         KeyPairGenerator kpg;
         try {
-            kpg = KeyPairGenerator.getInstance("RSA");
-            //rfc7518 : A key of size 2048 bits or larger MUST be used with these algorithms.
-            kpg.initialize(2048);
-            var kp = kpg.generateKeyPair();
-
-
-            //randomize the kid, so we do not reuse a kid (if we did, a client could store the 'old' key value in some cache)
-            var currentKp = KeyId.of(UUID.randomUUID().toString());
-
-            this.writeKeys(new KeyPair(true, currentKp, kp.getPrivate(), kp.getPublic()));
+            KeyPair newKP = newCurrent();
+            this.writeKeys(newKP);
 
         } catch (NoSuchAlgorithmException e) {
             LOGGER.severe("NoSuchAlgorithmException when building keyset : " + e.getMessage());
@@ -83,7 +56,19 @@ public record FSKeySet(FileStorage userDataFileStorage) implements KeySet {
         }
     }
 
-    private void writeKeys(KeyPair... keyPairs) {
+    @NotNull
+    private KeyPair newCurrent() throws NoSuchAlgorithmException {
+        KeyPairGenerator kpg;
+        kpg = KeyPairGenerator.getInstance("RSA");
+        //rfc7518 : A key of size 2048 bits or larger MUST be used with these algorithms.
+        kpg.initialize(2048);
+        var kp = kpg.generateKeyPair();
+        //randomize the kid, so we do not reuse a kid (if we did, a client could store the 'old' key value in some cache)
+        return new KeyPair(true, KeyId.of(UUID.randomUUID().toString()), kp.getPrivate(), kp.getPublic());
+    }
+
+    @NotNull
+    private void writeKeys(@NotNull KeyPair... keyPairs) {
         try (var writer = this.userDataFileStorage.writer(KeyFile)) {
             for (var kp : keyPairs) {
                 writer.write(this.toLine(kp));
@@ -94,16 +79,18 @@ public record FSKeySet(FileStorage userDataFileStorage) implements KeySet {
         }
     }
 
-    private String toLine(KeyPair kp) {
-        return kp.keyId()
-                + "."
+    @NotNull
+    private String toLine(@NotNull KeyPair kp) {
+        return kp.keyId().getKeyId()
+                + ";"
                 + (kp.current() ? "1" : "0")
-                + "."
+                + ";"
                 + Base64.getEncoder().encodeToString(kp.privateKey().getEncoded())
-                + "."
+                + ";"
                 + Base64.getEncoder().encodeToString(kp.publicKey().getEncoded());
     }
 
+    @NotNull
     private KeyPair fromLine(KeyFactory keyFactory, String s) {
         try {
             String[] parts = s.split(";");
@@ -114,7 +101,7 @@ public record FSKeySet(FileStorage userDataFileStorage) implements KeySet {
             EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
             PrivateKey pk = keyFactory.generatePrivate(privateKeySpec);
 
-            var publicKeyBytes = Base64.getDecoder().decode(parts[2]);
+            var publicKeyBytes = Base64.getDecoder().decode(parts[3]);
             EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
             PublicKey pub = keyFactory.generatePublic(publicKeySpec);
 
@@ -124,6 +111,18 @@ public record FSKeySet(FileStorage userDataFileStorage) implements KeySet {
         }
     }
 
+    @NotNull
+    @Override
+    public JWKSet asJWKSet() {
+
+        return new JWKSet(
+                this.readKeySet().stream()
+                        .map(kp -> JWK.rsaPublicKey(kp.keyId().getKeyId(), (RSAPublicKey) kp.publicKey()))
+                        .toList()
+        );
+    }
+
+    @NotNull
     private List<KeyPair> readKeySet() {
         final KeyFactory keyFactory;
         try {
@@ -145,23 +144,28 @@ public record FSKeySet(FileStorage userDataFileStorage) implements KeySet {
     }
 
     @NotNull
-    @Override
-    public JWKSet asJWKSet() {
+    public KeyId rotate() {
+        List<KeyPair> next = new ArrayList<>();
+        this.readKeySet()
+                .forEach(prev -> next.add(
+                        new KeyPair(false, prev.keyId(), prev.privateKey(), prev.publicKey())
+                ));
+        try {
+            next.add(this.newCurrent());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        this.writeKeys(next.toArray(new KeyPair[0]));
+        return findCurrent(next);
 
-        return new JWKSet(
-                this.readKeySet().stream()
-                        .map(kp -> JWK.rsaPublicKey(kp.keyId().getKeyId(), (RSAPublicKey) kp.publicKey()))
-                        .toList()
-        );
+
     }
 
     @NotNull
     @Override
     public KeyId current() {
-        return this.readKeySet().stream()
-                .filter(KeyPair::current)
-                .map(KeyPair::keyId)
-                .findAny().orElseThrow(() -> new RuntimeException("No current key found"));
+        var stored = this.readKeySet();
+        return findCurrent(stored);
     }
 
     @NotNull
@@ -182,6 +186,7 @@ public record FSKeySet(FileStorage userDataFileStorage) implements KeySet {
                 .findAny();
     }
 
-    record KeyPair(boolean current, KeyId keyId, PrivateKey privateKey, PublicKey publicKey) {
+    record KeyPair(boolean current, @NotNull KeyId keyId, @NotNull PrivateKey privateKey,
+                   @NotNull PublicKey publicKey) {
     }
 }

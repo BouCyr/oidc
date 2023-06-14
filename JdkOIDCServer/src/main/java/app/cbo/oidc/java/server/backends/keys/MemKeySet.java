@@ -18,10 +18,15 @@ public class MemKeySet implements KeySet {
     private final static Logger LOGGER = Logger.getLogger(MemKeySet.class.getCanonicalName());
 
 
-    private final KeyId currentKp;
+    private KeyId currentKp;
     private final Map<String, KeyPair> pairs = new HashMap<>();
 
     public MemKeySet() {
+        newCurrent();
+
+    }
+
+    private void newCurrent() {
         KeyPairGenerator kpg;
         try {
             kpg = KeyPairGenerator.getInstance("RSA");
@@ -38,8 +43,14 @@ public class MemKeySet implements KeySet {
             LOGGER.severe("NoSuchAlgorithmException when building keyset : " + e.getMessage());
             throw new RuntimeException(e);
         }
+    }
 
 
+    @NotNull
+    @Override
+    public KeyId rotate() {
+        this.newCurrent();
+        return this.currentKp;
     }
 
     @Override

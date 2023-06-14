@@ -20,4 +20,7 @@ public interface KeySet {
 
     @NotNull
     Optional<PublicKey> publicKey(@NotNull KeyId keyId);
+
+    @NotNull
+    KeyId rotate();
 }
