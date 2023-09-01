@@ -30,7 +30,7 @@ public record AuthorizeParams(
         List<String> acrValues
 
         //TODO [17/03/2023] cf 5.5 'claims'
-        //TODO [17/03/2023] cf 6  "Passing Request Parameters as JWTs" - this will be another knightmare
+        //TODO [17/03/2023] cf 6  "Passing Request Parameters as JWTs" - this will be another nightmare
 ){
 
 
@@ -102,9 +102,10 @@ public record AuthorizeParams(
      */
     public static void checkParamsForFlow(AuthorizeParams params, OIDCFlow flow) throws AuthErrorInteraction {
         //RQ :
-        // redirect_uri MUST be https for auhtorization flow, exepct if the client is 'confidential'
-        // redirect_uri MUST be https OR http://localhost for implicit flow. I chose not to implement this .
-        //TODO [25/05/2023] check what is a 'confidential' client
+        // redirect_uri MUST be https for auhtorization flow, except if the client is 'confidential'
+        // redirect_uri MUST be https OR http://localhost for implicit flow.
+        // CBO : I chose not to implement this ; this server is meant to be used as a dvpt crutch, TLS is not a given
+
 
         //"nonce is REQUIRED" for implicit flow
         if (flow == OIDCFlow.IMPLICIT && Utils.isBlank(params.nonce()))

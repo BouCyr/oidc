@@ -88,7 +88,6 @@ public class EntryPoint {
     }
 
     @Deprecated
-    //TODO [03/04/2023] read data on disk
     private static void setupData(String firstName, Users users, ClaimsStorer claimsStorer) {
         var uid = UserId.of(firstName.toLowerCase(Locale.ROOT));
 

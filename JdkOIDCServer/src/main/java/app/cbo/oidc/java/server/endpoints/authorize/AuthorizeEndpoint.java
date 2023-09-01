@@ -116,7 +116,6 @@ public class AuthorizeEndpoint {
             }
         }
 
-        //TODO [20/03/2023] check ACR - if current authentication has acr < requested, a new authentication should be done with the "updated" acr value check
         //[03/04/2023] OIDC specs is not very clear...
         if (!Utils.isEmpty(params.acrValues())) {
 
