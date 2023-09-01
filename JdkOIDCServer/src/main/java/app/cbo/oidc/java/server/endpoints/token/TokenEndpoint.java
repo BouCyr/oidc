@@ -113,7 +113,7 @@ public class TokenEndpoint {
                 Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
                 Instant.now(clock).getEpochSecond(),
                 session.authTime().toEpochSecond(ZoneOffset.UTC),
-                Optional.of(codeData.nonce()),
+                Optional.ofNullable(codeData.nonce()),
                 new AuthenticationLevel(session.authentications()).name(),
                 session.authentications().stream().map(Enum::name).toList(),
                 Optional.of(clientId.getClientId()),
