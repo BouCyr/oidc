@@ -1,6 +1,21 @@
 server:
   port: 9452
+
 oidc:
   client-id: sb
   client-secret: sb
   base-url: http://localhost:9451
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          mine:
+            provider: oidc
+            client-id: sb
+            client-secret: sb
+            scope: openid,email,profile
+        provider:
+          oidc:
+            issuer-uri: http://localhost:9451

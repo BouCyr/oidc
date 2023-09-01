@@ -212,7 +212,7 @@ public class AuthorizeEndpoint {
         //TODO [26/05/2023] extract idtoken generation, clock handling and keyset mgt in a dedicated service (done twice here & code endpoint)
         var idToken = new IdToken(
                 user.sub(),
-                "http://localhost:4951",
+                "http://localhost:9451", //TODO [01/09/2023]
                 List.of(originalParams.clientId().get()),
                 Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
                 Instant.now(clock).getEpochSecond(),

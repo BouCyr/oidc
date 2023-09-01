@@ -2,6 +2,7 @@ package app.cbo.oidc.java.server.deps;
 
 import app.cbo.oidc.java.server.*;
 import app.cbo.oidc.java.server.backends.claims.Claims;
+import app.cbo.oidc.java.server.backends.claims.FSClaims;
 import app.cbo.oidc.java.server.backends.claims.MemClaims;
 import app.cbo.oidc.java.server.backends.codes.MemCodes;
 import app.cbo.oidc.java.server.backends.filesystem.FileStorage;
@@ -16,6 +17,7 @@ import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateEndpoint;
 import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateHandler;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpoint;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.endpoints.config.ConfigHandler;
 import app.cbo.oidc.java.server.endpoints.consent.ConsentEndpoint;
 import app.cbo.oidc.java.server.endpoints.consent.ConsentHandler;
 import app.cbo.oidc.java.server.endpoints.jwks.JWKSHandler;
@@ -60,7 +62,8 @@ public class DependenciesBuilder {
                 this.userInfoHandler(),
                 this.jwksHandler(),
                 this.staticResourceHandler(),
-                this.notFoundHandler()
+                this.configHandler(),
+                this.notFoundHandler()//should be LAST
         );
     }
 
@@ -105,6 +108,19 @@ public class DependenciesBuilder {
                 () -> new AuthorizeHandler(this.authorizeEndpoint(), this.sessions()));
 
     }
+
+    public ConfigHandler configHandler() {
+        return this.getInstance(ConfigHandler.class,
+                () -> new ConfigHandler(
+                        //TODO [01/09/2023] domain & protocol
+                        "http://localhost:" + args.port() + this.authorizeHandler().path(),
+                        "http://localhost:" + args.port() + this.tokenHandler().path(),
+                        "http://localhost:" + args.port() + this.userInfoHandler().path(),
+                        "http://localhost:" + args.port() + "/logout",
+                        "http://localhost:" + args.port() + this.jwksHandler().path()
+                ));
+    }
+
 
     public TokenEndpoint tokenEndpoint() {
         return this.getInstance(TokenEndpoint.class,
@@ -175,7 +191,14 @@ public class DependenciesBuilder {
     }
 
     public Claims claims() {
-        return this.getInstance(MemClaims.class, MemClaims::new);
+        if (args.fsBackEnd()) {
+            return this.getInstance(
+                    FSClaims.class,
+                    () -> new FSClaims(this.userDataFileStorage()));
+        } else {
+            return this.getInstance(MemClaims.class,
+                    MemClaims::new);
+        }
     }
 
     public KeySet keyset() {

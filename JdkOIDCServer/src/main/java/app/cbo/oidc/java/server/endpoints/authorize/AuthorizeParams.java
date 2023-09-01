@@ -119,16 +119,22 @@ public record AuthorizeParams(
     }
 
 
-    public String toQueryString(){
+    /**
+     * Used to rebuild an authentication request from fields
+     *
+     * @return a query string ("?" char not included, "&"s included)
+     */
+    public String toQueryString() {
 
-
+        //please note '.add' will not append anything to the query string if the param is null/tempty
+        // and toSingle & etc. will return empty if the value is Optional.empty
         return new QueryStringBuilder()
                 .add(toSpaceSeparated("scope", scopes()))
                 .add(toSpaceSeparated("response_type", responseTypes()))
                 .add(toSingle("client_id", clientId()))
                 .add(toSingle("redirect_uri", redirectUri()))
-                .add(toSingle("state",state()))
-                .add(toSingle("response_mode",responseMode()))
+                .add(toSingle("state", state()))
+                .add(toSingle("response_mode", responseMode()))
                 .add(toSingle("nonce", nonce()))
                 .add(toSingle("display", display().map(OIDCDisplayValues::paramValue)))
                 .add(toSpaceSeparated("prompt", prompt().stream().map(OIDCPromptValues::paramValue).toList()))
@@ -138,9 +144,6 @@ public record AuthorizeParams(
                 .add(toSingle("login_hint", loginHint()))
                 .add(toSpaceSeparated("acr_values", acrValues()))
                 .toString();
-
-
-
 
 
     }

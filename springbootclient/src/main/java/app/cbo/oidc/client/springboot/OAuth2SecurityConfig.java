@@ -1,13 +1,7 @@
 package app.cbo.oidc.client.springboot;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 
 @Configuration
 public class OAuth2SecurityConfig {
@@ -21,7 +15,7 @@ public class OAuth2SecurityConfig {
     @Value("${oidc.base-url}")
     private String baseUrl;
 
-    @Bean
+   /* @Bean
     public ClientRegistrationRepository clientRegistrationRepository() {
         return new InMemoryClientRegistrationRepository(this.keycloakClientRegistration());
     }
@@ -35,12 +29,15 @@ public class OAuth2SecurityConfig {
                 .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
                 .scope("openid", "profile", "email", "address", "phone")
                 .clientName("sb")
-                .authorizationUri(this.baseUrl + "/authorize")
-                .tokenUri(this.baseUrl + "/token")
-                .jwkSetUri(this.baseUrl + "/jwks")
-                .userInfoUri(this.baseUrl + "/userinfo")
+                .providerConfigurationMetadata().issuerUri()
+
+                .issuerUri(this.baseUrl)
+//                .authorizationUri(this.baseUrl + "/authorize")
+//                .tokenUri(this.baseUrl + "/token")
+//                .jwkSetUri(this.baseUrl + "/jwks")
+//                .userInfoUri(this.baseUrl + "/userinfo")
                 .userNameAttributeName("sub")
                 .build();
-    }
+    }*/
 
 }

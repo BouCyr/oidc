@@ -1,20 +1,35 @@
 package app.cbo.oidc.java.server;
 
+import app.cbo.oidc.java.server.jsr305.Nullable;
 import app.cbo.oidc.java.server.utils.Pair;
+import app.cbo.oidc.java.server.utils.Utils;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Set;
+import java.util.function.Supplier;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-public record StartupArgs(int port, boolean fsBackEnd, Path basePath) {
+public record StartupArgs(int port, boolean fsBackEnd, @Nullable Path basePath) {
+
+    public static final String PATH_ARGS = "path";
 
     public static final String PORT_ARGS = "port";
     public static final String BACKEND_ARGS = "backend";
+    private static final Logger LOGGER = Logger.getLogger(StartupArgs.class.getCanonicalName());
+
     private final static Set<String> ARGS = Set.of(PORT_ARGS, BACKEND_ARGS);
 
-    public StartupArgs(String port, String backend) {
-        this(Integer.parseInt(port), !"mem".equals(backend), Path.of("."));
+    StartupArgs(String port, boolean isFileStorage, Path storagePath) {
+
+
+        this(Integer.parseInt(port),
+                isFileStorage,
+                storagePath);
     }
 
     public static StartupArgs from(String... array) {
@@ -29,12 +44,44 @@ public record StartupArgs(int port, boolean fsBackEnd, Path basePath) {
                 .filter(kv -> ARGS.contains(kv.left()))
                 .forEach(kv -> asMap.put(kv.left(), kv.right()));
 
+        var isFileStorage = !"mem".equals(asMap.getOrDefault(BACKEND_ARGS, "file"));
         return new StartupArgs(
                 asMap.getOrDefault(PORT_ARGS, "9451"),
-                asMap.getOrDefault(BACKEND_ARGS, "file")
+                isFileStorage,
+                isFileStorage ? storageFolder(asMap.get(PATH_ARGS)) : null
         );
-
-
     }
 
+
+    static Path storageFolder(@Nullable final String pathArg) {
+        return storageFolder(pathArg, () -> System.getProperty("os.name"));
+    }
+
+    static Path storageFolder(@Nullable final String pathArg, Supplier<String> osStringSupplier) {
+
+
+        String folder = pathArg;
+        if (Utils.isBlank(folder)) {
+
+            String operatingSystem = (osStringSupplier.get()).toLowerCase(Locale.ROOT);
+
+            if (operatingSystem.contains("win")) {
+                //windows => AppData, or maybe roaming, whatever
+                folder = System.getenv("AppData");
+            } else {
+                //unix/linux => home folder
+                folder = System.getProperty("user.home");
+
+                // TODO [19/06/2023] should check when running on other OS (at least MacOs, iOs and Android would be nice)
+            }
+            folder += File.separator + "oidc";
+
+        }
+
+        Path storageFolder = Path.of(folder);
+        if (!Files.exists(Path.of(folder)) || !Files.isDirectory(Path.of(folder))) {
+            throw new RuntimeException("Storage folder found does not exist)");
+        }
+        return storageFolder;
+    }
 }
