@@ -1,8 +1,8 @@
 package app.cbo.oidc.java.server.endpoints.authorize;
 
-import app.cbo.oidc.java.server.backends.KeySet;
 import app.cbo.oidc.java.server.backends.claims.ClaimsResolver;
 import app.cbo.oidc.java.server.backends.codes.CodeSupplier;
+import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsStorer;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.AuthenticationLevel;
@@ -171,9 +171,9 @@ public class AuthorizeEndpoint {
 
     private Interaction authSuccess(OIDCFlow flow, User user, AuthorizeParams originalParams, Session session) {
 
-        //cf 3.1.2.5
+        // cf 3.1.2.5
         // HTTP/1.1 302 Found  Location: https://client.example.org/cb?code=SplxlOBeZQQYbYS6WxSbIA&state=af0ifjsldkj
-        //the Authorization Response MUST return the parameters defined in Section 4.1.2 of OAuth 2.0
+        // the Authorization Response MUST return the parameters defined in Section 4.1.2 of OAuth 2.0
 
         if (originalParams.redirectUri().isEmpty()) {
             //should not happens here, but...
@@ -212,7 +212,7 @@ public class AuthorizeEndpoint {
         //TODO [26/05/2023] extract idtoken generation, clock handling and keyset mgt in a dedicated service (done twice here & code endpoint)
         var idToken = new IdToken(
                 user.sub(),
-                "http://localhost:4951",
+                "http://localhost:9451", //TODO [01/09/2023]
                 List.of(originalParams.clientId().get()),
                 Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
                 Instant.now(clock).getEpochSecond(),
@@ -238,18 +238,22 @@ public class AuthorizeEndpoint {
                     originalParams.scopes());
             var atWrapped = JWS.jwsWrap(JWA.RS256, accessToken, currentPrivateKeyId, currentPrivateKey);
 
+            LOGGER.info("Implicit flow with access_token ; claims are NOT added to the id_token, and should be retrieved from userInfo endpoint using the provided access_token");
             var itWrapped = JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey);
+            LOGGER.info("Implicit flow success ; Returning id_token and access_token");
             return ImplicitFlowSuccessInteraction.withAccessToken(originalParams, itWrapped, atWrapped, ttl);
         } else {
-            //OIDC core 5.4
+            // OIDC core 5.4
             // The Claims requested by the profile, email, address, and phone scope values are returned from the UserInfo Endpoint,
             // as described in Section 5.3.2, when a response_type value is used that results in an Access Token being issued. However, when no Access Token is issued
             // (which is the case for the response_type value id_token), the resulting Claims are returned in the ID Token.
 
+            LOGGER.info("Implicit flow without access_token ; claims are added to the id_token");
             var claims = this.claimsResolver.claimsFor(user.getUserId(), Set.copyOf(originalParams.scopes()));
             claims.forEach((claim, val) -> idToken.extranodes().put(claim, val));
 
             var itWrapped = JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey);
+            LOGGER.info("Implicit flow success ; Returning id_token ");
             return ImplicitFlowSuccessInteraction.withoutAccessToken(originalParams, itWrapped);
         }
     }

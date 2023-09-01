@@ -1,16 +1,23 @@
 package app.cbo.oidc.java.server.deps;
 
 import app.cbo.oidc.java.server.*;
-import app.cbo.oidc.java.server.backends.KeySet;
 import app.cbo.oidc.java.server.backends.claims.Claims;
-import app.cbo.oidc.java.server.backends.codes.Codes;
+import app.cbo.oidc.java.server.backends.claims.FSClaims;
+import app.cbo.oidc.java.server.backends.claims.MemClaims;
+import app.cbo.oidc.java.server.backends.codes.MemCodes;
+import app.cbo.oidc.java.server.backends.filesystem.FileStorage;
+import app.cbo.oidc.java.server.backends.keys.KeySet;
+import app.cbo.oidc.java.server.backends.keys.MemKeySet;
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuths;
 import app.cbo.oidc.java.server.backends.sessions.Sessions;
+import app.cbo.oidc.java.server.backends.users.FSUsers;
+import app.cbo.oidc.java.server.backends.users.MemUsers;
 import app.cbo.oidc.java.server.backends.users.Users;
 import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateEndpoint;
 import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateHandler;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpoint;
 import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.endpoints.config.ConfigHandler;
 import app.cbo.oidc.java.server.endpoints.consent.ConsentEndpoint;
 import app.cbo.oidc.java.server.endpoints.consent.ConsentHandler;
 import app.cbo.oidc.java.server.endpoints.jwks.JWKSHandler;
@@ -55,7 +62,8 @@ public class DependenciesBuilder {
                 this.userInfoHandler(),
                 this.jwksHandler(),
                 this.staticResourceHandler(),
-                this.notFoundHandler()
+                this.configHandler(),
+                this.notFoundHandler()//should be LAST
         );
     }
 
@@ -101,6 +109,19 @@ public class DependenciesBuilder {
 
     }
 
+    public ConfigHandler configHandler() {
+        return this.getInstance(ConfigHandler.class,
+                () -> new ConfigHandler(
+                        //TODO [01/09/2023] domain & protocol
+                        "http://localhost:" + args.port() + this.authorizeHandler().path(),
+                        "http://localhost:" + args.port() + this.tokenHandler().path(),
+                        "http://localhost:" + args.port() + this.userInfoHandler().path(),
+                        "http://localhost:" + args.port() + "/logout",
+                        "http://localhost:" + args.port() + this.jwksHandler().path()
+                ));
+    }
+
+
     public TokenEndpoint tokenEndpoint() {
         return this.getInstance(TokenEndpoint.class,
                 () -> new TokenEndpoint(this.codes(), this.users(), this.sessions(), this.keyset()));
@@ -115,6 +136,7 @@ public class DependenciesBuilder {
         return this.getInstance(ConsentEndpoint.class,
                 () -> new ConsentEndpoint(
                         this.ongoingAuths(),
+                        this.users(),
                         this.users()
                 ));
     }
@@ -151,21 +173,47 @@ public class DependenciesBuilder {
     }
 
     public Users users() {
-        return this.getInstance(Users.class,
-                Users::new);
+        Users val;
+        if (args.fsBackEnd()) {
+            val = this.getInstance(
+                    FSUsers.class,
+                    () -> new FSUsers(this.userDataFileStorage()));
+        } else {
+            val = this.getInstance(MemUsers.class,
+                    MemUsers::new);
+        }
+        return val;
     }
 
-    public Codes codes() {
-        return this.getInstance(Codes.class,
-                Codes::new);
+    public MemCodes codes() {
+        return this.getInstance(MemCodes.class,
+                MemCodes::new);
     }
 
     public Claims claims() {
-        return this.getInstance(Claims.class, Claims::new);
+        if (args.fsBackEnd()) {
+            return this.getInstance(
+                    FSClaims.class,
+                    () -> new FSClaims(this.userDataFileStorage()));
+        } else {
+            return this.getInstance(MemClaims.class,
+                    MemClaims::new);
+        }
     }
 
     public KeySet keyset() {
-        return this.getInstance(KeySet.class, KeySet::new);
+        return this.getInstance(MemKeySet.class, MemKeySet::new);
+    }
+
+    public FileStorage userDataFileStorage() {
+        return this.getInstance(FileStorage.class, () -> {
+            try {
+                return new FileStorage(args.basePath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
     }
 
     private <U> U getInstance(Class<U> clazz, Supplier<U> cr) {

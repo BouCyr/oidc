@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Basic session store. Not a part of OIDC.
+ */
 public class Sessions implements SessionFinder, SessionSupplier {
 
     public final static String SESSION_ID_COOKIE_NAME = "sessionId";

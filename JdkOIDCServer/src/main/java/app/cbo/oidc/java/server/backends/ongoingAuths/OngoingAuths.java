@@ -9,6 +9,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+
+/**
+ * Provides a way to store authentication info on the server when doing user interaction. This is not a part of OAUTH/OIDC.
+ */
 public class OngoingAuths implements OngoingAuthsFinder, OngoingAuthsStorer {
 
 

@@ -151,7 +151,7 @@ public class AuthFlowIntegrationTest {
     @Test
     public void authorizationFlow() throws IOException, URISyntaxException, InterruptedException, OutsideRedirect, JOSEException {
         int PORT = 4546;
-        EntryPoint.main("port=" + PORT);
+        EntryPoint.main("port=" + PORT, "backend=mem");
 
 
         var cookies = new MyCookies();

@@ -1,51 +1,25 @@
 package app.cbo.oidc.java.server.backends.claims;
 
-import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.datastored.user.claims.*;
 import app.cbo.oidc.java.server.utils.Pair;
 import app.cbo.oidc.java.server.utils.ReflectionUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
-public class Claims implements ClaimsStorer, ClaimsResolver {
+public interface Claims extends ClaimsResolver, ClaimsStorer {
 
-    private final static Logger LOGGER = Logger.getLogger(Claims.class.getCanonicalName());
+    Logger LOGGER = Logger.getLogger(Claims.class.getCanonicalName());
 
-    List<ScopedClaims> allClaims = new ArrayList<>();
-
-    public Claims() {
-    }
-
-
-    @Override
-    public void store(ScopedClaims... someClaims) {
-        Stream.of(someClaims)
-                .forEach(scopedClaims -> {
-                    if (allClaims.removeIf(sc -> sc.userId().equals(scopedClaims.userId()) && sc.getClass().equals(scopedClaims.getClass()))) {
-                        LOGGER.info(scopedClaims.userId().getUserId() + " already had a " + scopedClaims.getClass().getSimpleName() + ". Replacing");
-                    }
-
-                    allClaims.add(scopedClaims);
-                });
-    }
-
-    @Override
-    public Map<String, Object> claimsFor(UserId userId, Set<String> requestedScopes) {
-
-        final Map<String, Object> result = new HashMap<>();
-        this.filterByUser(userId)
-                .stream()
-                .filter(claims -> this.isInScope(requestedScopes, claims))
-                .forEach(claims -> toNameAndValue(claims).forEach(pair -> result.put(pair.left(), pair.right())));
-
-        result.remove("userId");
-
-        return result;
-    }
-
-    private boolean isInScope(Set<String> scopes, ScopedClaims scopedClaims) {
+    /**
+     * Checks if a specificic ScopedClaim is requested
+     *
+     * @param scopes       the list of scopes requested
+     * @param scopedClaims the scope being checked
+     * @return true if @param scopedClaims is requested
+     */
+    static boolean isInScope(Set<String> scopes, ScopedClaims scopedClaims) {
         return (
                 (scopes.contains("profile") && scopedClaims instanceof Profile)
                         || (scopes.contains("phone") && scopedClaims instanceof Phone)
@@ -54,25 +28,28 @@ public class Claims implements ClaimsStorer, ClaimsResolver {
         );
     }
 
-    List<ScopedClaims> filterByUser(UserId userId) {
-
-        return this.allClaims
-                .stream()
-                .filter(claims -> claims.userId().equals(userId))
-                .toList();
-
-    }
-
-    Collection<Pair<String, Object>> toNameAndValue(ScopedClaims scopedClaims) {
+    /**
+     * Transforms a ScopedClaims into a Collection of key/value pair, vith the field name as key and the user info in value
+     *
+     * @param scopedClaims the user ScopedClaims being transformed
+     * @return a Collection of key/value pair, vith the field name as key and the user info in value
+     */
+    static Collection<Pair<String, Object>> toNameAndValue(ScopedClaims scopedClaims) {
         return ReflectionUtils.toNameAndValue(scopedClaims)
                 .stream()
-                .map(this::toPair) // call the supplier, trap any exception
+                .map(Claims::toPair) // call the supplier, trap any exception
                 .filter(pair -> pair.right() != null)//5.3.2 -> If a Claim is not returned, that Claim Name SHOULD be omitted from the JSON object representing the Claims; it SHOULD NOT be present with a null or empty string value
                 .toList();
 
     }
 
-    private Pair<String, Object> toPair(ReflectionUtils.NameAndValue nv) {
+    /**
+     * Transform a NameAndValue into a pait<String, Object></String,>
+     *
+     * @param nv being transforms
+     * @return a Pair, with the name as Left and the value as Right
+     */
+    static Pair<String, Object> toPair(ReflectionUtils.NameAndValue nv) {
         var name = nv.name();
         Object value;
         try {
@@ -83,5 +60,4 @@ public class Claims implements ClaimsStorer, ClaimsResolver {
         }
         return new Pair<>(name, value);
     }
-
 }

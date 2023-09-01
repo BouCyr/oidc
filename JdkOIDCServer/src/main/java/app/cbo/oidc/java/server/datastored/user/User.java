@@ -7,20 +7,20 @@ import java.util.*;
 
 public record User(String sub, String pwd, String totpKey, Map<String, Set<String>> consentedTo) {
 
-    public User(String sub,
-                String pwd,
-                String totpKey,
-                Map<String, Set<String>> consentedTo) {
+    public User(@NotNull String sub,
+                @Nullable String pwd,
+                @Nullable String totpKey,
+                @Nullable Map<String, Set<String>> consentedTo) {
 
         // for readability purpose
         this.sub = sub;
-        this.pwd=pwd;
-        this.totpKey=totpKey;
+        this.pwd = pwd;
+        this.totpKey = totpKey;
 
         this.consentedTo = new HashMap<>();
-        for(String clientId : consentedTo.keySet()){
+        for (String clientId : consentedTo.keySet()) {
             this.consentedTo.put(clientId, new HashSet<>());
-            for(String consent : consentedTo.get(clientId)){
+            for (String consent : consentedTo.get(clientId)) {
                 this.consentedTo.get(clientId).add(consent);
             }
         }

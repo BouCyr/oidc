@@ -6,6 +6,7 @@ import app.cbo.oidc.java.server.utils.ReflectionUtils;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static app.cbo.oidc.java.server.utils.ReflectionUtils.NameAndValue;
@@ -17,8 +18,22 @@ import static java.lang.System.lineSeparator;
  */
 class JSONWriter {
 
+    /**
+     * Writes an object in JSON form (sufficient impl for my need) with line breaks and indentation
+     * <p>
+     * will print ALL methods without parameters that does not return void
+     * field names will be the method name (with the 'get' suffix removed if present)
+     * <p>
+     * Numbers and String are OK ; pretty sure other base type will do something weird
+     * Collections will be written as a json array
+     * Maps will be written as sub objects, with the key as field names. If key is not a string, it will probably crash
+     * array are not supported, and will probably crash
+     * not tested with java inheritance, but reflection magic may cause crash
+     * <p>
+     * i.e. do not reuse this code :)
+     */
     public static String writeIndented(Object o) {
-        String result = write(o);
+        String result = write(o, System::lineSeparator);
 
         //indentation
         //not perfect, but better thant nothing
@@ -48,9 +63,23 @@ class JSONWriter {
 
     }
 
-    private static String write(Object o) {
+    /**
+     * Writes an object in JSON form (sufficient impl for my need) with line breaks and indentation
+     * <p>
+     * will print ALL methods without parameters that does not return void
+     * field names will be the method name (with the 'get' suffix removed if present)
+     * <p>
+     * Numbers and String are OK ; pretty sure other base type will do something weird
+     * Collections will be written as a json array
+     * Maps will be written as sub objects, with the key as field names. If key is not a string, it will probably crash
+     * array are not supported, and will probably crash
+     * not tested with java inheritance, but reflection magic may cause crash
+     * <p>
+     * i.e. do not reuse this code :)
+     */
+    public static String write(Object o, Supplier<String> breakSupplier) {
         var buffer = new StringBuilder();
-        buffer.append("{").append(lineSeparator());
+        buffer.append("{").append(breakSupplier.get());
 
         //find all getters & record accessors
         //we create a new ArrayList ; we need to be sure sure list is mutable, since we are going to add a few more lines
@@ -60,7 +89,7 @@ class JSONWriter {
             lines.addAll(
                     toNameAndValue(o)
                             .stream()
-                            .map(JSONWriter::toJson)//magic!
+                            .map(nv -> JSONWriter.toJson(nv, breakSupplier))//magic!
                             .toList());
         }
 
@@ -75,25 +104,25 @@ class JSONWriter {
                 }
             });
 
-            writeMap(copyWithStringKeys, lines::add);
+            writeMap(copyWithStringKeys, lines::add, breakSupplier);
         }
 
         if (o instanceof WithExtraNode wen) {
-            writeMap(wen.extranodes(), lines::add);
+            writeMap(wen.extranodes(), lines::add, breakSupplier);
         }
 
-        buffer.append(lines.stream().collect(Collectors.joining("," + lineSeparator())));
+        buffer.append(lines.stream().collect(Collectors.joining("," + breakSupplier.get())));
 
-        buffer.append(lineSeparator()).append("}");
+        buffer.append(breakSupplier.get()).append("}");
         return buffer.toString();
 
     }
 
-    private static void writeMap(Map<String, Object> map, Consumer<String> lineAdder) {
+    private static void writeMap(Map<String, Object> map, Consumer<String> lineAdder, Supplier<String> br) {
         map.keySet()
                 .stream()
                 .map(k -> new NameAndValue(map, k))
-                .map(JSONWriter::toJson)
+                .map(nv -> JSONWriter.toJson(nv, br))
                 .forEach(lineAdder);
     }
 
@@ -111,7 +140,7 @@ class JSONWriter {
 
 
     @NotNull
-    private static String toJson(@NotNull ReflectionUtils.NameAndValue node) {
+    private static String toJson(@NotNull ReflectionUtils.NameAndValue node, Supplier<String> br) {
         var buffer = new StringBuilder();
 
 
@@ -134,13 +163,13 @@ class JSONWriter {
         buffer
                 .append("\"").append(node.name()).append("\"")
                 .append(": ")
-                .append(value(result)); //magic !
+                .append(value(result, br)); //magic !
 
 
         return buffer.toString();
     }
 
-    private static String value(Object result) {
+    private static String value(Object result, Supplier<String> br) {
         if (result instanceof Boolean b) {
             return b.toString();
         } else if (result instanceof Number n) {
@@ -150,10 +179,10 @@ class JSONWriter {
         } else if (result instanceof String s) {
             return "\"" + s.replaceAll("\\R", " ") + "\"";
         } else if (result instanceof Map<?, ?> m) {
-            return map(m);
+            return map(m, br);
 
         } else if (result instanceof Collection<?> c) {
-            return collection(c);
+            return collection(c, br);
 
         } else if (result.getClass().isArray()) {
             int length = Array.getLength(result);
@@ -161,33 +190,33 @@ class JSONWriter {
             for (int i = 0; i < length; i++) {
                 col.add(Array.get(result, i));
             }
-            return collection(col);
+            return collection(col, br);
         } else {
-            return write(result);
+            return write(result, br);
         }
     }
 
-    private static String map(Map<?, ?> m) {
+    private static String map(Map<?, ?> m, Supplier<String> br) {
         var buffer = new StringBuilder()
-                .append("{").append(lineSeparator());
+                .append("{").append(br.get());
 
         buffer.append(
                 m.entrySet()
                         .stream()
-                        .map(entry -> ("\"" + entry.getKey().toString() + "\"") + ": " + value(entry.getValue()))
-                        .collect(Collectors.joining(", " + lineSeparator())));
+                        .map(entry -> ("\"" + entry.getKey().toString() + "\"") + ": " + value(entry.getValue(), br))
+                        .collect(Collectors.joining(", " + br.get())));
         buffer.append("}");
         return buffer.toString();
     }
 
-    private static String collection(Collection<?> c) {
+    private static String collection(Collection<?> c, Supplier<String> br) {
         var buffer = new StringBuilder()
-                .append("[").append(lineSeparator());
+                .append("[").append(br.get());
 
         buffer.append(
                 c.stream()
-                        .map(JSONWriter::value)
-                        .collect(Collectors.joining("," + lineSeparator())));
+                        .map(n -> JSONWriter.value(n, br))
+                        .collect(Collectors.joining("," + br.get())));
 
         buffer.append("]");
         return buffer.toString();

@@ -2,6 +2,7 @@ package app.cbo.oidc.java.server.endpoints.consent;
 
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsStorer;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
+import app.cbo.oidc.java.server.backends.users.UserUpdate;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
 import app.cbo.oidc.java.server.endpoints.Interaction;
@@ -19,10 +20,12 @@ public class ConsentEndpoint {
 
     private final OngoingAuthsStorer ongoingAuthsStorer;
     private final UserFinder userfinder;
+    private final UserUpdate userUpdate;
 
-    public ConsentEndpoint(OngoingAuthsStorer ongoingAuthsStorer, UserFinder userfinder) {
+    public ConsentEndpoint(OngoingAuthsStorer ongoingAuthsStorer, UserFinder userfinder, UserUpdate userUpdate) {
         this.ongoingAuthsStorer = ongoingAuthsStorer;
         this.userfinder = userfinder;
+        this.userUpdate = userUpdate;
     }
 
     @NotNull
@@ -47,6 +50,7 @@ public class ConsentEndpoint {
         if (params.backFromForm() && params.consentGiven()) {
             //user just submitted the consent form ; add given consents
             params.scopesRequested().forEach(scope -> user.consentsTo(params.clientId(), scope));
+            this.userUpdate.update(user);
         }
         var missingConsents = params.scopesRequested()
                 .stream()

@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server;
 
 import app.cbo.oidc.java.server.backends.claims.ClaimsStorer;
-import app.cbo.oidc.java.server.backends.users.UserCreator;
+import app.cbo.oidc.java.server.backends.users.Users;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.datastored.user.claims.Address;
 import app.cbo.oidc.java.server.datastored.user.claims.Mail;
@@ -89,10 +89,15 @@ public class EntryPoint {
 
     @Deprecated
     //TODO [03/04/2023] read data on disk
-    private static void setupData(String firstName, UserCreator userCreator, ClaimsStorer claimsStorer) {
+    private static void setupData(String firstName, Users users, ClaimsStorer claimsStorer) {
         var uid = UserId.of(firstName.toLowerCase(Locale.ROOT));
+
+        if (users.find(uid).isPresent()) {
+            return;
+        }
+
         LOGGER.info("Creating user");
-        userCreator.create(uid.getUserId(), "sesame", "ALBACORE");
+        users.create(uid.getUserId(), "sesame", "ALBACORE");
 
         LOGGER.info("Creating user data");
         Phone phone = new Phone(uid, "0682738532", false);
