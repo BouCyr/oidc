@@ -6,6 +6,6 @@ public class MemUsersTest {
 
     @Test
     void readWrite() {
-        UsersTest.testReadWrite(new MemUsers());
+        UsersTest.testReadWrite(new MemUsers( UsersTest.passwords()));
     }
 }

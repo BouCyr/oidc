@@ -1,16 +1,23 @@
 package app.cbo.oidc.java.server.credentials;
 
+import app.cbo.oidc.java.server.credentials.pwds.PBKDF2WithHmacSHA1PasswordHash;
+import app.cbo.oidc.java.server.credentials.pwds.Passwords;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class PasswordEncoderTest {
 
+
+    private final Passwords tested = new PBKDF2WithHmacSHA1PasswordHash();
+
     @Test
     void nominal(){
+
+
         String password = "hunter2";
 
-        var encoded = PasswordEncoder.getInstance().encodePassword(password);
-        var check = PasswordEncoder.getInstance().confront("hunter2", encoded);
+        var encoded = tested.encode(password);
+        var check = tested.confront("hunter2", encoded);
 
         Assertions.assertThat(check)
                 .isTrue();
@@ -20,8 +27,8 @@ class PasswordEncoderTest {
     void nominal_blank(){
         String password = "";
 
-        var encoded = PasswordEncoder.getInstance().encodePassword(password);
-        var check = PasswordEncoder.getInstance().confront("", encoded);
+        var encoded = tested.encode(password);
+        var check = tested.confront("", encoded);
 
         Assertions.assertThat(check)
                 .isTrue();
@@ -31,8 +38,8 @@ class PasswordEncoderTest {
     void diff(){
         String password = "hunter2";
 
-        var encoded = PasswordEncoder.getInstance().encodePassword(password);
-        var check = PasswordEncoder.getInstance().confront("sesame", encoded);
+        var encoded = tested.encode(password);
+        var check = tested.confront("sesame", encoded);
 
         Assertions.assertThat(check)
                 .isFalse();
@@ -41,14 +48,14 @@ class PasswordEncoderTest {
     @Test
     void nullability(){
 
-        Assertions.assertThatThrownBy(() ->  PasswordEncoder.getInstance().encodePassword(null))
+        Assertions.assertThatThrownBy(() ->  tested.encode(null))
                 .isInstanceOf(NullPointerException.class);
 
-        Assertions.assertThat(PasswordEncoder.getInstance().confront(null, null))
+        Assertions.assertThat(tested.confront(null, null))
                 .isFalse();
-        Assertions.assertThat(PasswordEncoder.getInstance().confront("a", null))
+        Assertions.assertThat(tested.confront("a", null))
                 .isFalse();
-        Assertions.assertThat(PasswordEncoder.getInstance().confront(null, "b"))
+        Assertions.assertThat(tested.confront(null, "b"))
                 .isFalse();
     }
 
@@ -56,8 +63,8 @@ class PasswordEncoderTest {
     void blankProvided_nnstored(){
         String password = "";
 
-        var encoded = PasswordEncoder.getInstance().encodePassword(password);
-        var check = PasswordEncoder.getInstance().confront("sesame", encoded);
+        var encoded = tested.encode(password);
+        var check = tested.confront("sesame", encoded);
 
         Assertions.assertThat(check)
                 .isFalse();

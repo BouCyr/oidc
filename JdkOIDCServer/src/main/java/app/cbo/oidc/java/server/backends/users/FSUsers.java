@@ -3,7 +3,7 @@ package app.cbo.oidc.java.server.backends.users;
 import app.cbo.oidc.java.server.backends.filesystem.FileSpecification;
 import app.cbo.oidc.java.server.backends.filesystem.FileSpecifications;
 import app.cbo.oidc.java.server.backends.filesystem.FileStorage;
-import app.cbo.oidc.java.server.credentials.PasswordEncoder;
+import app.cbo.oidc.java.server.credentials.pwds.PasswordEncoder;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
@@ -11,23 +11,29 @@ import app.cbo.oidc.java.server.jsr305.Nullable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static app.cbo.oidc.java.server.backends.filesystem.FileStorage.fromLine;
 import static app.cbo.oidc.java.server.backends.filesystem.FileStorage.toLine;
 
-public record FSUsers(FileStorage fsUserStorage) implements Users {
+public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder) implements Users {
 
     private final static Logger LOGGER = Logger.getLogger(FSUsers.class.getCanonicalName());
 
 
-    private static final String USER_FILENAME = "user.txt";
     private static final String SUB_K = "sub";
     private static final String PWD_K = "pwd";
     private static final String TOTP_K = "totp";
     private static final String CONSENTS_K = "consents";
+
 
     @Override
     public UserId create(@NotNull String login, @Nullable String clearPwd, @Nullable String totpKey) {
@@ -41,7 +47,7 @@ public record FSUsers(FileStorage fsUserStorage) implements Users {
 
         User newUser = new User(
                 login,
-                clearPwd != null ? PasswordEncoder.getInstance().encodePassword(clearPwd) : null,
+                clearPwd != null ? this.passwordEncoder().encode(clearPwd) : null,
                 totpKey);
 
         LOGGER.info("Writing credentials of new user '" + login + "' on disk");
@@ -94,7 +100,7 @@ public record FSUsers(FileStorage fsUserStorage) implements Users {
     }
 
 
-    protected Collection<String> userToStrings(@NotNull User user) {
+    private Collection<String> userToStrings(@NotNull User user) {
         return List.of(
                 toLine(SUB_K, user.sub()),
                 toLine(PWD_K, user.pwd()),
@@ -112,7 +118,7 @@ public record FSUsers(FileStorage fsUserStorage) implements Users {
                 .collect(Collectors.joining(","));
     }
 
-    protected Optional<User> userFromStrings(@NotNull Collection<String> stringified) {
+    private Optional<User> userFromStrings(@NotNull Collection<String> stringified) {
         //String sub, String pwd, String totpKey, Map<String, Set<String>> consentedTo
         String sub = null;
         String pwd = null;

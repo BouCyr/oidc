@@ -21,7 +21,7 @@ class FSUsersTest {
     @Test
     void testReadWrite() {
         //GIVEN
-        var tested = new FSUsers(this.storage);
+        var tested = new FSUsers(this.storage, UsersTest.passwords());
 
         //WHEN
         UsersTest.testReadWrite(tested);

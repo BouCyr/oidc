@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.backends.users;
 
-import app.cbo.oidc.java.server.credentials.PasswordEncoder;
+import app.cbo.oidc.java.server.credentials.pwds.PasswordEncoder;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
@@ -13,6 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MemUsers implements Users {
 
     private final Map<String, User> users = new ConcurrentHashMap<>();
+
+    private final PasswordEncoder passwordEncoder;
+
+    public MemUsers(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
 
 
     @Override
@@ -36,7 +42,7 @@ public class MemUsers implements Users {
         if (this.find(UserId.of(login)).isPresent()) {
             throw new RuntimeException("Another user with this login already exists");
         }
-        User newUser = new User(login, PasswordEncoder.getInstance().encodePassword(clearPwd), totpKey);
+        User newUser = new User(login, this.passwordEncoder.encode(clearPwd), totpKey);
         this.users.put(newUser.sub(), newUser);
         return UserId.of(newUser.sub());
     }
