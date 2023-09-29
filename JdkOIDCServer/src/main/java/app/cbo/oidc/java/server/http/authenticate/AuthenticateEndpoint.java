@@ -3,8 +3,8 @@ package app.cbo.oidc.java.server.http.authenticate;
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsFinder;
 import app.cbo.oidc.java.server.backends.sessions.SessionSupplier;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
-import app.cbo.oidc.java.server.credentials.PasswordEncoder;
 import app.cbo.oidc.java.server.credentials.TOTP;
+import app.cbo.oidc.java.server.credentials.pwds.PasswordChecker;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.Interaction;
@@ -17,7 +17,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import static app.cbo.oidc.java.server.credentials.AuthenticationMode.*;
+import static app.cbo.oidc.java.server.credentials.AuthenticationMode.DECLARATIVE;
+import static app.cbo.oidc.java.server.credentials.AuthenticationMode.PASSWORD_OK;
+import static app.cbo.oidc.java.server.credentials.AuthenticationMode.TOTP_OK;
+import static app.cbo.oidc.java.server.credentials.AuthenticationMode.USER_FOUND;
 
 public class AuthenticateEndpoint {
 
@@ -26,13 +29,16 @@ public class AuthenticateEndpoint {
     private final UserFinder userFinder;
     private final SessionSupplier sessionSupplier;
 
+    private final PasswordChecker passwordChecker;
+
     public AuthenticateEndpoint(
             OngoingAuthsFinder ongoingAuthsFinder,
             UserFinder userFinder,
-            SessionSupplier sessionSupplier) {
+            SessionSupplier sessionSupplier, PasswordChecker passwordChecker) {
         this.ongoingAuthsFinder = ongoingAuthsFinder;
         this.userFinder = userFinder;
         this.sessionSupplier = sessionSupplier;
+        this.passwordChecker = passwordChecker;
     }
 
 
@@ -58,7 +64,7 @@ public class AuthenticateEndpoint {
             authentications.add(USER_FOUND);
 
             if(!Utils.isBlank(params.password())){
-                if( PasswordEncoder.getInstance().confront(params.password(), user.pwd())) {
+                if( passwordChecker.confront(params.password(), user.pwd())) {
                     authentications.add(PASSWORD_OK);
                 }else{
                     //TODO [24/05/2023] AuthenticationInvalidInteraction (ie an AuthenticationSuccessfulInteraction + an error msg)

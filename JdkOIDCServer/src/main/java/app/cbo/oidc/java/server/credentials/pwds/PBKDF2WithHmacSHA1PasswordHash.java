@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.credentials;
+package app.cbo.oidc.java.server.credentials.pwds;
 
 import app.cbo.oidc.java.server.jsr305.NotNull;
 
@@ -11,27 +11,13 @@ import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 
-public class PasswordEncoder {
+public class PBKDF2WithHmacSHA1PasswordHash implements Passwords{
 
-    private static PasswordEncoder instance = null;
-
-    @Deprecated
-    /**
-     * @deprecated use deps package
-     */
-    public static PasswordEncoder getInstance() {
-        if (instance == null) {
-            instance = new PasswordEncoder();
-        }
-        return instance;
+    public PBKDF2WithHmacSHA1PasswordHash() {
     }
 
 
-    private PasswordEncoder() {
-    }
-
-
-    public String encodePassword(@NotNull String clear){
+    public String encode(@NotNull String clear){
 
         SecureRandom random = new SecureRandom();
         byte[] salt = new byte[16];

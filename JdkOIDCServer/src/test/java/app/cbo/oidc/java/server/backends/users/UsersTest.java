@@ -1,5 +1,8 @@
 package app.cbo.oidc.java.server.backends.users;
 
+import app.cbo.oidc.java.server.credentials.pwds.PBKDF2WithHmacSHA1PasswordHash;
+import app.cbo.oidc.java.server.credentials.pwds.Passwords;
+import org.assertj.core.api.Assertions;
 import app.cbo.oidc.java.server.credentials.PasswordEncoder;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.datastored.user.UserId;
@@ -12,6 +15,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class UsersTest {
+
+    static Passwords passwords(){
+        return new PBKDF2WithHmacSHA1PasswordHash();
+    }
 
     static void testReadWrite(Users tested) {
         //cehck creation
@@ -36,8 +43,8 @@ public class UsersTest {
         assertThat(fromDisk.sub()).isEqualTo("login");
         assertThat(fromDisk.totpKey()).isEqualTo("TOTPKEY");
 
-        assertThat(fromDisk.pwd()).isNotEqualTo("clear"); //pwd must have been hashed
-        assertThat(PasswordEncoder.getInstance().confront("clear", fromDisk.pwd())).isTrue();
+        Assertions.assertThat(fromDisk.pwd()).isNotEqualTo("clear"); //pwd must have been hashed
+        Assertions.assertThat(passwords().confront("clear", fromDisk.pwd())).isTrue();
 
         assertThat(fromDisk.consentedTo()).isEmpty();
 
@@ -58,6 +65,8 @@ public class UsersTest {
         assertThat(updated.sub()).isEqualTo("login");
         assertThat(updated.totpKey()).isEqualTo("TOTPKEY");
 
+        Assertions.assertThat(updated.pwd()).isNotEqualTo("clear"); //pwd must have been hashed
+        Assertions.assertThat(passwords().confront("clear", updated.pwd())).isTrue();
         assertThat(updated.pwd()).isNotEqualTo("clear"); //pwd must have been hashed
         assertThat(PasswordEncoder.getInstance().confront("clear", updated.pwd())).isTrue();
 

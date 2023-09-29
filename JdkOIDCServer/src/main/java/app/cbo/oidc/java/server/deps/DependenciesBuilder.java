@@ -2,6 +2,11 @@ package app.cbo.oidc.java.server.deps;
 
 import app.cbo.oidc.java.server.Server;
 import app.cbo.oidc.java.server.StartupArgs;
+import app.cbo.oidc.java.server.HttpHandlerWithPath;
+import app.cbo.oidc.java.server.NotFoundHandler;
+import app.cbo.oidc.java.server.Server;
+import app.cbo.oidc.java.server.StartupArgs;
+import app.cbo.oidc.java.server.StaticResourceHandler;
 import app.cbo.oidc.java.server.backends.claims.Claims;
 import app.cbo.oidc.java.server.backends.claims.FSClaims;
 import app.cbo.oidc.java.server.backends.claims.MemClaims;
@@ -14,6 +19,20 @@ import app.cbo.oidc.java.server.backends.sessions.Sessions;
 import app.cbo.oidc.java.server.backends.users.FSUsers;
 import app.cbo.oidc.java.server.backends.users.MemUsers;
 import app.cbo.oidc.java.server.backends.users.Users;
+import app.cbo.oidc.java.server.credentials.pwds.PBKDF2WithHmacSHA1PasswordHash;
+import app.cbo.oidc.java.server.credentials.pwds.Passwords;
+import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateEndpoint;
+import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateHandler;
+import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpoint;
+import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.endpoints.config.ConfigHandler;
+import app.cbo.oidc.java.server.endpoints.consent.ConsentEndpoint;
+import app.cbo.oidc.java.server.endpoints.consent.ConsentHandler;
+import app.cbo.oidc.java.server.endpoints.jwks.JWKSHandler;
+import app.cbo.oidc.java.server.endpoints.token.TokenEndpoint;
+import app.cbo.oidc.java.server.endpoints.token.TokenHandler;
+import app.cbo.oidc.java.server.endpoints.userinfo.UserInfoEndpoint;
+import app.cbo.oidc.java.server.endpoints.userinfo.UserInfoHandler;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.http.NotFoundHandler;
 import app.cbo.oidc.java.server.http.authenticate.AuthenticateEndpoint;
@@ -156,8 +175,8 @@ public class DependenciesBuilder {
                 () -> new AuthenticateEndpoint(
                         this.ongoingAuths(),
                         this.users(),
-                        this.sessions()
-                ));
+                        this.sessions(),
+                        this.passwords()));
     }
 
 
@@ -186,10 +205,10 @@ public class DependenciesBuilder {
         if (args.fsBackEnd()) {
             val = this.getInstance(
                     FSUsers.class,
-                    () -> new FSUsers(this.userDataFileStorage()));
+                    () -> new FSUsers(this.userDataFileStorage(), this.passwords()));
         } else {
             val = this.getInstance(MemUsers.class,
-                    MemUsers::new);
+                    () -> new MemUsers(this.passwords()));
         }
         return val;
     }
@@ -223,6 +242,10 @@ public class DependenciesBuilder {
             }
         });
 
+    }
+
+    public Passwords passwords() {
+        return this.getInstance(PBKDF2WithHmacSHA1PasswordHash.class, PBKDF2WithHmacSHA1PasswordHash::new);
     }
 
     private <U> U getInstance(Class<U> clazz, Supplier<U> cr) {
