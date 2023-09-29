@@ -1,10 +1,10 @@
 package app.cbo.oidc.java.server;
 
 import app.cbo.oidc.java.server.credentials.TOTP;
-import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
-import app.cbo.oidc.java.server.endpoints.jwks.JWKSHandler;
-import app.cbo.oidc.java.server.endpoints.token.TokenHandler;
-import app.cbo.oidc.java.server.endpoints.userinfo.UserInfoHandler;
+import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.http.jwks.JWKSHandler;
+import app.cbo.oidc.java.server.http.token.TokenHandler;
+import app.cbo.oidc.java.server.http.userinfo.UserInfoHandler;
 import app.cbo.oidc.java.server.utils.MimeType;
 import app.cbo.oidc.java.server.utils.QueryStringParser;
 import com.auth0.jwt.JWT;

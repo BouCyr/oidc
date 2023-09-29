@@ -6,7 +6,7 @@ import app.cbo.oidc.java.server.utils.Utils;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-public record AccessOrRefreshToken(String typ, String sub, long exp, Collection<String> scopes) {
+public record AccessOrRefreshToken(String iss, String typ, String sub, long exp, Collection<String> scopes) {
 
     public static final String TYPE_ACCESS = "at";
     public static final String TYPE_REFRESH = "rt";
@@ -25,11 +25,16 @@ public record AccessOrRefreshToken(String typ, String sub, long exp, Collection<
         try {
 
 
-            Stream.of("typ", "sub", "scopes", "exp")
+            Stream.of("iss", "typ", "sub", "scopes", "exp")
                     .filter(k -> !json.contains(k))
                     .findAny().ifPresent(k -> {
                 throw new JsonProcessingException(new IllegalArgumentException("Key '" + k + "' not present"));
             });
+
+            var issBegin = json.indexOf("\"iss\":") + "\"iss\":".length();
+            var issEnd = Stream.of(json.indexOf(",", issBegin), json.indexOf("}", issBegin)).filter(i -> i != -1).mapToInt(i -> i).min().orElseThrow(() -> new JsonProcessingException(new IllegalArgumentException("no iss key")));
+            var issValue = json.substring(issBegin, issEnd).trim();
+            var iss = issValue.substring(1, issValue.length() - 1);//remove the "'"
 
             var expBegin = json.indexOf("\"exp\":") + "\"exp\":".length();
             var expEnd = Stream.of(json.indexOf(",", expBegin), json.indexOf("}", expBegin)).filter(i -> i != -1).mapToInt(i -> i).min().orElseThrow(() -> new JsonProcessingException(new IllegalArgumentException("no exp key")));
@@ -58,6 +63,7 @@ public record AccessOrRefreshToken(String typ, String sub, long exp, Collection<
                     .toList();
 
             return new AccessOrRefreshToken(
+                    iss,
                     typ,
                     sub,
                     exp,

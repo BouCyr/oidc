@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MemUsers implements Users {
 
+
     private final Map<String, User> users = new ConcurrentHashMap<>();
 
 
@@ -34,7 +35,7 @@ public class MemUsers implements Users {
     public UserId create(@NotNull String login, @Nullable String clearPwd, @Nullable String totpKey) {
 
         if (this.find(UserId.of(login)).isPresent()) {
-            throw new RuntimeException("Another user with this login already exists");
+            throw new RuntimeException(LOGIN_ALREADY_EXISTS);
         }
         User newUser = new User(login, PasswordEncoder.getInstance().encodePassword(clearPwd), totpKey);
         this.users.put(newUser.sub(), newUser);

@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server.oidc;
 
-import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
-import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
+import app.cbo.oidc.java.server.http.AuthErrorInteraction;
+import app.cbo.oidc.java.server.http.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.util.Collection;

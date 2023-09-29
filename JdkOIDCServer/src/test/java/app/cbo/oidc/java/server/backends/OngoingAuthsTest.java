@@ -2,7 +2,7 @@ package app.cbo.oidc.java.server.backends;
 
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuths;
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
-import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeParams;
+import app.cbo.oidc.java.server.http.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.oidc.OIDCDisplayValues;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
 import org.junit.jupiter.api.Test;

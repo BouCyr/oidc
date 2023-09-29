@@ -34,6 +34,13 @@ public record FSClaims(FileStorage fsUserStorage) implements Claims {
         final Map<String, Object> result = new HashMap<>();
 
         for (var requestedScope : requestedScopes) {
+
+            if ("openid".equals(requestedScope)) {
+                // This one we can safely ignore.
+                // We could ALSO throw an error if not present, but I kind of do not see the point.
+                continue;
+            }
+
             Optional<Class<? extends ScopedClaims>> scopeClass = this.fromScopeToClass(requestedScope);
             if (scopeClass.isEmpty()) {
                 LOGGER.info("Unrecognized scope : " + requestedScope);

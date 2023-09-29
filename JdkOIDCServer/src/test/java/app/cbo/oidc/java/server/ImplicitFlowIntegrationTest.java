@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server;
 
-import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
-import app.cbo.oidc.java.server.endpoints.userinfo.UserInfoHandler;
+import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.http.userinfo.UserInfoHandler;
 import app.cbo.oidc.java.server.utils.MimeType;
 import app.cbo.oidc.java.server.utils.QueryStringParser;
 import com.auth0.jwt.interfaces.DecodedJWT;

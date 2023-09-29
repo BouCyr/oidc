@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.deps;
 
-import app.cbo.oidc.java.server.*;
+import app.cbo.oidc.java.server.Server;
+import app.cbo.oidc.java.server.StartupArgs;
 import app.cbo.oidc.java.server.backends.claims.Claims;
 import app.cbo.oidc.java.server.backends.claims.FSClaims;
 import app.cbo.oidc.java.server.backends.claims.MemClaims;
@@ -13,18 +14,22 @@ import app.cbo.oidc.java.server.backends.sessions.Sessions;
 import app.cbo.oidc.java.server.backends.users.FSUsers;
 import app.cbo.oidc.java.server.backends.users.MemUsers;
 import app.cbo.oidc.java.server.backends.users.Users;
-import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateEndpoint;
-import app.cbo.oidc.java.server.endpoints.authenticate.AuthenticateHandler;
-import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeEndpoint;
-import app.cbo.oidc.java.server.endpoints.authorize.AuthorizeHandler;
-import app.cbo.oidc.java.server.endpoints.config.ConfigHandler;
-import app.cbo.oidc.java.server.endpoints.consent.ConsentEndpoint;
-import app.cbo.oidc.java.server.endpoints.consent.ConsentHandler;
-import app.cbo.oidc.java.server.endpoints.jwks.JWKSHandler;
-import app.cbo.oidc.java.server.endpoints.token.TokenEndpoint;
-import app.cbo.oidc.java.server.endpoints.token.TokenHandler;
-import app.cbo.oidc.java.server.endpoints.userinfo.UserInfoEndpoint;
-import app.cbo.oidc.java.server.endpoints.userinfo.UserInfoHandler;
+import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
+import app.cbo.oidc.java.server.http.NotFoundHandler;
+import app.cbo.oidc.java.server.http.authenticate.AuthenticateEndpoint;
+import app.cbo.oidc.java.server.http.authenticate.AuthenticateHandler;
+import app.cbo.oidc.java.server.http.authorize.AuthorizeEndpoint;
+import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.http.config.ConfigHandler;
+import app.cbo.oidc.java.server.http.consent.ConsentEndpoint;
+import app.cbo.oidc.java.server.http.consent.ConsentHandler;
+import app.cbo.oidc.java.server.http.jwks.JWKSHandler;
+import app.cbo.oidc.java.server.http.staticcontent.StaticResourceHandler;
+import app.cbo.oidc.java.server.http.token.TokenEndpoint;
+import app.cbo.oidc.java.server.http.token.TokenHandler;
+import app.cbo.oidc.java.server.http.userinfo.UserInfoEndpoint;
+import app.cbo.oidc.java.server.http.userinfo.UserInfoHandler;
+import app.cbo.oidc.java.server.oidc.Issuer;
 
 import java.io.IOException;
 import java.util.List;
@@ -51,6 +56,10 @@ public class DependenciesBuilder {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    public Issuer issuerId() {
+        return Issuer.of("http://localhost:" + this.args.port());
     }
 
     public List<HttpHandlerWithPath> handlers() {
@@ -112,7 +121,7 @@ public class DependenciesBuilder {
     public ConfigHandler configHandler() {
         return this.getInstance(ConfigHandler.class,
                 () -> new ConfigHandler(
-                        //TODO [01/09/2023] domain & protocol
+                        this.issuerId(),
                         "http://localhost:" + args.port() + this.authorizeHandler().path(),
                         "http://localhost:" + args.port() + this.tokenHandler().path(),
                         "http://localhost:" + args.port() + this.userInfoHandler().path(),
@@ -124,7 +133,7 @@ public class DependenciesBuilder {
 
     public TokenEndpoint tokenEndpoint() {
         return this.getInstance(TokenEndpoint.class,
-                () -> new TokenEndpoint(this.codes(), this.users(), this.sessions(), this.keyset()));
+                () -> new TokenEndpoint(this.issuerId(), this.codes(), this.users(), this.sessions(), this.keyset()));
     }
 
     public UserInfoEndpoint userInfoEndpoint() {
@@ -155,7 +164,7 @@ public class DependenciesBuilder {
     public AuthorizeEndpoint authorizeEndpoint() {
         return this.getInstance(AuthorizeEndpoint.class,
                 () -> new AuthorizeEndpoint(
-                        this.ongoingAuths(),
+                        this.issuerId(), this.ongoingAuths(),
                         this.users(),
                         this.codes(),
                         this.keyset(),

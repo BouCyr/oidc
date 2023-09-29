@@ -15,11 +15,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.util.Scanner;
+import java.util.logging.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,16 +27,18 @@ public class EntryPoint {
     private final static Logger LOGGER = Logger.getLogger(EntryPoint.class.getCanonicalName());
 
 
-    private static Server server;
-
     public static void main(String... args) throws IOException {
+        run(true, args);
+    }
+
+    public static void run(boolean holding, String... args) throws IOException {
 
 
         LOGGER.info("Starting");
         long start = System.nanoTime();
         LOGGER.info("Configuring logging");
         configureLogging();
-        LOGGER.info("Configured logging");
+        LOGGER.log(Level.FINE, "Configured logging");
         var parsedArgs = StartupArgs.from(args);
         LOGGER.info("Building dependencies");
         var dependencies = new DependenciesBuilder(parsedArgs);
@@ -45,10 +46,27 @@ public class EntryPoint {
         setupData("Cyrille", dependencies.users(), dependencies.claims());
         setupData("Caroline", dependencies.users(), dependencies.claims());
         LOGGER.info("Sample data built");
-        server = dependencies.server();
+//        try(Server server = dependencies.server()) {
+        Server server = dependencies.server();
         LOGGER.info("Starting server");
         server.start();
         LOGGER.info("Started in " + Duration.ofNanos(System.nanoTime() - start).toMillis() + "ms");
+
+//      TODO [29/09/2023] Put back in place; right now causes pbs with integration tests
+//            boolean exit = false;
+//            while(!exit) {
+//                exit = shouldExit();
+//            }
+//        }
+
+    }
+
+    private static boolean shouldExit() {
+
+        var input = new Scanner(System.in).next();
+        return List.of("exit", "close", "quit", "q")
+                .stream()
+                .anyMatch(cmd -> cmd.equalsIgnoreCase(input));
 
     }
 
@@ -63,6 +81,7 @@ public class EntryPoint {
 
         Logger mainLogger = Logger.getLogger("app.cbo.oidc.java.server");
         mainLogger.setUseParentHandlers(false);
+        mainLogger.setLevel(Level.FINEST);
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new SimpleFormatter() {
             @Override
@@ -74,13 +93,17 @@ public class EntryPoint {
                     className = basePackageShort + className.substring(basePackageFull.length());
                 }
 
-                return LocalDateTime.ofInstant(logRecord.getInstant(), ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) +
-                        " " + logRecord.getLevel() +
-                        " thread#" + logRecord.getLongThreadID() +
-                        " " + className +
-                        "." + logRecord.getSourceMethodName() + "(...)" +
-                        " : " + logRecord.getMessage() +
-                        System.lineSeparator();
+                var dtt = LocalDateTime.ofInstant(logRecord.getInstant(), ZoneId.systemDefault()).format(
+                        DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+                return
+                        "[" + dtt + "]" +
+                                "[" + logRecord.getLevel() + "]" +
+                                "[thread#" + logRecord.getLongThreadID() + "]" +
+                                "[" + className +
+                                "." + logRecord.getSourceMethodName() + "]" +
+                                " : " + logRecord.getMessage() +
+                                System.lineSeparator();
 
             }
         });

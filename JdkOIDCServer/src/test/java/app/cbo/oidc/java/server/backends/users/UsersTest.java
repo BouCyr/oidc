@@ -1,46 +1,69 @@
 package app.cbo.oidc.java.server.backends.users;
 
 import app.cbo.oidc.java.server.credentials.PasswordEncoder;
-import org.assertj.core.api.Assertions;
+import app.cbo.oidc.java.server.datastored.user.User;
+import app.cbo.oidc.java.server.datastored.user.UserId;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class UsersTest {
 
     static void testReadWrite(Users tested) {
+        //cehck creation
         var userId = tested.create("login", "clear", "TOTPKEY");
-        Assertions.assertThat(userId).isNotNull();
-        Assertions.assertThat(userId.get()).isNotNull().isEqualTo("login");
+        assertThat(userId).isNotNull();
+        assertThat(userId.get()).isNotNull().isEqualTo("login");
 
+        //cannot create an already existing user
+        assertThatThrownBy(() -> tested.create("login", "???", "456456"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage(UserCreator.LOGIN_ALREADY_EXISTS);
+
+        //cannot find an absent user
+        assertThat(tested.find(UserId.of("blablabl"))).isEmpty();
+
+        //find it back
         var found = tested.find(userId);
-        Assertions.assertThat(found).isPresent();
+        assertThat(found).isPresent();
+
+
         var fromDisk = found.get();
-        Assertions.assertThat(fromDisk.sub()).isEqualTo("login");
-        Assertions.assertThat(fromDisk.totpKey()).isEqualTo("TOTPKEY");
+        assertThat(fromDisk.sub()).isEqualTo("login");
+        assertThat(fromDisk.totpKey()).isEqualTo("TOTPKEY");
 
-        Assertions.assertThat(fromDisk.pwd()).isNotEqualTo("clear"); //pwd must have been hashed
-        Assertions.assertThat(PasswordEncoder.getInstance().confront("clear", fromDisk.pwd())).isTrue();
+        assertThat(fromDisk.pwd()).isNotEqualTo("clear"); //pwd must have been hashed
+        assertThat(PasswordEncoder.getInstance().confront("clear", fromDisk.pwd())).isTrue();
 
-        Assertions.assertThat(fromDisk.consentedTo()).isEmpty();
+        assertThat(fromDisk.consentedTo()).isEmpty();
 
 
         fromDisk.consentedTo().put("client1", Set.of("A", "B"));
 
         tested.update(fromDisk);
 
+
+        assertThat(tested.update(new User(UUID.randomUUID().toString(),
+                UUID.randomUUID().toString(),
+                UUID.randomUUID().toString())))
+                .isFalse();
+
         var foundBack = tested.find(userId);
-        Assertions.assertThat(foundBack).isPresent();
+        assertThat(foundBack).isPresent();
         var updated = foundBack.get();
-        Assertions.assertThat(updated.sub()).isEqualTo("login");
-        Assertions.assertThat(updated.totpKey()).isEqualTo("TOTPKEY");
+        assertThat(updated.sub()).isEqualTo("login");
+        assertThat(updated.totpKey()).isEqualTo("TOTPKEY");
 
-        Assertions.assertThat(updated.pwd()).isNotEqualTo("clear"); //pwd must have been hashed
-        Assertions.assertThat(PasswordEncoder.getInstance().confront("clear", updated.pwd())).isTrue();
+        assertThat(updated.pwd()).isNotEqualTo("clear"); //pwd must have been hashed
+        assertThat(PasswordEncoder.getInstance().confront("clear", updated.pwd())).isTrue();
 
-        Assertions.assertThat(updated.consentedTo()).isNotEmpty()
+        assertThat(updated.consentedTo()).isNotEmpty()
                 .hasSize(1).containsKey("client1");
-        Assertions.assertThat(updated.consentedTo().get("client1")).isNotEmpty()
+        assertThat(updated.consentedTo().get("client1")).isNotEmpty()
                 .hasSize(2)
                 .containsExactlyInAnyOrderElementsOf(List.of("A", "B"));
     }

@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.utils;
 
-import app.cbo.oidc.java.server.endpoints.AuthErrorInteraction;
+import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import com.sun.net.httpserver.HttpServer;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
