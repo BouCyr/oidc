@@ -84,7 +84,7 @@ public record FSClaims(FileStorage fsUserStorage) implements Claims {
 
     @Override
     public void store(ScopedClaims... someClaims) {
-
+        // [02/10/2023] This method seems kind of weird
         for (ScopedClaims scoped : someClaims) {
             if (scoped instanceof Phone p) {
                 this.store(p);

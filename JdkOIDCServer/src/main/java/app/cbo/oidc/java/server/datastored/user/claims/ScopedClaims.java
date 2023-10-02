@@ -6,5 +6,6 @@ public interface ScopedClaims {
 
     UserId userId();
 
+    String scopeName();
 
 }

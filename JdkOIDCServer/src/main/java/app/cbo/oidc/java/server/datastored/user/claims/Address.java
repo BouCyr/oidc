@@ -20,6 +20,11 @@ public record Address(UserId userId, String address) implements ScopedClaims {
         this(userId, JSON.jsonifyOneline(addressPayload));
     }
 
+    @Override
+    public String scopeName() {
+        return "address";
+    }
+
     public static record AddressPayload(String formatted,
                                         String street_address,
                                         String locality,

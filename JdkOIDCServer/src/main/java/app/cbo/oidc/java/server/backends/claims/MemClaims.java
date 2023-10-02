@@ -28,7 +28,7 @@ public class MemClaims implements Claims {
         Stream.of(someClaims)
                 .forEach(scopedClaims -> {
                     if (allClaims.removeIf(sc -> sc.userId().equals(scopedClaims.userId()) && sc.getClass().equals(scopedClaims.getClass()))) {
-                        LOGGER.info(scopedClaims.userId().getUserId() + " already had a " + scopedClaims.getClass().getSimpleName() + ". Replacing");
+                        LOGGER.info(scopedClaims.userId().getUserId() + " already had a stored '" + scopedClaims.scopeName() + "' scope. Replacing");
                     }
 
                     allClaims.add(scopedClaims);

@@ -20,4 +20,8 @@ public record Profile(
         long updated_at//TODO : handle in Claims backend...
 
 ) implements ScopedClaims {
+    @Override
+    public String scopeName() {
+        return "profile";
+    }
 }
