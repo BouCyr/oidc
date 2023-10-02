@@ -2,10 +2,9 @@ package app.cbo.oidc.java.server.backends.users;
 
 import app.cbo.oidc.java.server.credentials.pwds.PBKDF2WithHmacSHA1PasswordHash;
 import app.cbo.oidc.java.server.credentials.pwds.Passwords;
-import org.assertj.core.api.Assertions;
-import app.cbo.oidc.java.server.credentials.PasswordEncoder;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.datastored.user.UserId;
+import org.assertj.core.api.Assertions;
 
 import java.util.List;
 import java.util.Set;
@@ -68,7 +67,7 @@ public class UsersTest {
         Assertions.assertThat(updated.pwd()).isNotEqualTo("clear"); //pwd must have been hashed
         Assertions.assertThat(passwords().confront("clear", updated.pwd())).isTrue();
         assertThat(updated.pwd()).isNotEqualTo("clear"); //pwd must have been hashed
-        assertThat(PasswordEncoder.getInstance().confront("clear", updated.pwd())).isTrue();
+        assertThat(passwords().confront("clear", updated.pwd())).isTrue();
 
         assertThat(updated.consentedTo()).isNotEmpty()
                 .hasSize(1).containsKey("client1");

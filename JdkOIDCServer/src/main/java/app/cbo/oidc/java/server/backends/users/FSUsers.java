@@ -11,13 +11,7 @@ import app.cbo.oidc.java.server.jsr305.Nullable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -104,17 +98,17 @@ public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder
     }
 
 
-    private Collection<String> userToStrings(@NotNull User user) {
+    public static Collection<String> userToStrings(@NotNull User user) {
         return List.of(
                 toLine(SUB_K, user.sub()),
                 toLine(PWD_K, user.pwd()),
                 toLine(TOTP_K, user.totpKey()),
-                toLine(CONSENTS_K, this.consentsToString(user.consentedTo()))
+                toLine(CONSENTS_K, consentsToString(user.consentedTo()))
         );
 
     }
 
-    private String consentsToString(Map<String, Set<String>> consentedTo) {
+    public static String consentsToString(Map<String, Set<String>> consentedTo) {
         // clientA->profile;email,clientB->email,phone,address
         return consentedTo.keySet()
                 .stream()
@@ -122,7 +116,11 @@ public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder
                 .collect(Collectors.joining(","));
     }
 
-    private Optional<User> userFromStrings(@NotNull Collection<String> stringified) {
+    public static Optional<User> userFromStrings(@NotNull Collection<String> stringified) {
+        if (Utils.isEmpty(stringified)) {
+            return Optional.empty();
+        }
+
         //String sub, String pwd, String totpKey, Map<String, Set<String>> consentedTo
         String sub = null;
         String pwd = null;
@@ -135,7 +133,7 @@ public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder
                 case SUB_K -> sub = pair.right();
                 case PWD_K -> pwd = pair.right();
                 case TOTP_K -> totpKey = pair.right();
-                case CONSENTS_K -> consents = this.readStringConsents(pair.right());
+                case CONSENTS_K -> consents = readStringConsents(pair.right());
                 default -> LOGGER.info("unknown key found in file 'user.txt' : " + pair.right());
             }
         }
@@ -148,19 +146,23 @@ public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder
         }
     }
 
-    private Map<String, Set<String>> readStringConsents(String val) {
+    public static Map<String, Set<String>> readStringConsents(String val) {
 
         if (Utils.isBlank(val))
             return Collections.emptyMap();
 
-        Map<String, Set<String>> map = new HashMap<>();
-        var clientIds = val.split(",");
-        for (var consentAndclient : clientIds) {
-            var clientId = consentAndclient.split("->")[0];
-            var consents = Set.of(consentAndclient.split("->")[1].split(";"));
-            map.put(clientId, consents);
+        try {
+            Map<String, Set<String>> map = new HashMap<>();
+            var clientIds = val.split(",");
+            for (var consentAndclient : clientIds) {
+                var clientId = consentAndclient.split("->")[0];
+                var consents = Set.of(consentAndclient.split("->")[1].split(";"));
+                map.put(clientId, consents);
+            }
+            return map;
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException("Invalid consent string : '" + val + "'", e);
         }
-        return map;
     }
 
     public FileSpecification fileOf(UserId userId) {

@@ -17,8 +17,11 @@ public record User(String sub, String pwd, String totpKey, Map<String, Set<Strin
         this.pwd = pwd;
         this.totpKey = totpKey;
 
+
         this.consentedTo = new HashMap<>();
-        for (String clientId : consentedTo.keySet()) {
+
+
+        for (String clientId : (consentedTo != null ? consentedTo : new HashMap<String, Set<String>>()).keySet()) {
             this.consentedTo.put(clientId, new HashSet<>());
             for (String consent : consentedTo.get(clientId)) {
                 this.consentedTo.get(clientId).add(consent);

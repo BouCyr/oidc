@@ -30,84 +30,97 @@ class FSUsersTest {
 
         //WHEN
         UsersTest.testReadWrite(tested);
-
-
     }
 
 
     @Test
     void unknownFileContent() {
-
-        {
-            var list = List.of("sub:login2", "pwd:clear", "totp:TOTPKEY", "consents:c1->s11;s12,c2->s21;22;s23");
-            var ok = FSUsers.userFromStrings(list);
-            assertThat(ok).isPresent()
-                    .get().isNotNull();
-            var user = ok.get();
-            assertThat(user.sub()).isEqualTo("login2");
-            assertThat(user.pwd()).isEqualTo("clear");
-            assertThat(user.totpKey()).isEqualTo("TOTPKEY");
-            assertThat(user.consentedTo()).isNotEmpty();
-        }
-        {
-            //consent separator is ',' instead of ';'
-            var list = List.of("sub:login2", "pwd:clear", "totp:TOTPKEY", "consents:c1->s11;s12,c2->s21,s22,s23");
-            assertThatThrownBy(() -> FSUsers.userFromStrings(list))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageStartingWith("Invalid consent string : '")
-                    .hasRootCauseInstanceOf(RuntimeException.class);
-        }
-        {
-            var list = List.of("sub:login2", "pwd:clear", "totp:TOTPKEY", "consents:");
-            var ok = FSUsers.userFromStrings(list);
-            assertThat(ok).isPresent()
-                    .get().isNotNull();
-            var user = ok.get();
-            assertThat(user.sub()).isEqualTo("login2");
-            assertThat(user.pwd()).isEqualTo("clear");
-            assertThat(user.totpKey()).isEqualTo("TOTPKEY");
-            assertThat(user.consentedTo()).isEmpty();
-        }
-        {
-            //with an extra key
-            var list = List.of("sub:login2", "pwd:clear", "totp:TOTPKEY", "consents:", "blablabla:blublublu");
-            var ok = FSUsers.userFromStrings(list);
-            assertThat(ok).isPresent()
-                    .get().isNotNull();
-            var user = ok.get();
-            assertThat(user.sub()).isEqualTo("login2");
-            assertThat(user.pwd()).isEqualTo("clear");
-            assertThat(user.totpKey()).isEqualTo("TOTPKEY");
-            assertThat(user.consentedTo()).isEmpty();
-        }
-        {
-            var list = List.of("sub:login2", "pwd:clear", "totp:TOTPKEY");
-            var ok = FSUsers.userFromStrings(list);
-            assertThat(ok).isPresent()
-                    .get().isNotNull();
-            var user = ok.get();
-            assertThat(user.sub()).isEqualTo("login2");
-            assertThat(user.pwd()).isEqualTo("clear");
-            assertThat(user.totpKey()).isEqualTo("TOTPKEY");
-            assertThat(user.consentedTo()).isEmpty();
-        }
-        {
-            var list = List.of("pwd:clear", "totp:TOTPKEY");
-            var ok = FSUsers.userFromStrings(list);
-            assertThat(ok).isEmpty();
-        }
-        {
-            List<String> list = Collections.emptyList();
-            var ok = FSUsers.userFromStrings(list);
-            assertThat(ok).isEmpty();
-        }
-        {
-            var ok = FSUsers.userFromStrings(null);
-            assertThat(ok).isEmpty();
-        }
-
     }
 
+    @Test
+    void nominal() {
+        var list = List.of("sub:login2", "pwd:clear", "totp:TOTPKEY", "consents:c1->s11;s12,c2->s21;22;s23");
+        var ok = FSUsers.userFromStrings(list);
+        assertThat(ok).isPresent()
+                .get().isNotNull();
+        var user = ok.get();
+        assertThat(user.sub()).isEqualTo("login2");
+        assertThat(user.pwd()).isEqualTo("clear");
+        assertThat(user.totpKey()).isEqualTo("TOTPKEY");
+        assertThat(user.consentedTo()).isNotEmpty();
+    }
+
+    @Test
+    void invalid_consents_separator() {
+        //consent separator is ',' instead of ';'
+        var list = List.of("sub:login2", "pwd:clear", "totp:TOTPKEY", "consents:c1->s11;s12,c2->s21,s22,s23");
+        assertThatThrownBy(() -> FSUsers.userFromStrings(list))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Invalid consent string : '")
+                .hasRootCauseInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    void consents_empty() {
+        var list = List.of("sub:login2", "pwd:clear", "totp:TOTPKEY", "consents:");
+        var ok = FSUsers.userFromStrings(list);
+        assertThat(ok).isPresent()
+                .get().isNotNull();
+        var user = ok.get();
+        assertThat(user.sub()).isEqualTo("login2");
+        assertThat(user.pwd()).isEqualTo("clear");
+        assertThat(user.totpKey()).isEqualTo("TOTPKEY");
+        assertThat(user.consentedTo()).isEmpty();
+    }
+
+    @Test
+    void unknonw_field() {
+        //with an extra key
+        var list = List.of("sub:login2", "pwd:clear", "totp:TOTPKEY", "consents:", "blablabla:blublublu");
+        var ok = FSUsers.userFromStrings(list);
+        assertThat(ok).isPresent()
+                .get().isNotNull();
+        var user = ok.get();
+        assertThat(user.sub()).isEqualTo("login2");
+        assertThat(user.pwd()).isEqualTo("clear");
+        assertThat(user.totpKey()).isEqualTo("TOTPKEY");
+        assertThat(user.consentedTo()).isEmpty();
+    }
+
+    @Test
+    void no_consents() {
+        var list = List.of("sub:login2", "pwd:clear", "totp:TOTPKEY");
+        var ok = FSUsers.userFromStrings(list);
+        assertThat(ok)
+                .isPresent()
+                .get().isNotNull();
+        var user = ok.get();
+        assertThat(user.sub()).isEqualTo("login2");
+        assertThat(user.pwd()).isEqualTo("clear");
+        assertThat(user.totpKey()).isEqualTo("TOTPKEY");
+        assertThat(user.consentedTo()).isEmpty();
+    }
+
+    @Test
+    void no_login() {
+
+        var list = List.of("pwd:clear", "totp:TOTPKEY");
+        var ok = FSUsers.userFromStrings(list);
+        assertThat(ok).isEmpty();
+    }
+
+    @Test
+    void empty() {
+        List<String> list = Collections.emptyList();
+        var ok = FSUsers.userFromStrings(list);
+        assertThat(ok).isEmpty();
+    }
+
+    @Test
+    void input_null() {
+        var ok = FSUsers.userFromStrings(null);
+        assertThat(ok).isEmpty();
+    }
 
     @BeforeEach
     void setup() throws IOException {
