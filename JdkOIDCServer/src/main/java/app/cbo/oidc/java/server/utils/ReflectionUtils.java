@@ -52,8 +52,8 @@ public class ReflectionUtils {
         public NameAndValue(Method method, Object target) {
             String baseName = method.getName();
             if (baseName.startsWith("get")) {
-                baseName = baseName.substring(3);
-                name = Character.toLowerCase(baseName.charAt(0)) + baseName.substring(1);
+                var withoutGet = baseName.substring(3);
+                name = Character.toLowerCase(withoutGet.charAt(0)) + withoutGet.substring(1);
             } else {
                 name = baseName;
             }

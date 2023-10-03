@@ -8,8 +8,9 @@ import java.util.stream.Stream;
 
 public record AccessOrRefreshToken(String iss, String typ, String sub, long exp, Collection<String> scopes) {
 
-    public static final String TYPE_ACCESS = "at";
-    public static final String TYPE_REFRESH = "rt";
+    //[03/10/2023] no idea right now how KC can tell them apart
+    public static final String TYPE_ACCESS = "Bearer";
+    public static final String TYPE_REFRESH = "Bearer";
 
 
     /**
