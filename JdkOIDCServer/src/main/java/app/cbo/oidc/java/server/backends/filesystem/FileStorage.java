@@ -50,7 +50,7 @@ public class FileStorage {
             var val = line.substring((key + ":").length());
             return Pair.of(key, val);
         } catch (IndexOutOfBoundsException e) {
-            e.toString();
+            LOGGER.info("invalid line : '" + line + "'");
             throw e;
         }
     }

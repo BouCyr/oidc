@@ -19,6 +19,7 @@ import app.cbo.oidc.java.server.credentials.pwds.Passwords;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.http.NotFoundHandler;
 import app.cbo.oidc.java.server.http.authenticate.AuthenticateEndpoint;
+import app.cbo.oidc.java.server.http.authenticate.AuthenticateEndpointImpl;
 import app.cbo.oidc.java.server.http.authenticate.AuthenticateHandler;
 import app.cbo.oidc.java.server.http.authorize.AuthorizeEndpoint;
 import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
@@ -109,7 +110,7 @@ public class DependenciesBuilder {
 
     public AuthenticateHandler authenticateHandler() {
         return this.getInstance(AuthenticateHandler.class,
-                () -> new AuthenticateHandler(this.authenticateEndpoint(), this.sessions()));
+                () -> new AuthenticateHandler(this.authenticateEndpoint()));
 
     }
 
@@ -154,8 +155,8 @@ public class DependenciesBuilder {
 
 
     public AuthenticateEndpoint authenticateEndpoint() {
-        return this.getInstance(AuthenticateEndpoint.class,
-                () -> new AuthenticateEndpoint(
+        return this.getInstance(AuthenticateEndpointImpl.class,
+                () -> new AuthenticateEndpointImpl(
                         this.ongoingAuths(),
                         this.users(),
                         this.sessions(),

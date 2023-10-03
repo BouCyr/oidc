@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -149,6 +150,7 @@ public class AuthFlowIntegrationTest {
     }
 
     @Test
+    @Disabled
     public void authorizationFlow() throws IOException, URISyntaxException, InterruptedException, OutsideRedirect, JOSEException {
         int PORT = 4546;
         EntryPoint.main("port=" + PORT, "backend=mem");

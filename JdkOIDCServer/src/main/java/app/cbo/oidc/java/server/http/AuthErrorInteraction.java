@@ -86,9 +86,7 @@ public  class AuthErrorInteraction extends Exception implements Interaction {
             ExchangeResponseUtils.build(exchange, HttpCode.FOUND, null, null);
         }else{
             LOGGER.info("Returning httpStatus 500 since we do not know where to send the error.");
-            HttpCode status= HttpCode.BAD_REQUEST;
-            if(error == Code.server_error)
-                status= HttpCode.SERVER_ERROR;
+            HttpCode status = status = HttpCode.SERVER_ERROR;
             if(error == Code.temporarily_unavailable)
                 status = HttpCode.UNAVAILABLE;
 

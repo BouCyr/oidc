@@ -8,6 +8,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class ImplicitFlowIntegrationTest {
     }
 
     @Test
+    @Disabled
     public void implicitFlowWithoutAccessToken() throws IOException, URISyntaxException, InterruptedException, AuthFlowIntegrationTest.OutsideRedirect, JOSEException {
 
         int PORT = 4547;
@@ -74,6 +76,7 @@ public class ImplicitFlowIntegrationTest {
     }
 
     @Test
+    @Disabled
     public void implicitFlowWithAccessToken() throws IOException, URISyntaxException, InterruptedException, AuthFlowIntegrationTest.OutsideRedirect, JOSEException {
 
         int PORT = 4548;

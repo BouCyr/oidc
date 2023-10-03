@@ -1,6 +1,6 @@
 package app.cbo.oidc.java.server.http.jwks;
 
-import app.cbo.oidc.java.server.TestExchange;
+import app.cbo.oidc.java.server.TestHttpExchange;
 import app.cbo.oidc.java.server.backends.keys.MemKeySet;
 import app.cbo.oidc.java.server.utils.MimeType;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -28,7 +28,7 @@ class JWKSHandlerTest {
     @Test
     void handle() throws Exception {
 
-        var req = new TestExchange("GET", new URI("http://oidc.cbo.app"), new ByteArrayInputStream(new byte[]{}));
+        var req = new TestHttpExchange("GET", new URI("http://oidc.cbo.app"), new ByteArrayInputStream(new byte[]{}));
 
         tested.handle(req);
         assertThat(req.getResponseCode())

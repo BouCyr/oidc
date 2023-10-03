@@ -5,16 +5,14 @@ import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TestExchange extends HttpExchange {
+public class TestHttpExchange extends HttpExchange {
 
 
     private final Headers requestHeaders = new Headers();
@@ -29,11 +27,20 @@ public class TestExchange extends HttpExchange {
     private int statuscode;
     private long responseLength;
 
-    public TestExchange(String method, URI uri, InputStream requestBody) {
+    public TestHttpExchange(String method, URI uri, InputStream requestBody) {
         this.method = method;
         this.uri = uri;
         this.requestBody = requestBody;
         this.responseBody = new ByteArrayOutputStream();
+    }
+
+    public static TestHttpExchange simpleGet() {
+        try {
+            return new TestHttpExchange("GET", new URI("http://oidc.cbo.app"), new ByteArrayInputStream(new byte[]{}));
+        } catch (URISyntaxException e) {
+            //won't happen
+            throw new RuntimeException(e);
+        }
     }
 
     public byte[] getResponseBodyBytes() {
@@ -126,5 +133,9 @@ public class TestExchange extends HttpExchange {
     @Override
     public HttpPrincipal getPrincipal() {
         return new HttpPrincipal("unused", "unused");
+    }
+
+    public long getResponseLength() {
+        return responseLength;
     }
 }
