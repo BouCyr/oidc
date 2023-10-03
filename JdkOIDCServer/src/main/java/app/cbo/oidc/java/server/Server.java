@@ -34,6 +34,7 @@ public class Server implements Closeable {
     public void start() throws IOException {
 
         LOGGER.info(String.format("Server starting on host %s and port %s ", HOST_NAME, port));
+
         this.server = HttpServer.create(new InetSocketAddress(HOST_NAME, port), 50);
         handlers.forEach(handler -> {
             LOGGER.info("Adding handler '" + handler.getClass().getSimpleName() + "' matching path '" + handler.path() + "'.");
