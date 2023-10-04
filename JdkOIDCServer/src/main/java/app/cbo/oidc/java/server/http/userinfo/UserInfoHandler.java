@@ -47,7 +47,7 @@ public class UserInfoHandler implements HttpHandlerWithPath {
                     .handle(exchange);
         } else {
             LOGGER.info("NO access token found in Authorization header, retuning 401 status code");
-            new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.NO_AUTH).handle(exchange);
+            new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.InternalReason.NO_TOKEN, ForbiddenResponse.NO_AUTH).handle(exchange);
         }
         return;
     }

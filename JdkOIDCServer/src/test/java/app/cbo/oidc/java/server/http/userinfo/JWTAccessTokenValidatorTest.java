@@ -13,7 +13,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 
 class JWTAccessTokenValidatorTest {
 
@@ -49,8 +49,16 @@ class JWTAccessTokenValidatorTest {
         var keyset = new MemKeySet();
         var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
 
-        assertThatThrownBy(() -> tested.validateAccessToken("gfgfd.gfdgd"))
-                .isInstanceOf(ForbiddenResponse.class);
+        try {
+            tested.validateAccessToken("foo.bar");
+        } catch (ForbiddenResponse e) {
+            assertThat(e).isInstanceOf(ForbiddenResponse.class);
+            assertThat(e.getInternalReason()).isEqualTo(ForbiddenResponse.InternalReason.UNREADABLE_TOKEN);
+            return;
+        } catch (RuntimeException e) {
+            fail("Should have thrown ForbiddenException");
+        }
+        fail("Should have thrown ForbiddenException");
     }
 
     @Test
@@ -68,8 +76,16 @@ class JWTAccessTokenValidatorTest {
                 List.of("scope1", "scope2"));
 
         var signed = JWS.jwsWrap(JWA.RS256, jwtAccessToken, keyset.current(), keyset.privateKey(keyset.current()).get());
-        assertThatThrownBy(() -> tested.validateAccessToken(signed))
-                .isInstanceOf(ForbiddenResponse.class);
+        try {
+            tested.validateAccessToken(signed);
+        } catch (ForbiddenResponse e) {
+            assertThat(e).isInstanceOf(ForbiddenResponse.class);
+            assertThat(e.getInternalReason()).isEqualTo(ForbiddenResponse.InternalReason.WRONG_TYPE);
+            return;
+        } catch (RuntimeException e) {
+            fail("Should have thrown ForbiddenException");
+        }
+        fail("Should have thrown ForbiddenException");
 
     }
 
@@ -88,8 +104,17 @@ class JWTAccessTokenValidatorTest {
                 List.of("scope1", "scope2"));
 
         var signed = JWS.jwsWrap(JWA.RS256, jwtAccessToken, keyset.current(), keyset.privateKey(keyset.current()).get());
-        assertThatThrownBy(() -> tested.validateAccessToken(signed))
-                .isInstanceOf(ForbiddenResponse.class);
+
+        try {
+            tested.validateAccessToken(signed);
+        } catch (ForbiddenResponse e) {
+            assertThat(e).isInstanceOf(ForbiddenResponse.class);
+            assertThat(e.getInternalReason()).isEqualTo(ForbiddenResponse.InternalReason.EXPIRED_TOKEN);
+            return;
+        } catch (RuntimeException e) {
+            fail("Should have thrown ForbiddenException");
+        }
+        fail("Should have thrown ForbiddenException");
 
     }
 
@@ -108,13 +133,21 @@ class JWTAccessTokenValidatorTest {
                 List.of("scope1", "scope2"));
 
         var signed = JWS.jwsWrap(JWA.RS256, jwtAccessToken, keyset.current(), keyset.privateKey(keyset.current()).get());
-        assertThatThrownBy(() -> tested.validateAccessToken(signed))
-                .isInstanceOf(ForbiddenResponse.class);
 
+        try {
+            tested.validateAccessToken(signed);
+        } catch (ForbiddenResponse e) {
+            assertThat(e).isInstanceOf(ForbiddenResponse.class);
+            assertThat(e.getInternalReason()).isEqualTo(ForbiddenResponse.InternalReason.WRONG_ISSUER);
+            return;
+        } catch (RuntimeException e) {
+            fail("Should have thrown ForbiddenException");
+        }
+        fail("Should have thrown ForbiddenException");
     }
 
     @Test
-    void wrong_sig() throws ForbiddenResponse {
+    void wrong_sig() {
 
         var keyset = new MemKeySet();
         var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
@@ -129,9 +162,17 @@ class JWTAccessTokenValidatorTest {
 
         var signed = JWS.jwsWrap(JWA.RS256, jwtAccessToken, keyset.current(), keyset.privateKey(keyset.current()).get());
         var parts = signed.split("\\.");
-        var wrong_signed = parts[0] + "." + parts[1] + "." + "foobar";
-        assertThatThrownBy(() -> tested.validateAccessToken(wrong_signed))
-                .isInstanceOf(ForbiddenResponse.class);
+        var wrong_signed = parts[0] + "." + parts[1] + "." + "foobar"; //WRONG SIGNATURE !!!
 
+        try {
+            tested.validateAccessToken(wrong_signed);
+        } catch (ForbiddenResponse e) {
+            assertThat(e).isInstanceOf(ForbiddenResponse.class);
+            assertThat(e.getInternalReason()).isEqualTo(ForbiddenResponse.InternalReason.INVALID_SIGNATURE);
+            return;
+        } catch (RuntimeException e) {
+            fail("Should have thrown ForbiddenException");
+        }
+        fail("Should have thrown ForbiddenException");
     }
 }

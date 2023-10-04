@@ -46,12 +46,33 @@ public class ForbiddenResponse extends Exception implements Interaction {
      */
     public static final String NO_AUTH = "";
 
+    private final InternalReason internalReason;
+
+
+    public ForbiddenResponse(HttpCode code, InternalReason internalReason, String reason) {
+        super(reason);
+        this.code = code;
+        this.internalReason = internalReason;
+    }
 
     private final HttpCode code;
 
-    public ForbiddenResponse(HttpCode code, String reason) {
-        super(reason);
-        this.code = code;
+    public InternalReason getInternalReason() {
+        return internalReason;
+    }
+
+    /**
+     * For logging & check reason
+     * <p>(allow us to check in Unit Tests that the orbidden was created for the right reason)</p>
+     */
+    public enum InternalReason {
+        TECHNICAL,
+        UNREADABLE_TOKEN,
+        NO_TOKEN,
+        WRONG_TYPE,
+        EXPIRED_TOKEN,
+        WRONG_ISSUER,
+        INVALID_SIGNATURE
     }
 
     @Override

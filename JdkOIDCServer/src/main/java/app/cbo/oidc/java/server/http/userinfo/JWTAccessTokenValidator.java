@@ -33,7 +33,7 @@ public class JWTAccessTokenValidator implements AccessTokenValidator {
         var parts = accessToken.split("\\.");
         if (parts.length != 3) {
             LOGGER.info("Provided access token is not issued by our server (invalid format)");
-            throw new ForbiddenResponse(HttpCode.FORBIDDEN, ForbiddenResponse.INVALID_TOKEN);
+            throw new ForbiddenResponse(HttpCode.FORBIDDEN, ForbiddenResponse.InternalReason.UNREADABLE_TOKEN, ForbiddenResponse.INVALID_TOKEN);
         }
 
         var b64Metadata = parts[0];
@@ -50,16 +50,16 @@ public class JWTAccessTokenValidator implements AccessTokenValidator {
 
         if (decodedPayload.exp() < now) {
             LOGGER.info("access token is expired (exp : " + decodedPayload.exp() + ", now is " + now);
-            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.INVALID_TOKEN);
+            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.InternalReason.EXPIRED_TOKEN, ForbiddenResponse.INVALID_TOKEN);
         }
 
         if (!AccessOrRefreshToken.TYPE_ACCESS.equals(decodedPayload.typ())) {
             LOGGER.info("provided token is not an access token");
-            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.INVALID_TOKEN);
+            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.InternalReason.WRONG_TYPE, ForbiddenResponse.INVALID_TOKEN);
         }
         if (!this.me.getIssuerId().equals(decodedPayload.iss())) {
             LOGGER.info("provided token has been issued by someone else");
-            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.INVALID_TOKEN);
+            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.InternalReason.WRONG_ISSUER, ForbiddenResponse.INVALID_TOKEN);
         }
 
 
@@ -69,7 +69,7 @@ public class JWTAccessTokenValidator implements AccessTokenValidator {
 
         if (!JWS.checkSignature(this.keySet, b64Metadata + "." + b64Payload, signature, header)) {
             LOGGER.info("Token signature invalid");
-            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.INVALID_TOKEN);
+            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.InternalReason.INVALID_SIGNATURE, ForbiddenResponse.INVALID_TOKEN);
         }
         LOGGER.info("JWT access token is valid");
         return new AccessTokenData(UserId.of(decodedPayload.sub()), Set.copyOf(decodedPayload.scopes()));

@@ -27,8 +27,7 @@ public record UserInfoResponse(Map<String, Object> userInfo) implements Interact
                 os.write(json.getBytes(StandardCharsets.UTF_8));
                 os.flush();
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } finally {
             exchange.getResponseBody().flush();
         }
 

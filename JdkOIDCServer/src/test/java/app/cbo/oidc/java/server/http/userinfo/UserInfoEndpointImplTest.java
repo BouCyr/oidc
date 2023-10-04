@@ -85,13 +85,15 @@ class UserInfoEndpointImplTest {
                 (userId, requestedScopes) -> Map.of("family_name", "Smith"),
                 accessToken -> {
                     throw new ForbiddenResponse(
-                            HttpCode.FORBIDDEN, ForbiddenResponse.INVALID_TOKEN);
+                            HttpCode.FORBIDDEN, ForbiddenResponse.InternalReason.UNREADABLE_TOKEN, ForbiddenResponse.INVALID_TOKEN);
                 }
         );
 
         var result = tested.treatRequest("accesstoken");
         assertThat(result)
                 .isInstanceOf(ForbiddenResponse.class);
+        assertThat(((ForbiddenResponse) result).getInternalReason())
+                .isEqualTo(ForbiddenResponse.InternalReason.UNREADABLE_TOKEN);
 
         var req = TestHttpExchange.simpleGet();
         result.handle(req);
@@ -112,5 +114,6 @@ class UserInfoEndpointImplTest {
 
         assertThatThrownBy(() -> tested.treatRequest("accesstoken"))
                 .isInstanceOf(RuntimeException.class);
+
     }
 }
