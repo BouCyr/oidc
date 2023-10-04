@@ -67,12 +67,15 @@ public class ForbiddenResponse extends Exception implements Interaction {
      */
     public enum InternalReason {
         TECHNICAL,
+        MISSING_PARAMS,
+        INVALID_CREDENTIALS,
         UNREADABLE_TOKEN,
         NO_TOKEN,
         WRONG_TYPE,
         EXPIRED_TOKEN,
         WRONG_ISSUER,
-        INVALID_SIGNATURE
+        INVALID_SIGNATURE,
+        WRONG_CODE
     }
 
     @Override

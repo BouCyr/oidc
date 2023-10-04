@@ -30,8 +30,12 @@ import java.util.Collection;
     "example_parameter":"example_value"
      }
 */
-public record TokenResponse(String access_token, String token_type, long expires_in, String refresh_token,
-                            String id_token, String scope) {
+public record TokenResponse(String access_token,
+                            String token_type,
+                            long expires_in,
+                            String refresh_token,
+                            String id_token,
+                            String scope) {
 
 
     public TokenResponse(String access_token, String refresh_token, String id_token, Duration ttl, Collection<String> scopes) {

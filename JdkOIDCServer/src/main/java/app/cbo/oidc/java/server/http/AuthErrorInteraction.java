@@ -24,7 +24,9 @@ public  class AuthErrorInteraction extends Exception implements Interaction {
         invalid_scope,
         server_error,
         temporarily_unavailable,
-        invalid_grant
+        invalid_grant,
+        user_not_found,
+        session_not_found
     }
 
 

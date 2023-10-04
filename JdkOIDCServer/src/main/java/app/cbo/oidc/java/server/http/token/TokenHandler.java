@@ -1,16 +1,20 @@
 package app.cbo.oidc.java.server.http.token;
 
-import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
+import app.cbo.oidc.java.server.http.Interaction;
+import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Logger;
 
 import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 
 public class TokenHandler implements HttpHandlerWithPath {
+
+    private final static Logger LOGGER = Logger.getLogger(TokenHandler.class.getCanonicalName());
 
     public static final String TOKEN_ENDPOINT = "/token";
 
@@ -55,10 +59,15 @@ public class TokenHandler implements HttpHandlerWithPath {
                     .handle(exchange);
 
 
-        } catch (AuthErrorInteraction | JsonError errorInteraction) {
-            errorInteraction.handle(exchange);
         } catch (Exception e) {
-            new JsonError(HttpCode.SERVER_ERROR, "unexpected error in code/token handling").handle(exchange);
+            if (e instanceof Interaction i) {
+                // the exception is able to handle the response
+                i.handle(exchange);
+            } else {
+                LOGGER.severe("unexpected exception : ");
+                e.printStackTrace();
+                new ForbiddenResponse(HttpCode.SERVER_ERROR, ForbiddenResponse.InternalReason.TECHNICAL, "unexpected error in code/token handling").handle(exchange);
+            }
         }
 
     }

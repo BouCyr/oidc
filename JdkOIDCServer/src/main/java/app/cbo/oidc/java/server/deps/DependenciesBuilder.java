@@ -29,6 +29,7 @@ import app.cbo.oidc.java.server.http.consent.ConsentHandler;
 import app.cbo.oidc.java.server.http.jwks.JWKSHandler;
 import app.cbo.oidc.java.server.http.staticcontent.StaticResourceHandler;
 import app.cbo.oidc.java.server.http.token.TokenEndpoint;
+import app.cbo.oidc.java.server.http.token.TokenEndpointImpl;
 import app.cbo.oidc.java.server.http.token.TokenHandler;
 import app.cbo.oidc.java.server.http.userinfo.AccessTokenValidator;
 import app.cbo.oidc.java.server.http.userinfo.JWTAccessTokenValidator;
@@ -137,8 +138,8 @@ public class DependenciesBuilder {
 
 
     public TokenEndpoint tokenEndpoint() {
-        return this.getInstance(TokenEndpoint.class,
-                () -> new TokenEndpoint(this.issuerId(), this.codes(), this.users(), this.sessions(), this.keyset()));
+        return this.getInstance(TokenEndpointImpl.class,
+                () -> new TokenEndpointImpl(this.issuerId(), this.codes(), this.users(), this.sessions(), this.keyset()));
     }
 
     public UserInfoEndpointImpl userInfoEndpoint() {
