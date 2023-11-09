@@ -53,7 +53,12 @@ public class ConfigHandler implements HttpHandlerWithPath {
     private final Issuer myself;
 
     public ConfigHandler(
-            Issuer myself, String authorizationPath, String tokenPath, String userinfoPath, String logoutPath, String jwksPath) {
+            Issuer myself,
+            String authorizationPath,
+            String tokenPath,
+            String userinfoPath,
+            String logoutPath,
+            String jwksPath) {
         this.myself = myself;
         this.authorizationPath = authorizationPath;
         this.tokenPath = tokenPath;
@@ -106,13 +111,16 @@ public class ConfigHandler implements HttpHandlerWithPath {
                 this.jwksPath);
 
 
+        final var jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+
         exchange.getResponseHeaders().add("Content-Type", MimeType.JSON.mimeType());
         //TODO [01/09/2023] here it would make sense to allow some caching
         exchange.getResponseHeaders().add("Cache-Control", "no-store");
         exchange.getResponseHeaders().add("Pragma", "no-cache");
-        exchange.sendResponseHeaders(HttpCode.OK.code(), json.getBytes(StandardCharsets.UTF_8).length);
+        exchange.sendResponseHeaders(HttpCode.OK.code(), jsonBytes.length);
+
         try (var os = exchange.getResponseBody()) {
-            os.write(json.getBytes(StandardCharsets.UTF_8));
+            os.write(jsonBytes);
             os.flush();
         }
     }

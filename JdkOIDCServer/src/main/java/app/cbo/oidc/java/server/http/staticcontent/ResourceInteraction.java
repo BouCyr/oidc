@@ -19,6 +19,7 @@ record ResourceInteraction(String path) implements Interaction {
     public void handle(@NotNull HttpExchange exchange) throws IOException {
 
         var fileName = path.substring("/sc/".length());
+        LOGGER.fine("Someone reached for static content : " + fileName);
 
 
         try (var is = Resources.getResource(fileName).map(Supplier::get).orElse(null)) {

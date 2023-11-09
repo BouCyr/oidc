@@ -26,4 +26,6 @@ public class Utils {
     public static boolean isBlank(Collection<String> strings){
         return isEmpty(strings) || strings.stream().allMatch(Utils::isBlank);
     }
+
+
 }

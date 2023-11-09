@@ -10,6 +10,7 @@ public enum MimeType {
     ICO("image/x-icon", "ico"),
     JS("text/javascript", "js"),
     JSON("application/json", "json"),
+    SVG("image/svg+xml", "svg"),
     JWT("application/jwt", null),
     JWK("application/jwk+json", null),
     JWKSET("application/jwk-set+json", null),

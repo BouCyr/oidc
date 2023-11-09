@@ -25,6 +25,7 @@ import app.cbo.oidc.java.server.http.authorize.AuthorizeEndpoint;
 import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
 import app.cbo.oidc.java.server.http.config.ConfigHandler;
 import app.cbo.oidc.java.server.http.consent.ConsentEndpoint;
+import app.cbo.oidc.java.server.http.consent.ConsentEndpointImpl;
 import app.cbo.oidc.java.server.http.consent.ConsentHandler;
 import app.cbo.oidc.java.server.http.jwks.JWKSHandler;
 import app.cbo.oidc.java.server.http.staticcontent.StaticResourceHandler;
@@ -128,11 +129,11 @@ public class DependenciesBuilder {
         return this.getInstance(ConfigHandler.class,
                 () -> new ConfigHandler(
                         this.issuerId(),
-                        "http://localhost:" + args.port() + this.authorizeHandler().path(),
-                        "http://localhost:" + args.port() + this.tokenHandler().path(),
-                        "http://localhost:" + args.port() + this.userInfoHandler().path(),
-                        "http://localhost:" + args.port() + "/logout",
-                        "http://localhost:" + args.port() + this.jwksHandler().path()
+                        this.issuerId().getIssuerId() + this.authorizeHandler().path(),
+                        this.issuerId().getIssuerId() + this.tokenHandler().path(),
+                        this.issuerId().getIssuerId() + this.userInfoHandler().path(),
+                        this.issuerId().getIssuerId() + "/logout",
+                        this.issuerId().getIssuerId() + this.jwksHandler().path()
                 ));
     }
 
@@ -155,8 +156,8 @@ public class DependenciesBuilder {
     }
 
     public ConsentEndpoint consentEndpoint() {
-        return this.getInstance(ConsentEndpoint.class,
-                () -> new ConsentEndpoint(
+        return this.getInstance(ConsentEndpointImpl.class,
+                () -> new ConsentEndpointImpl(
                         this.ongoingAuths(),
                         this.users(),
                         this.users()

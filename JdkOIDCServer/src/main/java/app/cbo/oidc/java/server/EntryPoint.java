@@ -28,10 +28,10 @@ public class EntryPoint {
 
 
     public static void main(String... args) throws IOException {
-        run(true, args);
+        run(args);
     }
 
-    public static void run(boolean holding, String... args) throws IOException {
+    public static void run(String... args) throws IOException {
 
 
         LOGGER.info("Starting");
@@ -73,41 +73,50 @@ public class EntryPoint {
 
     private static void configureLogging() {
 
-        //shorten the app.cbo.... package name when present.
-        String basePackageFull = EntryPoint.class.getPackageName();
-        var basePackageShort = Stream.of(basePackageFull.split("\\."))
-                .map(pkgLevel -> pkgLevel.substring(0, 1))
-                .collect(Collectors.joining("."));
 
         Logger mainLogger = Logger.getLogger("app.cbo.oidc.java.server");
         mainLogger.setUseParentHandlers(false);
         mainLogger.setLevel(Level.FINEST);
         ConsoleHandler handler = new ConsoleHandler();
-        handler.setFormatter(new SimpleFormatter() {
-            @Override
-            public synchronized String format(LogRecord logRecord) {
-
-                //shorten the app.cbo.... package name when present.
-                String className = logRecord.getSourceClassName();
-                if (className.startsWith(basePackageFull)) {
-                    className = basePackageShort + className.substring(basePackageFull.length());
-                }
-
-                var dtt = LocalDateTime.ofInstant(logRecord.getInstant(), ZoneId.systemDefault()).format(
-                        DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-
-                return
-                        "[" + dtt + "]" +
-                                "[" + logRecord.getLevel() + "]" +
-                                "[thread#" + logRecord.getLongThreadID() + "]" +
-                                "[" + className +
-                                "." + logRecord.getSourceMethodName() + "]" +
-                                " : " + logRecord.getMessage() +
-                                System.lineSeparator();
-
-            }
-        });
+        handler.setFormatter(new LogFormatter());
         mainLogger.addHandler(handler);
+    }
+
+    public static class LogFormatter extends SimpleFormatter {
+
+        private final String basePackageFull;
+        private final String basePackageShort;
+
+        public LogFormatter() {
+            //shorten the app.cbo.... package name when present.
+            this.basePackageFull = EntryPoint.class.getPackageName();
+            this.basePackageShort = Stream.of(basePackageFull.split("\\."))
+                    .map(pkgLevel -> pkgLevel.substring(0, 1))
+                    .collect(Collectors.joining("."));
+        }
+
+        @Override
+        public synchronized String format(LogRecord logRecord) {
+
+            //shorten the app.cbo.... package name when present.
+            String className = logRecord.getSourceClassName();
+            if (className.startsWith(basePackageFull)) {
+                className = basePackageShort + className.substring(basePackageFull.length());
+            }
+
+            var dtt = LocalDateTime.ofInstant(logRecord.getInstant(), ZoneId.systemDefault()).format(
+                    DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+            return
+                    "[" + dtt + "]" +
+                            "[" + logRecord.getLevel() + "]" +
+                            "[thread#" + logRecord.getLongThreadID() + "]" +
+                            "[" + className +
+                            "." + logRecord.getSourceMethodName() + "]" +
+                            " : " + logRecord.getMessage() +
+                            System.lineSeparator();
+
+        }
     }
 
     @Deprecated

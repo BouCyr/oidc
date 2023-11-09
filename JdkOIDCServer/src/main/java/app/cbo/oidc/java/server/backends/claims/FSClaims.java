@@ -6,6 +6,7 @@ import app.cbo.oidc.java.server.backends.filesystem.FileStorage;
 import app.cbo.oidc.java.server.backends.users.FSUsers;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.datastored.user.claims.*;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
+@Injectable
 public record FSClaims(FileStorage fsUserStorage) implements Claims {
 
 

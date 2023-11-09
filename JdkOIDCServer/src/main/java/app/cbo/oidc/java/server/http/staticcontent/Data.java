@@ -2,6 +2,10 @@ package app.cbo.oidc.java.server.http.staticcontent;
 
 class Data {
 
+    Data() throws IllegalAccessException {
+        throw new IllegalAccessException("Static class");
+    }
+
     static final String FAVICO =
             """
                     <svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
