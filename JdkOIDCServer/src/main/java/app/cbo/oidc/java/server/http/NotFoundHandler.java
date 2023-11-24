@@ -1,10 +1,12 @@
 package app.cbo.oidc.java.server.http;
 
+import app.cbo.oidc.java.server.scan.Injectable;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 import java.util.logging.Logger;
 
+@Injectable
 public class NotFoundHandler implements HttpHandlerWithPath {
 
     public static final String ROOT = "/";

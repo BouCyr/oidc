@@ -3,6 +3,7 @@ package app.cbo.oidc.java.server.http.authenticate;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.scan.Injectable;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.util.logging.Logger;
 
 import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 
+@Injectable
 public class AuthenticateHandler implements HttpHandlerWithPath {
 
     private final static Logger LOGGER = Logger.getLogger(AuthenticateHandler.class.getCanonicalName());

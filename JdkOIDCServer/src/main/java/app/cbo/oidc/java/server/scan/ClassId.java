@@ -3,6 +3,7 @@ package app.cbo.oidc.java.server.scan;
 public class ClassId<U> {
     private final String id;
 
+
     public ClassId(Class<U> clss) {
         this.id = clss.getCanonicalName();
     }

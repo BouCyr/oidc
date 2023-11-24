@@ -8,6 +8,7 @@ import app.cbo.oidc.java.server.datastored.user.claims.Mail;
 import app.cbo.oidc.java.server.datastored.user.claims.Phone;
 import app.cbo.oidc.java.server.datastored.user.claims.Profile;
 import app.cbo.oidc.java.server.deps.DependenciesBuilder;
+import app.cbo.oidc.java.server.scan.ProgramArgs;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -41,7 +42,7 @@ public class EntryPoint {
         LOGGER.log(Level.FINE, "Configured logging");
         var parsedArgs = StartupArgs.from(args);
         LOGGER.info("Building dependencies");
-        var dependencies = new DependenciesBuilder(parsedArgs);
+        var dependencies = new DependenciesBuilder(new ProgramArgs(args));
         LOGGER.info("Dependencies built");
         setupData("Cyrille", dependencies.users(), dependencies.claims());
         setupData("Caroline", dependencies.users(), dependencies.claims());

@@ -3,6 +3,7 @@ package app.cbo.oidc.java.server.http.jwks;
 import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.json.JSON;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import app.cbo.oidc.java.server.utils.MimeType;
 import com.sun.net.httpserver.HttpExchange;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
+@Injectable
 public class JWKSHandler implements HttpHandlerWithPath {
 
     public static final String JWKS_ENDPOINT = "/jwks";

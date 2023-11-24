@@ -3,6 +3,7 @@ package app.cbo.oidc.java.server.http.token;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -12,6 +13,7 @@ import java.util.logging.Logger;
 
 import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 
+@Injectable
 public class TokenHandler implements HttpHandlerWithPath {
 
     private final static Logger LOGGER = Logger.getLogger(TokenHandler.class.getCanonicalName());

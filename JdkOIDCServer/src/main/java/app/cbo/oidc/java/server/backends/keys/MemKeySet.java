@@ -4,6 +4,7 @@ import app.cbo.oidc.java.server.datastored.KeyId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jwt.JWK;
 import app.cbo.oidc.java.server.jwt.JWKSet;
+import app.cbo.oidc.java.server.scan.Injectable;
 
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+@Injectable("mem")
 public class MemKeySet implements KeySet {
 
     private final static Logger LOGGER = Logger.getLogger(MemKeySet.class.getCanonicalName());

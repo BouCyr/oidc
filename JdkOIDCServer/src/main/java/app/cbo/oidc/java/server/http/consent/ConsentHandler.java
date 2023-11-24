@@ -6,6 +6,7 @@ import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Cookies;
 import app.cbo.oidc.java.server.utils.ParamsHelper;
 import app.cbo.oidc.java.server.utils.Utils;
@@ -20,6 +21,7 @@ import java.util.logging.Logger;
 
 import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 
+@Injectable
 public class ConsentHandler implements HttpHandlerWithPath {
 
     private final static Logger LOGGER = Logger.getLogger(ConsentHandler.class.getCanonicalName());

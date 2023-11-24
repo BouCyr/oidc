@@ -3,10 +3,12 @@ package app.cbo.oidc.java.server.http.userinfo;
 import app.cbo.oidc.java.server.backends.claims.ClaimsResolver;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.scan.Injectable;
 
 import java.util.HashMap;
 import java.util.logging.Logger;
 
+@Injectable
 public class UserInfoEndpointImpl implements UserInfoEndpoint {
 
     private final static Logger LOGGER = Logger.getLogger(UserInfoEndpointImpl.class.getCanonicalName());

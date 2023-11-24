@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server;
 
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
+import app.cbo.oidc.java.server.scan.Prop;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.Closeable;
@@ -23,10 +24,8 @@ public class Server implements Closeable {
     private final List<HttpHandlerWithPath> handlers;
 
 
-
-    public Server(StartupArgs from, List<HttpHandlerWithPath> handlers) throws IOException {
-        this.port = from.port();
-
+    public Server(@Prop("port") int port, List<HttpHandlerWithPath> handlers) throws IOException {
+        this.port = port;
         this.handlers = handlers;
 
     }

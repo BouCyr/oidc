@@ -7,12 +7,14 @@ import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+@Injectable
 public class ConsentEndpointImpl implements ConsentEndpoint {
 
     private final static Logger LOGGER = Logger.getLogger(ConsentEndpointImpl.class.getCanonicalName());

@@ -18,7 +18,18 @@ public class Properties {
 
     public Properties() {
 
-        this.mappers.add(new Mapper<Path>(ClassId.of(Path.class), Path::of));
+        this.mappers.add(new Mapper<>(ClassId.of(String.class), s -> s));
+        this.mappers.add(new Mapper<>(ClassId.of(Path.class), Path::of));
+        this.mappers.add(new Mapper<>(ClassId.of(Integer.class), Integer::parseInt));
+        //never seen this before, but somehow works
+        this.mappers.add(new Mapper<>(ClassId.of(int.class), Integer::parseInt));
+        this.mappers.add(new Mapper<>(ClassId.of(Long.class), Long::parseLong));
+        this.mappers.add(new Mapper<>(ClassId.of(long.class), Long::parseLong));
+        this.mappers.add(new Mapper<>(ClassId.of(Double.class), Double::parseDouble));
+        this.mappers.add(new Mapper<>(ClassId.of(double.class), Double::parseDouble));
+        this.mappers.add(new Mapper<>(ClassId.of(Float.class), Float::parseFloat));
+        this.mappers.add(new Mapper<>(ClassId.of(float.class), Float::parseFloat));
+
     }
 
     public void add(String key, String value) {

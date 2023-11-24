@@ -21,6 +21,7 @@ import app.cbo.oidc.java.server.oidc.OIDCFlow;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
 import app.cbo.oidc.java.server.oidc.tokens.AccessOrRefreshToken;
 import app.cbo.oidc.java.server.oidc.tokens.IdToken;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.time.*;
@@ -28,6 +29,7 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+@Injectable
 public class AuthorizeEndpoint {
 
 
@@ -106,7 +108,6 @@ public class AuthorizeEndpoint {
                 .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to find user linked to session"));
 
 
-
         if(params.maxAge().isPresent()){
             final long maxAge;
             try{
@@ -167,7 +168,6 @@ public class AuthorizeEndpoint {
             return new RedirectToConsentInteraction(ongoingAuthsStorer.store(params),
                     params.clientId().orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "ClientId si required")), params.scopes());
         }
-
 
 
     }

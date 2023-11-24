@@ -6,6 +6,7 @@ import app.cbo.oidc.java.server.jwt.JWS;
 import app.cbo.oidc.java.server.jwt.JWSHeader;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import app.cbo.oidc.java.server.oidc.tokens.AccessOrRefreshToken;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.HttpCode;
 
 import java.time.Clock;
@@ -13,6 +14,7 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.logging.Logger;
 
+@Injectable
 public class JWTAccessTokenValidator implements AccessTokenValidator {
 
     private final static Logger LOGGER = Logger.getLogger(JWTAccessTokenValidator.class.getCanonicalName());

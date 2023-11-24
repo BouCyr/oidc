@@ -8,5 +8,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Prop {
+
+    String NO_DEFAULT = "NO_DEFAULT";
+
     String value();
+
+    String or() default NO_DEFAULT;
 }

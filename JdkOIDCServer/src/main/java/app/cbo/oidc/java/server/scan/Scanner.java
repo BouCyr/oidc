@@ -11,6 +11,8 @@ import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -29,22 +31,29 @@ public class Scanner {
     private final Map<ClassId, Object> instances = new HashMap<>();
 
 
-    public Scanner(String profile, String basePackage) throws IOException {
+    public Scanner(String profile, String basePackage, String[] args) throws IOException {
         this.profile = profile;
+
+        this.instances.put(ClassId.of(ProgramArgs.class), new ProgramArgs(args));
+        this.buildProgress.put(ClassId.of(ProgramArgs.class), BuildStatus.BUILT);
         this.classes = scanPackage(basePackage);
     }
 
-    public Scanner(String basePackage) throws IOException {
-        this(Injectable.DEFAULT, basePackage);
+    public Scanner(String basePackage, String[] args) throws IOException {
+        this(Injectable.DEFAULT, basePackage, args);
     }
+
 
     /**
      * TRASH
      **/
     public static void main(String... args) throws IOException, DownStreamException {
         {
-            var scanner = new Scanner("app.cbo.oidc.java.server");
-            scanner.loadProperties(Pair.of("basePath", "c:\\work"));
+            var scanner = new Scanner("app.cbo.oidc.java.server", args);
+            scanner.loadProperties(
+                    Pair.of("basePath", "c:\\work\\OIDC"),
+                    Pair.of("port", "9051"),
+                    Pair.of("domain", "http://localhost"));
             var server = scanner.get(Server.class);
             server.start();
         }
@@ -112,26 +121,48 @@ public class Scanner {
         List<Object> args = new ArrayList<>();
 
         for (int i = 0; i < constructor.getParameterCount(); i++) {
+
             var constrArg = constructor.getParameterTypes()[i];
             var constrArgAnnotations = constructor.getParameterAnnotations()[i];
 
 
             var propertyKey = getPropertyKey(constrArgAnnotations);
-            if (propertyKey.isPresent()) {
+            try {
+                if (propertyKey.isPresent()) {
+                    //arg is a property
+                    args.add(this.properties.get(propertyKey.get(), constrArg));
+                } else if (constructor.getGenericParameterTypes()[i] instanceof ParameterizedType generic
+                        && Collection.class.isAssignableFrom(constrArg)) {
 
-                args.add(this.properties.get(propertyKey.get(), constrArg));
-            } else {
-                try {
+                    //constrArg is a collection, but could constructor can expect a Set, a Queue, a List...
+                    Collection<Object> arg = this.createCollection(constrArg);
+
+
+                    for (var c : this.findImplementations(generic.getActualTypeArguments()[0])) {
+                        var impl = this.get(c);
+                        arg.add(impl);
+                    }
+                    args.add(arg);
+                } else {
+                    //arg is a single instance
                     args.add(this.get(constrArg));
-                } catch (InvalidDepTree e) {
-                    throw new DownStreamException(t, e);
-                } catch (DownStreamException e) {
-                    throw new DownStreamException(t, e);
+
                 }
+            } catch (InvalidDepTree e) {
+                throw new DownStreamException(t, e);
+            } catch (DownStreamException e) {
+                throw new DownStreamException(t, e);
             }
         }
 
+
+        if (args.size() != constructor.getParameterCount()) {
+            LOGGER.severe("Number of built args does not match expected number of args of the constructor");
+            //will throw exception next line anyway
+        }
+
         T built = null;
+
         try {
             built = constructor.newInstance(args.toArray());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -140,6 +171,44 @@ public class Scanner {
         this.buildProgress.put(ClassId.of(implementation), BuildStatus.BUILT);
         this.instances.put(ClassId.of(implementation), built);
         return built;
+    }
+
+    private Collection<Object> createCollection(Class<?> constrArg) {
+
+        if (constrArg == Set.class || constrArg == HashSet.class) {
+            return new HashSet<>();
+        }
+        if (constrArg == List.class || constrArg == ArrayList.class) {
+            return new ArrayList<>();
+        }
+        if (constrArg == Queue.class || constrArg == Deque.class || constrArg == LinkedList.class) {
+            return new LinkedList<>();
+        }
+        throw new NoImplementationFound(constrArg, new IllegalArgumentException("Collection is not a supported type : " + constrArg.getCanonicalName()));
+    }
+
+    private Collection<Class<?>> findImplementations(Type actualTypeArgument) {
+
+        if (actualTypeArgument instanceof Class<?> t) {
+
+            return this.classes
+                    .stream()
+                    .filter(c -> !c.equals(t))
+                    .filter(c -> !c.isInterface())
+                    .filter(t::isAssignableFrom)
+                    .filter(c -> c.isAnnotationPresent(Injectable.class))
+                    .sorted(Comparator.comparing(c -> {
+                        if (c.isAnnotationPresent(InstanceOrder.class)) {
+                            return c.getAnnotation(InstanceOrder.class).value();
+                        } else {
+                            return Integer.MAX_VALUE;
+                        }
+                    }))
+                    .toList();
+        } else {
+            //[24/11/2023] no idea.
+            throw new RuntimeException("WTF?");
+        }
     }
 
     private Optional<String> getPropertyKey(Annotation[] annotations) {

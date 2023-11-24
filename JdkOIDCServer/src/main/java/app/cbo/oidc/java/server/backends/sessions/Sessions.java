@@ -5,6 +5,7 @@ import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.util.EnumSet;
@@ -15,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Basic session store. Not a part of OIDC.
  */
+@Injectable
 public class Sessions implements SessionFinder, SessionSupplier {
 
     public final static String SESSION_ID_COOKIE_NAME = "sessionId";

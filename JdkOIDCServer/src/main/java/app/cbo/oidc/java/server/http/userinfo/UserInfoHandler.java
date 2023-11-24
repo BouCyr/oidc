@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.http.userinfo;
 
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.logging.Logger;
 
+@Injectable
 public class UserInfoHandler implements HttpHandlerWithPath {
 
     public static final String USERINFO_ENDPOINT = "/userinfo";

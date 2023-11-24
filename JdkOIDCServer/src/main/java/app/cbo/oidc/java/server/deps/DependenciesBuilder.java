@@ -37,8 +37,10 @@ import app.cbo.oidc.java.server.http.userinfo.JWTAccessTokenValidator;
 import app.cbo.oidc.java.server.http.userinfo.UserInfoEndpointImpl;
 import app.cbo.oidc.java.server.http.userinfo.UserInfoHandler;
 import app.cbo.oidc.java.server.oidc.Issuer;
+import app.cbo.oidc.java.server.scan.ProgramArgs;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,18 +48,18 @@ import java.util.function.Supplier;
 
 public class DependenciesBuilder {
 
-    private final StartupArgs args;
+    private final ProgramArgs args;
 
     private final Map<String, Object> context = new ConcurrentHashMap<>();
 
-    public DependenciesBuilder(StartupArgs args) {
+    public DependenciesBuilder(ProgramArgs args) {
         this.args = args;
     }
 
     public Server server() {
         return getInstance(Server.class, () -> {
             try {
-                return new Server(this.args, this.handlers());
+                return new Server(9451, this.handlers());
             } catch (IOException e) {
 
                 throw new RuntimeException(e);
@@ -66,7 +68,10 @@ public class DependenciesBuilder {
     }
 
     public Issuer issuerId() {
-        return Issuer.of("http://localhost:" + this.args.port());
+
+        int port = Integer.parseInt(this.args.arg("port").orElseThrow());
+        return Issuer.of("http://localhost:" + port);
+
     }
 
     public List<HttpHandlerWithPath> handlers() {
@@ -170,6 +175,7 @@ public class DependenciesBuilder {
                 () -> new AuthenticateEndpointImpl(
                         this.ongoingAuths(),
                         this.users(),
+                        this.users(),
                         this.sessions(),
                         this.passwords()));
     }
@@ -197,7 +203,7 @@ public class DependenciesBuilder {
 
     public Users users() {
         Users val;
-        if (args.fsBackEnd()) {
+        if (this.fsBackEnd()) {
             val = this.getInstance(
                     FSUsers.class,
                     () -> new FSUsers(this.userDataFileStorage(), this.passwords()));
@@ -214,7 +220,7 @@ public class DependenciesBuilder {
     }
 
     public Claims claims() {
-        if (args.fsBackEnd()) {
+        if (this.fsBackEnd()) {
             return this.getInstance(
                     FSClaims.class,
                     () -> new FSClaims(this.userDataFileStorage()));
@@ -224,6 +230,15 @@ public class DependenciesBuilder {
         }
     }
 
+    private boolean fsBackEnd() {
+
+        return this.args.arg("backend").orElse("fs").equals("fs");
+    }
+
+    private Path basePath() {
+        return StartupArgs.storageFolder(this.args.arg("path").orElse(""));
+    }
+
     public KeySet keyset() {
         return this.getInstance(MemKeySet.class, MemKeySet::new);
     }
@@ -231,13 +246,14 @@ public class DependenciesBuilder {
     public FileStorage userDataFileStorage() {
         return this.getInstance(FileStorage.class, () -> {
             try {
-                return new FileStorage(args.basePath());
+                return new FileStorage(this.basePath());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
 
     }
+
 
     public Passwords passwords() {
         return this.getInstance(PBKDF2WithHmacSHA1PasswordHash.class, PBKDF2WithHmacSHA1PasswordHash::new);

@@ -14,6 +14,10 @@ import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+@Deprecated(forRemoval = true)
+/**
+ * @deprecated User ProgramArgs and ne wDI engine instead
+ */
 public record StartupArgs(int port, boolean fsBackEnd, @Nullable Path basePath) {
 
     public static final String PATH_ARGS = "path";
@@ -53,11 +57,11 @@ public record StartupArgs(int port, boolean fsBackEnd, @Nullable Path basePath) 
     }
 
 
-    static Path storageFolder(@Nullable final String pathArg) {
+    public static Path storageFolder(@Nullable final String pathArg) {
         return storageFolder(pathArg, () -> System.getProperty("os.name"));
     }
 
-    static Path storageFolder(@Nullable final String pathArg, Supplier<String> osStringSupplier) {
+    public static Path storageFolder(@Nullable final String pathArg, Supplier<String> osStringSupplier) {
 
 
         String folder = pathArg;

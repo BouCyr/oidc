@@ -7,6 +7,7 @@ import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.util.*;
@@ -14,6 +15,7 @@ import java.util.*;
 /**
  * OIDC code storage
  */
+@Injectable("mem")
 public class MemCodes implements Codes {
 
     private final Map<String, CodeData> store = new HashMap<>();

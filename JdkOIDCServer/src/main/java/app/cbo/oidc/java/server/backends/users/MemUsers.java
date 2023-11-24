@@ -5,11 +5,13 @@ import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
+import app.cbo.oidc.java.server.scan.Injectable;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Injectable("mem")
 public class MemUsers implements Users {
 
 

@@ -18,6 +18,7 @@ import app.cbo.oidc.java.server.jwt.JWS;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import app.cbo.oidc.java.server.oidc.tokens.AccessOrRefreshToken;
 import app.cbo.oidc.java.server.oidc.tokens.IdToken;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.net.URLDecoder;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+@Injectable
 public class TokenEndpointImpl implements TokenEndpoint {
 
     private final static Logger LOGGER = Logger.getLogger(TokenEndpointImpl.class.getCanonicalName());

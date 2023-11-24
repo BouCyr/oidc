@@ -7,6 +7,7 @@ import app.cbo.oidc.java.server.datastored.KeyId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jwt.JWK;
 import app.cbo.oidc.java.server.jwt.JWKSet;
+import app.cbo.oidc.java.server.scan.Injectable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 import java.util.logging.Logger;
 
+@Injectable
 public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeySet {
     public static final FileSpecification KeyFile = FileSpecifications.in("keys").fileName("keySet.txt");
 
