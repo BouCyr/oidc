@@ -5,6 +5,7 @@ import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
 import app.cbo.oidc.java.server.http.jwks.JWKSHandler;
 import app.cbo.oidc.java.server.http.token.TokenHandler;
 import app.cbo.oidc.java.server.http.userinfo.UserInfoHandler;
+import app.cbo.oidc.java.server.scan.exceptions.DownStreamException;
 import app.cbo.oidc.java.server.utils.MimeType;
 import app.cbo.oidc.java.server.utils.QueryStringParser;
 import com.auth0.jwt.JWT;
@@ -151,7 +152,7 @@ public class AuthFlowIntegrationTest {
 
     @Test
     @Disabled
-    public void authorizationFlow() throws IOException, URISyntaxException, InterruptedException, OutsideRedirect, JOSEException {
+    public void authorizationFlow() throws IOException, URISyntaxException, InterruptedException, OutsideRedirect, JOSEException, DownStreamException {
         int PORT = 4546;
         EntryPoint.main("port=" + PORT, "backend=mem");
 

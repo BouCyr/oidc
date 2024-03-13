@@ -1,16 +1,17 @@
-package app.cbo.oidc.java.server.scan;
+package app.cbo.oidc.java.server.scan.props;
 
-import app.cbo.oidc.java.server.scan.exceptions.MissingConfiguration;
+import app.cbo.oidc.java.server.scan.ClassId;
 import app.cbo.oidc.java.server.scan.exceptions.UnknownPropertyType;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 public class Properties {
+
+
+    private final static Logger LOGGER = Logger.getLogger(Properties.class.getCanonicalName());
 
     private final Map<String, String> configuration = new HashMap<>();
     private final Collection<Mapper<?>> mappers = new ArrayList<>();
@@ -33,16 +34,21 @@ public class Properties {
     }
 
     public void add(String key, String value) {
-        this.configuration.put(key, value);
+        var prev = this.configuration.put(key, value);
+
+        if (prev != null) {
+            LOGGER.info("Property " + key + " overriden.");
+        }
     }
 
-    public <U> U get(String key, Class<U> u) {
+
+    public <U> Optional<U> get(String key, Class<U> u) {
 
         if (!this.configuration.containsKey(key)) {
-            throw new MissingConfiguration(key);
+            return Optional.empty();
         }
 
-        return this.getMapper(u).convert(this.configuration.get(key));
+        return Optional.of(this.getMapper(u).convert(this.configuration.get(key)));
 
     }
 

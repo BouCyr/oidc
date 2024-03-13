@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server;
 
+import app.cbo.oidc.java.server.backends.claims.Claims;
 import app.cbo.oidc.java.server.backends.claims.ClaimsStorer;
 import app.cbo.oidc.java.server.backends.users.Users;
 import app.cbo.oidc.java.server.datastored.user.UserId;
@@ -7,8 +8,9 @@ import app.cbo.oidc.java.server.datastored.user.claims.Address;
 import app.cbo.oidc.java.server.datastored.user.claims.Mail;
 import app.cbo.oidc.java.server.datastored.user.claims.Phone;
 import app.cbo.oidc.java.server.datastored.user.claims.Profile;
-import app.cbo.oidc.java.server.deps.DependenciesBuilder;
-import app.cbo.oidc.java.server.scan.ProgramArgs;
+import app.cbo.oidc.java.server.scan.exceptions.DownStreamException;
+import app.cbo.oidc.java.server.scan.props.PropsProviders;
+import app.cbo.oidc.java.server.utils.Pair;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -18,7 +20,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.Scanner;
 import java.util.logging.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,52 +29,33 @@ public class EntryPoint {
     private final static Logger LOGGER = Logger.getLogger(EntryPoint.class.getCanonicalName());
 
 
-    public static void main(String... args) throws IOException {
-        run(args);
-    }
-
-    public static void run(String... args) throws IOException {
-
+    public static void main(String... args) throws IOException, DownStreamException {
 
         LOGGER.info("Starting");
         long start = System.nanoTime();
-        LOGGER.info("Configuring logging");
+
         configureLogging();
-        LOGGER.log(Level.FINE, "Configured logging");
-        var parsedArgs = StartupArgs.from(args);
-        LOGGER.info("Building dependencies");
-        var dependencies = new DependenciesBuilder(new ProgramArgs(args));
-        LOGGER.info("Dependencies built");
-        setupData("Cyrille", dependencies.users(), dependencies.claims());
-        setupData("Caroline", dependencies.users(), dependencies.claims());
-        LOGGER.info("Sample data built");
-//        try(Server server = dependencies.server()) {
-        Server server = dependencies.server();
+
+        var scanner = new app.cbo.oidc.java.server.scan.Scanner("app.cbo.oidc.java.server")
+                //default
+                .withProperties(
+                        List.of(
+                                Pair.of("basePath", "c:\\work\\OIDC"),
+                                Pair.of("port", "9051"),
+                                Pair.of("domain", "http://localhost")))
+                //overrides with command line args
+                .withProperties(PropsProviders.fromArgs(args));
+
+        setupData("Cyrille", scanner.get(Users.class), scanner.get(Claims.class));
+        setupData("Marion", scanner.get(Users.class), scanner.get(Claims.class));
+
+        var server = scanner.get(OIDCServer.class);
         LOGGER.info("Starting server");
         server.start();
         LOGGER.info("Started in " + Duration.ofNanos(System.nanoTime() - start).toMillis() + "ms");
-
-//      TODO [29/09/2023] Put back in place; right now causes pbs with integration tests
-//            boolean exit = false;
-//            while(!exit) {
-//                exit = shouldExit();
-//            }
-//        }
-
     }
-
-    private static boolean shouldExit() {
-
-        var input = new Scanner(System.in).next();
-        return List.of("exit", "close", "quit", "q")
-                .stream()
-                .anyMatch(cmd -> cmd.equalsIgnoreCase(input));
-
-    }
-
 
     private static void configureLogging() {
-
 
         Logger mainLogger = Logger.getLogger("app.cbo.oidc.java.server");
         mainLogger.setUseParentHandlers(false);
@@ -120,7 +102,6 @@ public class EntryPoint {
         }
     }
 
-    @Deprecated
     private static void setupData(String firstName, Users users, ClaimsStorer claimsStorer) {
         var uid = UserId.of(firstName.toLowerCase(Locale.ROOT));
 

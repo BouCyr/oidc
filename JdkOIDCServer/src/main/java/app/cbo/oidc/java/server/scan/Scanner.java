@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server.scan;
 
-import app.cbo.oidc.java.server.Server;
 import app.cbo.oidc.java.server.scan.exceptions.*;
+import app.cbo.oidc.java.server.scan.props.Properties;
 import app.cbo.oidc.java.server.utils.Pair;
 
 import java.io.BufferedReader;
@@ -23,41 +23,24 @@ public class Scanner {
     private final static Logger LOGGER = Logger.getLogger(Scanner.class.getCanonicalName());
 
     private final String profile;
-    private final Properties properties = new Properties();
+    private final app.cbo.oidc.java.server.scan.props.Properties properties = new Properties();
 
     private final Set<Class<?>> classes;
 
-    private final Map<ClassId, BuildStatus> buildProgress = new HashMap<>();
-    private final Map<ClassId, Object> instances = new HashMap<>();
+    private final Map<ClassId<?>, BuildStatus> buildProgress = new HashMap<>();
+    private final Map<ClassId<?>, Object> instances = new HashMap<>();
 
 
-    public Scanner(String profile, String basePackage, String[] args) throws IOException {
+    public Scanner(String profile, String basePackage) throws IOException {
         this.profile = profile;
 
-        this.instances.put(ClassId.of(ProgramArgs.class), new ProgramArgs(args));
-        this.buildProgress.put(ClassId.of(ProgramArgs.class), BuildStatus.BUILT);
         this.classes = scanPackage(basePackage);
     }
 
-    public Scanner(String basePackage, String[] args) throws IOException {
-        this(Injectable.DEFAULT, basePackage, args);
+    public Scanner(String basePackage) throws IOException {
+        this(Injectable.DEFAULT, basePackage);
     }
 
-
-    /**
-     * TRASH
-     **/
-    public static void main(String... args) throws IOException, DownStreamException {
-        {
-            var scanner = new Scanner("app.cbo.oidc.java.server", args);
-            scanner.loadProperties(
-                    Pair.of("basePath", "c:\\work\\OIDC"),
-                    Pair.of("port", "9051"),
-                    Pair.of("domain", "http://localhost"));
-            var server = scanner.get(Server.class);
-            server.start();
-        }
-    }
 
     static Set<Class<?>> scanPackage(String packageName) throws IOException {
 
@@ -91,13 +74,10 @@ public class Scanner {
         }
     }
 
-    /**
-     * TRASH
-     **/
 
-
-    public void loadProperties(Pair<String, String>... properties) {
-        Stream.of(properties).forEachOrdered(pair -> this.properties.add(pair.left(), pair.right()));
+    public Scanner withProperties(List<Pair<String, String>> properties) {
+        properties.forEach(pair -> this.properties.add(pair.left(), pair.right()));
+        return this;
     }
 
     public <T> T get(Class<T> t) throws DownStreamException {
@@ -130,7 +110,14 @@ public class Scanner {
             try {
                 if (propertyKey.isPresent()) {
                     //arg is a property
-                    args.add(this.properties.get(propertyKey.get(), constrArg));
+                    var found = this.properties.get(propertyKey.get(), constrArg);
+                    if (found.isEmpty()) {
+                        found = this.getPropertyDefault(constrArgAnnotations);
+                    }
+                    if (found.isEmpty()) {
+                        throw new MissingConfiguration(propertyKey.get());
+                    }
+                    args.add(found.get());
                 } else if (constructor.getGenericParameterTypes()[i] instanceof ParameterizedType generic
                         && Collection.class.isAssignableFrom(constrArg)) {
 
@@ -161,11 +148,11 @@ public class Scanner {
             //will throw exception next line anyway
         }
 
-        T built = null;
+        T built;
 
         try {
             built = constructor.newInstance(args.toArray());
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new InstanciationFails(t, e);
         }
         this.buildProgress.put(ClassId.of(implementation), BuildStatus.BUILT);
@@ -221,7 +208,22 @@ public class Scanner {
 
     }
 
-    private <T> Class<T> findImplementation(Class<T> t) throws NoImplementationFound {
+    private Optional<String> getPropertyDefault(Annotation[] annotations) {
+
+        var defaultValue = Stream.of(annotations)
+                .filter(a -> a.annotationType() == Prop.class)
+                .map(a -> (Prop) a)
+                .map(Prop::or)
+                .findFirst();
+
+        if (defaultValue.isEmpty() || Prop.NO_DEFAULT.equals(defaultValue.get())) {
+            return Optional.empty();
+        }
+        return defaultValue;
+
+    }
+
+    <T> Class<T> findImplementation(Class<T> t) throws NoImplementationFound {
 
         var implementations = this.classes
                 .stream()
@@ -260,7 +262,7 @@ public class Scanner {
 
     }
 
-    public <T> Constructor<T> findConstructor(Class<T> c) throws NoConstructorFound {
+    <T> Constructor<T> findConstructor(Class<T> c) throws NoConstructorFound {
 
         if (c.getDeclaredConstructors().length == 1) {
             return (Constructor<T>) c.getDeclaredConstructors()[0];
