@@ -18,6 +18,7 @@ import app.cbo.oidc.java.server.jwt.JWS;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import app.cbo.oidc.java.server.oidc.tokens.AccessOrRefreshToken;
 import app.cbo.oidc.java.server.oidc.tokens.IdToken;
+import app.cbo.oidc.java.server.scan.BuildWith;
 import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
@@ -42,13 +43,36 @@ public class TokenEndpointImpl implements TokenEndpoint {
     private final UserFinder userFinder;
     private final SessionFinder sessionFinder;
     private final KeySet keySet;
+    private final IdTokenCustomizer idTokenCustomizer;
 
-    public TokenEndpointImpl(Issuer myself, CodeConsumer codeConsumer, UserFinder userFinder, SessionFinder sessionFinder, KeySet keySet) {
+    public TokenEndpointImpl(
+            Issuer myself,
+            CodeConsumer codeConsumer,
+            UserFinder userFinder,
+            SessionFinder sessionFinder,
+            KeySet keySet) {
         this.myself = myself;
         this.codeConsumer = codeConsumer;
         this.userFinder = userFinder;
         this.sessionFinder = sessionFinder;
         this.keySet = keySet;
+        this.idTokenCustomizer = new IdTokenCustomizer.Noop();
+    }
+
+    @BuildWith
+    public TokenEndpointImpl(
+            Issuer myself,
+            CodeConsumer codeConsumer,
+            UserFinder userFinder,
+            SessionFinder sessionFinder,
+            KeySet keySet,
+            IdTokenCustomizer idTokenCustomizer) {
+        this.myself = myself;
+        this.codeConsumer = codeConsumer;
+        this.userFinder = userFinder;
+        this.sessionFinder = sessionFinder;
+        this.keySet = keySet;
+        this.idTokenCustomizer = idTokenCustomizer;
     }
 
     @Override
@@ -119,6 +143,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
 
         var clock = Clock.systemUTC();
 
+        //TODO [a118608][14/03/2024] Simplify : the now() and new hashMap() could be set by default
         var idToken = new IdToken(
                 user.get().sub(),
                 this.myself.getIssuerId(),
@@ -131,9 +156,10 @@ public class TokenEndpointImpl implements TokenEndpoint {
                 session.get().authentications().stream().map(Enum::name).toList(),
                 Optional.of(clientId.getClientId()),
                 new HashMap<>());
-
-
         idToken.extranodes().put("at_hash", "rooooo"); //TODO [25/04/2023] at_hash management
+
+        idToken = this.idTokenCustomizer.customize(idToken);
+
         LOGGER.info("idToken is : " + JSON.jsonify(idToken));
 
         //access and refresh tokens will be transmitted as JWS, so we do not have to store them

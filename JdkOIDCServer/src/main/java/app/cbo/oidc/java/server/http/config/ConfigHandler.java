@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.http.config;
 
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
+import app.cbo.oidc.java.server.http.PathCustomizer;
 import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
 import app.cbo.oidc.java.server.http.jwks.JWKSHandler;
 import app.cbo.oidc.java.server.http.token.TokenHandler;
@@ -59,6 +60,7 @@ public class ConfigHandler implements HttpHandlerWithPath {
     private final String logoutPath;
     private final String jwksPath;
     private final Issuer myself;
+    private final PathCustomizer pathCustomizer;
 
     @Deprecated
     public ConfigHandler(
@@ -68,6 +70,7 @@ public class ConfigHandler implements HttpHandlerWithPath {
             String userinfoPath,
             String logoutPath,
             String jwksPath) {
+        this.pathCustomizer = new PathCustomizer(){};//FIXME [a118608][13/03/2024]
         this.myself = myself;
         this.authorizationPath = authorizationPath;
         this.tokenPath = tokenPath;
@@ -77,13 +80,16 @@ public class ConfigHandler implements HttpHandlerWithPath {
     }
 
     @BuildWith
-    public ConfigHandler(Issuer myself,
-                         AuthorizeHandler authorizeHandler,
-                         TokenHandler tokenHandler,
-                         UserInfoHandler userInfoHandler,
-                         //TODO [24/11/2023] LogoutHandler
-                         JWKSHandler jwksHandler
+    public ConfigHandler(
+            PathCustomizer pathCustomizer,
+            Issuer myself,
+            AuthorizeHandler authorizeHandler,
+            TokenHandler tokenHandler,
+            UserInfoHandler userInfoHandler,
+            //TODO [24/11/2023] LogoutHandler
+            JWKSHandler jwksHandler
     ) {
+        this.pathCustomizer = pathCustomizer;
         this.myself = myself;
         this.authorizationPath = myself.getIssuerId() + authorizeHandler.path();
         this.tokenPath = myself.getIssuerId() + tokenHandler.path();
@@ -94,7 +100,7 @@ public class ConfigHandler implements HttpHandlerWithPath {
 
     @Override
     public String path() {
-        return CONFIG_ENDPOINT;
+        return pathCustomizer.customize(CONFIG_ENDPOINT);
     }
 
     @Override

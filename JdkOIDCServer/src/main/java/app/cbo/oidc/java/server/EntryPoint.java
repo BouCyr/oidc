@@ -20,7 +20,11 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,12 +40,16 @@ public class EntryPoint {
 
         configureLogging();
 
-        var scanner = new app.cbo.oidc.java.server.scan.Scanner("app.cbo.oidc.java.server")
+        //TODO [a118608][15/03/2024] Read the profile from the command line before starting the scanner
+//        var scanner = new app.cbo.oidc.java.server.scan.Scanner("KEYCLOAK", "app.cbo.oidc.java.server")
+
+        //scan the classpath for the server and its dependencies
+        var scanner = new app.cbo.oidc.java.server.scan.Scanner("KEYCLOAK", "app.cbo.oidc.java.server")
                 //default
                 .withProperties(
                         List.of(
                                 Pair.of("basePath", "c:\\work\\OIDC"),
-                                Pair.of("port", "9051"),
+                                Pair.of("port", "9451"),
                                 Pair.of("domain", "http://localhost")))
                 //overrides with command line args
                 .withProperties(PropsProviders.fromArgs(args));
@@ -49,6 +57,7 @@ public class EntryPoint {
         setupData("Cyrille", scanner.get(Users.class), scanner.get(Claims.class));
         setupData("Marion", scanner.get(Users.class), scanner.get(Claims.class));
 
+        //get root class (server)
         var server = scanner.get(OIDCServer.class);
         LOGGER.info("Starting server");
         server.start();

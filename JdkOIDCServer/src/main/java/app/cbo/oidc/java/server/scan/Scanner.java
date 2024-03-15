@@ -1,6 +1,14 @@
 package app.cbo.oidc.java.server.scan;
 
-import app.cbo.oidc.java.server.scan.exceptions.*;
+import app.cbo.oidc.java.server.scan.exceptions.DownStreamException;
+import app.cbo.oidc.java.server.scan.exceptions.InstanciationFails;
+import app.cbo.oidc.java.server.scan.exceptions.InvalidDepTree;
+import app.cbo.oidc.java.server.scan.exceptions.MissingConfiguration;
+import app.cbo.oidc.java.server.scan.exceptions.NoConstructorFound;
+import app.cbo.oidc.java.server.scan.exceptions.NoImplementationFound;
+import app.cbo.oidc.java.server.scan.exceptions.NoResult;
+import app.cbo.oidc.java.server.scan.exceptions.NoSingleResult;
+import app.cbo.oidc.java.server.scan.exceptions.TooManyResult;
 import app.cbo.oidc.java.server.scan.props.Properties;
 import app.cbo.oidc.java.server.utils.Pair;
 
@@ -13,7 +21,18 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -253,7 +272,7 @@ public class Scanner {
         try {
             final Class<?> forThisProfile = ScanUtils.oneAndOnlyOne(implementations
                     .stream()
-                    .filter(c -> c.getAnnotation(Injectable.class).value().equals(this.profile))
+                    .filter(c -> c.getAnnotation(Injectable.class).value().equals(Injectable.DEFAULT))
                     .toList());
             return (Class<T>) forThisProfile;
         } catch (NoSingleResult noResult) {
