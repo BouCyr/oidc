@@ -25,6 +25,13 @@ public record ConsentParams(Set<String> scopesRequested,
     public static final String ONGOING = "ongoing";
     public static final String BACK = "backFromForm";
 
+    public ConsentParams(Set<String> scopesRequested, boolean consentGiven, String clientId, AuthorizeParams ongoing, boolean backFromForm) {
+        this.scopesRequested = scopesRequested;
+        this.consentGiven = consentGiven;
+        this.clientId = clientId;
+        this.ongoing = ongoing;
+        this.backFromForm = backFromForm;
+    }
 
     public ConsentParams(@NotNull OngoingAuthsFinder finder, @NotNull Map<String, Collection<String>> params) throws AuthErrorInteraction {
         this(
@@ -34,7 +41,8 @@ public record ConsentParams(Set<String> scopesRequested,
                         .orElse(Set.of("openid")),
                 singleParam(params.get("OK")).map(Boolean::parseBoolean).orElse(false),
                 singleParam(params.get(CLIENT_ID)).orElse(null),
-                finder.find(OngoingAuthId.of(singleParam(params.get(ONGOING)).orElse(null))).orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "unable to retrieve ongoing authentication")),
+                finder.find(OngoingAuthId.of(singleParam(params.get(ONGOING)).orElse(null)))
+                        .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "unable to retrieve ongoing authentication")),
                 singleParam(params.get(BACK)).map(Boolean::parseBoolean).orElse(false));
 
     }

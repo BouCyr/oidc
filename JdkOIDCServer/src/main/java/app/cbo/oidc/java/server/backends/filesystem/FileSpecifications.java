@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.backends.filesystem;
 
 import app.cbo.oidc.java.server.datastored.user.UserId;
+import app.cbo.oidc.java.server.scan.Injectable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +17,7 @@ import java.util.function.Function;
  * .in("codes").fileName("45-54-65.txt") => {base}/codes/45-54-65.txt
  * .in("blabla","hmmm","wat").fileName("this.pdf") => {base}/blabla/hmmm/wat/this.pdf
  */
+@Injectable
 public class FileSpecifications {
 
     /**

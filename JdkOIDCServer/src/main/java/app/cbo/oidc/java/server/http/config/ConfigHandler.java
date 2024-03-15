@@ -1,7 +1,14 @@
 package app.cbo.oidc.java.server.http.config;
 
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
+import app.cbo.oidc.java.server.http.PathCustomizer;
+import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.http.jwks.JWKSHandler;
+import app.cbo.oidc.java.server.http.token.TokenHandler;
+import app.cbo.oidc.java.server.http.userinfo.UserInfoHandler;
 import app.cbo.oidc.java.server.oidc.Issuer;
+import app.cbo.oidc.java.server.scan.BuildWith;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import app.cbo.oidc.java.server.utils.MimeType;
 import com.sun.net.httpserver.HttpExchange;
@@ -10,6 +17,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
+@Injectable
 public class ConfigHandler implements HttpHandlerWithPath {
 
 
@@ -45,15 +53,24 @@ public class ConfigHandler implements HttpHandlerWithPath {
 
      */
     private final static Logger LOGGER = Logger.getLogger(ConfigHandler.class.getCanonicalName());
+
     private final String authorizationPath;
     private final String tokenPath;
     private final String userinfoPath;
     private final String logoutPath;
     private final String jwksPath;
     private final Issuer myself;
+    private final PathCustomizer pathCustomizer;
 
+    @Deprecated
     public ConfigHandler(
-            Issuer myself, String authorizationPath, String tokenPath, String userinfoPath, String logoutPath, String jwksPath) {
+            Issuer myself,
+            String authorizationPath,
+            String tokenPath,
+            String userinfoPath,
+            String logoutPath,
+            String jwksPath) {
+        this.pathCustomizer = new PathCustomizer(){};//FIXME [a118608][13/03/2024]
         this.myself = myself;
         this.authorizationPath = authorizationPath;
         this.tokenPath = tokenPath;
@@ -62,9 +79,28 @@ public class ConfigHandler implements HttpHandlerWithPath {
         this.jwksPath = jwksPath;
     }
 
+    @BuildWith
+    public ConfigHandler(
+            PathCustomizer pathCustomizer,
+            Issuer myself,
+            AuthorizeHandler authorizeHandler,
+            TokenHandler tokenHandler,
+            UserInfoHandler userInfoHandler,
+            //TODO [24/11/2023] LogoutHandler
+            JWKSHandler jwksHandler
+    ) {
+        this.pathCustomizer = pathCustomizer;
+        this.myself = myself;
+        this.authorizationPath = myself.getIssuerId() + authorizeHandler.path();
+        this.tokenPath = myself.getIssuerId() + tokenHandler.path();
+        this.userinfoPath = myself.getIssuerId() + userInfoHandler.path();
+        this.logoutPath = myself.getIssuerId() + "/logout"; //TODO [24/11/2023] +authorizeHandler.path();
+        this.jwksPath = myself.getIssuerId() + jwksHandler.path();
+    }
+
     @Override
     public String path() {
-        return CONFIG_ENDPOINT;
+        return pathCustomizer.customize(CONFIG_ENDPOINT);
     }
 
     @Override
@@ -106,13 +142,16 @@ public class ConfigHandler implements HttpHandlerWithPath {
                 this.jwksPath);
 
 
+        final var jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+
         exchange.getResponseHeaders().add("Content-Type", MimeType.JSON.mimeType());
         //TODO [01/09/2023] here it would make sense to allow some caching
         exchange.getResponseHeaders().add("Cache-Control", "no-store");
         exchange.getResponseHeaders().add("Pragma", "no-cache");
-        exchange.sendResponseHeaders(HttpCode.OK.code(), json.getBytes(StandardCharsets.UTF_8).length);
+        exchange.sendResponseHeaders(HttpCode.OK.code(), jsonBytes.length);
+
         try (var os = exchange.getResponseBody()) {
-            os.write(json.getBytes(StandardCharsets.UTF_8));
+            os.write(jsonBytes);
             os.flush();
         }
     }

@@ -9,6 +9,7 @@ import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+@Injectable
 public record FSCodes(FileStorage userDataFileStorage) implements Codes {
 
     private final static Logger LOGGER = Logger.getLogger(FSCodes.class.getCanonicalName());

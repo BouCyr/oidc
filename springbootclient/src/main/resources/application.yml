@@ -4,7 +4,7 @@ server:
 oidc:
   client-id: sb
   client-secret: sb
-  base-url: http://localhost:9889
+  base-url: http://localhost:9451
 
 spring:
   security:
@@ -18,4 +18,4 @@ spring:
             scope: openid,email,profile
         provider:
           oidc:
-            issuer-uri: http://localhost:9889
+            issuer-uri: http://localhost:9451

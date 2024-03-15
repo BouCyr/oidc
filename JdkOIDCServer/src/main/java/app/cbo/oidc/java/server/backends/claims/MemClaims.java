@@ -2,6 +2,7 @@ package app.cbo.oidc.java.server.backends.claims;
 
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.datastored.user.claims.ScopedClaims;
+import app.cbo.oidc.java.server.scan.Injectable;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -10,6 +11,7 @@ import java.util.stream.Stream;
 /**
  * Stores the claims/user find/user data of every registered users
  */
+@Injectable("mem")
 public class MemClaims implements Claims {
 
     private final static Logger LOGGER = Logger.getLogger(MemClaims.class.getCanonicalName());

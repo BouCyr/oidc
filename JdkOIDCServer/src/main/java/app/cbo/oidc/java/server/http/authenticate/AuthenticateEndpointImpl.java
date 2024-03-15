@@ -2,12 +2,15 @@ package app.cbo.oidc.java.server.http.authenticate;
 
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsFinder;
 import app.cbo.oidc.java.server.backends.sessions.SessionSupplier;
+import app.cbo.oidc.java.server.backends.users.UserCreator;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.TOTP;
 import app.cbo.oidc.java.server.credentials.pwds.PasswordChecker;
+import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.util.Collection;
@@ -17,6 +20,7 @@ import java.util.logging.Logger;
 
 import static app.cbo.oidc.java.server.credentials.AuthenticationMode.*;
 
+@Injectable
 public class AuthenticateEndpointImpl implements AuthenticateEndpoint {
 
 
@@ -25,15 +29,18 @@ public class AuthenticateEndpointImpl implements AuthenticateEndpoint {
     private final UserFinder userFinder;
     private final SessionSupplier sessionSupplier;
     private final PasswordChecker passwordChecker;
+    private final UserCreator userCreator;
 
 
     public AuthenticateEndpointImpl(
             OngoingAuthsFinder ongoingAuthsFinder,
             UserFinder userFinder,
+            UserCreator userCreator,
             SessionSupplier sessionSupplier,
             PasswordChecker passwordChecker) {
         this.ongoingAuthsFinder = ongoingAuthsFinder;
         this.userFinder = userFinder;
+        this.userCreator = userCreator;
         this.sessionSupplier = sessionSupplier;
         this.passwordChecker = passwordChecker;
     }
@@ -52,10 +59,18 @@ public class AuthenticateEndpointImpl implements AuthenticateEndpoint {
 
             var authentications = EnumSet.of(DECLARATIVE);
 
-            var user = this.userFinder.find(params::login)
-                    .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.access_denied, "Invalid credentials"));
+            var userFound = this.userFinder.find(params::login);
 
-            authentications.add(USER_FOUND);
+            User user;
+            if (userFound.isPresent()) {
+                user = userFound.get();
+                authentications.add(USER_FOUND);
+            } else {
+                var newId = this.userCreator.create(params.login(), null, null);
+                user = this.userFinder.find(newId).orElseThrow(() -> new RuntimeException("Unable to retrieve the user I just created... :("));
+
+            }
+
 
             if (!Utils.isBlank(params.password())) {
                 if (passwordChecker.confront(params.password(), user.pwd())) {

@@ -1,5 +1,7 @@
 package app.cbo.oidc.java.server.backends.filesystem;
 
+import app.cbo.oidc.java.server.scan.Injectable;
+import app.cbo.oidc.java.server.scan.Prop;
 import app.cbo.oidc.java.server.utils.Pair;
 
 import java.io.BufferedReader;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 /**
  * Class that reads and writes data linked in the fileSystem
  */
+@Injectable
 public class FileStorage {
 
 
@@ -32,7 +35,7 @@ public class FileStorage {
      * @param basePath root path for user data
      * @throws IOException if root path is missing from the FS and cannot be created
      */
-    public FileStorage(Path basePath) throws IOException {
+    public FileStorage(@Prop("basePath") Path basePath) throws IOException {
         this.basePath = basePath;
 
         if (!Files.exists(basePath)) {

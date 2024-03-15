@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server;
 
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
+import app.cbo.oidc.java.server.scan.Prop;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.Closeable;
@@ -9,24 +10,22 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class Server implements Closeable {
+public class OIDCServer implements Closeable {
 
 
-    private static final Logger LOGGER = Logger.getLogger(Server.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(OIDCServer.class.getCanonicalName());
     public static final String HOST_NAME = "0.0.0.0";
 
 
     private final int port;
-    private HttpServer server;
+    private HttpServer httpServer;
 
 
     private final List<HttpHandlerWithPath> handlers;
 
 
-
-    public Server(StartupArgs from, List<HttpHandlerWithPath> handlers) throws IOException {
-        this.port = from.port();
-
+    public OIDCServer(@Prop("port") int port, List<HttpHandlerWithPath> handlers) throws IOException {
+        this.port = port;
         this.handlers = handlers;
 
     }
@@ -35,20 +34,20 @@ public class Server implements Closeable {
 
         LOGGER.info(String.format("Server starting on host %s and port %s ", HOST_NAME, port));
 
-        this.server = HttpServer.create(new InetSocketAddress(HOST_NAME, port), 50);
+        this.httpServer = HttpServer.create(new InetSocketAddress(HOST_NAME, port), 50);
         handlers.forEach(handler -> {
             LOGGER.info("Adding handler '" + handler.getClass().getSimpleName() + "' matching path '" + handler.path() + "'.");
-            server.createContext(handler.path(), handler);
+            httpServer.createContext(handler.path(), handler);
         });
 
         // start the server
-        server.start();
+        httpServer.start();
         LOGGER.info(String.format("Server started on host %s and port %s ", HOST_NAME, port));
     }
 
 
     public void shutdown() {
-        this.server.stop(0);
+        this.httpServer.stop(0);
     }
 
     @Override

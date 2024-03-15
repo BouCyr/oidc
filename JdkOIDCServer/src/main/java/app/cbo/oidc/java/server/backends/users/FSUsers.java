@@ -8,6 +8,7 @@ import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 import static app.cbo.oidc.java.server.backends.filesystem.FileStorage.fromLine;
 import static app.cbo.oidc.java.server.backends.filesystem.FileStorage.toLine;
 
+@Injectable
 public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder) implements Users {
 
     private final static Logger LOGGER = Logger.getLogger(FSUsers.class.getCanonicalName());

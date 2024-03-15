@@ -16,10 +16,10 @@ public record AuthenticationLevel(String name, int level) {
     }
 
     /**
-     * Parse an ACR level from the string put in the idtoken
+     * Parse an ACR level from the string put in the id_token
      *
-     * @param acr as found in the idtoekn/authorization request and so on
-     * @return an optional containing the level if somethign could be recognized from the input. Optional.empty() if not
+     * @param acr as found in the id_token/authorization request and so on
+     * @return an optional containing the level if something could be recognized from the input. Optional.empty() if not
      */
     public static Optional<AuthenticationLevel> fromAcr(String acr) {
 

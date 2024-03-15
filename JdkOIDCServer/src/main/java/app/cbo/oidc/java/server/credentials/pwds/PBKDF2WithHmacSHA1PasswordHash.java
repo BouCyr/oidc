@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.credentials.pwds;
 
 import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.scan.Injectable;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -11,6 +12,7 @@ import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 
+@Injectable
 public class PBKDF2WithHmacSHA1PasswordHash implements Passwords{
 
     public PBKDF2WithHmacSHA1PasswordHash() {

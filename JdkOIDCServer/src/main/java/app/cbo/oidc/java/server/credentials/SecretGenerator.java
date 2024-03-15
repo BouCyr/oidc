@@ -13,6 +13,7 @@ public class SecretGenerator {
 
     private SecretGenerator(){ }
 
+    @Deprecated
     public static SecretGenerator getInstance() {
         if(instance == null){
             instance = new SecretGenerator();

@@ -15,29 +15,5 @@ public class OAuth2SecurityConfig {
     @Value("${oidc.base-url}")
     private String baseUrl;
 
-   /* @Bean
-    public ClientRegistrationRepository clientRegistrationRepository() {
-        return new InMemoryClientRegistrationRepository(this.keycloakClientRegistration());
-    }
-
-    private ClientRegistration keycloakClientRegistration() {
-        return ClientRegistration.withRegistrationId("clientweb")
-                .clientId(this.clientId)
-                .clientSecret(this.clientSecret)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-                .scope("openid", "profile", "email", "address", "phone")
-                .clientName("sb")
-                .providerConfigurationMetadata().issuerUri()
-
-                .issuerUri(this.baseUrl)
-//                .authorizationUri(this.baseUrl + "/authorize")
-//                .tokenUri(this.baseUrl + "/token")
-//                .jwkSetUri(this.baseUrl + "/jwks")
-//                .userInfoUri(this.baseUrl + "/userinfo")
-                .userNameAttributeName("sub")
-                .build();
-    }*/
 
 }

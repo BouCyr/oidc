@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server;
 
+import app.cbo.oidc.java.server.backends.claims.Claims;
 import app.cbo.oidc.java.server.backends.claims.ClaimsStorer;
 import app.cbo.oidc.java.server.backends.users.Users;
 import app.cbo.oidc.java.server.datastored.user.UserId;
@@ -7,7 +8,9 @@ import app.cbo.oidc.java.server.datastored.user.claims.Address;
 import app.cbo.oidc.java.server.datastored.user.claims.Mail;
 import app.cbo.oidc.java.server.datastored.user.claims.Phone;
 import app.cbo.oidc.java.server.datastored.user.claims.Profile;
-import app.cbo.oidc.java.server.deps.DependenciesBuilder;
+import app.cbo.oidc.java.server.scan.exceptions.DownStreamException;
+import app.cbo.oidc.java.server.scan.props.PropsProviders;
+import app.cbo.oidc.java.server.utils.Pair;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -17,8 +20,11 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.Scanner;
-import java.util.logging.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,90 +33,84 @@ public class EntryPoint {
     private final static Logger LOGGER = Logger.getLogger(EntryPoint.class.getCanonicalName());
 
 
-    public static void main(String... args) throws IOException {
-        run(true, args);
-    }
-
-    public static void run(boolean holding, String... args) throws IOException {
-
+    public static void main(String... args) throws IOException, DownStreamException {
 
         LOGGER.info("Starting");
         long start = System.nanoTime();
-        LOGGER.info("Configuring logging");
+
         configureLogging();
-        LOGGER.log(Level.FINE, "Configured logging");
-        var parsedArgs = StartupArgs.from(args);
-        LOGGER.info("Building dependencies");
-        var dependencies = new DependenciesBuilder(parsedArgs);
-        LOGGER.info("Dependencies built");
-        setupData("Cyrille", dependencies.users(), dependencies.claims());
-        setupData("Caroline", dependencies.users(), dependencies.claims());
-        LOGGER.info("Sample data built");
-//        try(Server server = dependencies.server()) {
-        Server server = dependencies.server();
+
+        //TODO [a118608][15/03/2024] Read the profile from the command line before starting the scanner
+//        var scanner = new app.cbo.oidc.java.server.scan.Scanner("KEYCLOAK", "app.cbo.oidc.java.server")
+
+        //scan the classpath for the server and its dependencies
+        var scanner = new app.cbo.oidc.java.server.scan.Scanner("KEYCLOAK", "app.cbo.oidc.java.server")
+                //default
+                .withProperties(
+                        List.of(
+                                Pair.of("basePath", "c:\\work\\OIDC"),
+                                Pair.of("port", "9451"),
+                                Pair.of("domain", "http://localhost")))
+                //overrides with command line args
+                .withProperties(PropsProviders.fromArgs(args));
+
+        setupData("Cyrille", scanner.get(Users.class), scanner.get(Claims.class));
+        setupData("Marion", scanner.get(Users.class), scanner.get(Claims.class));
+
+        //get root class (server)
+        var server = scanner.get(OIDCServer.class);
         LOGGER.info("Starting server");
         server.start();
         LOGGER.info("Started in " + Duration.ofNanos(System.nanoTime() - start).toMillis() + "ms");
-
-//      TODO [29/09/2023] Put back in place; right now causes pbs with integration tests
-//            boolean exit = false;
-//            while(!exit) {
-//                exit = shouldExit();
-//            }
-//        }
-
     }
-
-    private static boolean shouldExit() {
-
-        var input = new Scanner(System.in).next();
-        return List.of("exit", "close", "quit", "q")
-                .stream()
-                .anyMatch(cmd -> cmd.equalsIgnoreCase(input));
-
-    }
-
 
     private static void configureLogging() {
-
-        //shorten the app.cbo.... package name when present.
-        String basePackageFull = EntryPoint.class.getPackageName();
-        var basePackageShort = Stream.of(basePackageFull.split("\\."))
-                .map(pkgLevel -> pkgLevel.substring(0, 1))
-                .collect(Collectors.joining("."));
 
         Logger mainLogger = Logger.getLogger("app.cbo.oidc.java.server");
         mainLogger.setUseParentHandlers(false);
         mainLogger.setLevel(Level.FINEST);
         ConsoleHandler handler = new ConsoleHandler();
-        handler.setFormatter(new SimpleFormatter() {
-            @Override
-            public synchronized String format(LogRecord logRecord) {
-
-                //shorten the app.cbo.... package name when present.
-                String className = logRecord.getSourceClassName();
-                if (className.startsWith(basePackageFull)) {
-                    className = basePackageShort + className.substring(basePackageFull.length());
-                }
-
-                var dtt = LocalDateTime.ofInstant(logRecord.getInstant(), ZoneId.systemDefault()).format(
-                        DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-
-                return
-                        "[" + dtt + "]" +
-                                "[" + logRecord.getLevel() + "]" +
-                                "[thread#" + logRecord.getLongThreadID() + "]" +
-                                "[" + className +
-                                "." + logRecord.getSourceMethodName() + "]" +
-                                " : " + logRecord.getMessage() +
-                                System.lineSeparator();
-
-            }
-        });
+        handler.setFormatter(new LogFormatter());
         mainLogger.addHandler(handler);
     }
 
-    @Deprecated
+    public static class LogFormatter extends SimpleFormatter {
+
+        private final String basePackageFull;
+        private final String basePackageShort;
+
+        public LogFormatter() {
+            //shorten the app.cbo.... package name when present.
+            this.basePackageFull = EntryPoint.class.getPackageName();
+            this.basePackageShort = Stream.of(basePackageFull.split("\\."))
+                    .map(pkgLevel -> pkgLevel.substring(0, 1))
+                    .collect(Collectors.joining("."));
+        }
+
+        @Override
+        public synchronized String format(LogRecord logRecord) {
+
+            //shorten the app.cbo.... package name when present.
+            String className = logRecord.getSourceClassName();
+            if (className.startsWith(basePackageFull)) {
+                className = basePackageShort + className.substring(basePackageFull.length());
+            }
+
+            var dtt = LocalDateTime.ofInstant(logRecord.getInstant(), ZoneId.systemDefault()).format(
+                    DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+            return
+                    "[" + dtt + "]" +
+                            "[" + logRecord.getLevel() + "]" +
+                            "[thread#" + logRecord.getLongThreadID() + "]" +
+                            "[" + className +
+                            "." + logRecord.getSourceMethodName() + "]" +
+                            " : " + logRecord.getMessage() +
+                            System.lineSeparator();
+
+        }
+    }
+
     private static void setupData(String firstName, Users users, ClaimsStorer claimsStorer) {
         var uid = UserId.of(firstName.toLowerCase(Locale.ROOT));
 

@@ -33,4 +33,5 @@ public class SpringbootclientApplication {
                 .map((kv) -> "<li>" + kv.getKey() + " : " + kv.getValue() + "</li>")
                 .collect(Collectors.joining(System.lineSeparator())) + "</ul>";
     }
+
 }

@@ -16,7 +16,7 @@ public class DisplayLoginFormInteraction implements Interaction {
 
 
         this.payload = """
-                                <!DOCTYPE html>
+                <!DOCTYPE html>
                                 <html>
                                 <head>
                                     <title>PLease don't lie, I did not invest much in security</title>

@@ -1,27 +1,27 @@
 package app.cbo.oidc.java.server.oidc;
 
-import java.util.function.Supplier;
+import app.cbo.oidc.java.server.scan.BuildWith;
+import app.cbo.oidc.java.server.scan.Injectable;
+import app.cbo.oidc.java.server.scan.Prop;
 
-public interface Issuer extends Supplier<String> {
+@Injectable
+public record Issuer(String id) {
+
+
+    @BuildWith
+    public Issuer(@Prop("domain") String domain, @Prop("port") int port) {
+        this(domain + ":" + port);
+    }
 
     /**
      * Returns a basic impl of Issuer
      */
-    static Issuer of(String value) {
-        return new Issuer.Simple(value);
+    public static Issuer of(String value) {
+        return new Issuer(value);
     }
 
-    default String getIssuerId() {
-        return this.get();
+    public String getIssuerId() {
+        return id();
     }
 
-    /**
-     * Basic impl
-     */
-    record Simple(String value) implements Issuer {
-        @Override
-        public String get() {
-            return value();
-        }
-    }
 }

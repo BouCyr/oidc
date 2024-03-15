@@ -5,6 +5,7 @@ import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Cookies;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -19,6 +20,7 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 /**
  * Handles all HTTP reading/parsing,etc. for the "/authorize" url
  */
+@Injectable
 public class AuthorizeHandler implements HttpHandlerWithPath {
 
     public static final String AUTHORIZE_ENDPOINT = "/authorize";

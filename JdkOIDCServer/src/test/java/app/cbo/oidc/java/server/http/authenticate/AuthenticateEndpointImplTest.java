@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.http.authenticate;
 
+import app.cbo.oidc.java.server.backends.users.MemUsers;
 import app.cbo.oidc.java.server.credentials.AuthenticationMode;
 import app.cbo.oidc.java.server.credentials.TOTP;
 import app.cbo.oidc.java.server.datastored.SessionId;
@@ -22,6 +23,7 @@ class AuthenticateEndpointImplTest {
         AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
                 key -> Optional.empty(),
                 userId -> Optional.empty(),
+                (x, y, z) -> UserId.of(x),
                 (user, authenticationModes) -> new SessionId.Simple("sessionId"),
                 (provided, storedEncoded) -> true
         );
@@ -36,10 +38,15 @@ class AuthenticateEndpointImplTest {
 
         final EnumSet<AuthenticationMode> modes = EnumSet.noneOf(AuthenticationMode.class);
         final AtomicReference<User> loggedIn = new AtomicReference<>();
+
+
+        var memUSers = new MemUsers(p -> p);
         AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
                 key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
-                userId -> Optional.empty(), // NO USER !!!
-
+                //user finder
+                memUSers,
+                //user creator
+                memUSers,
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
@@ -48,18 +55,14 @@ class AuthenticateEndpointImplTest {
                 (provided, storedEncoded) -> true
         );
 
-        assertThatThrownBy(() -> tested.treatRequest(Map.of("login", List.of("bob"))))
-                .isInstanceOf(AuthErrorInteraction.class);
+        tested.treatRequest(Map.of("login", List.of("bob")));
 
-        /* TODO [03/10/2023] declarative login
-        Assertions.assertThat(loggedIn)
+        assertThat(loggedIn)
                 .hasValueMatching(u -> u.getUserId().equals(UserId.of("bob")));
-        Assertions.assertThat(modes)
+        assertThat(modes)
                 .isNotEmpty()
-                .hasSize(2)
                 .containsExactly(AuthenticationMode.DECLARATIVE);
 
-         */
 
     }
 
@@ -71,6 +74,7 @@ class AuthenticateEndpointImplTest {
         AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
                 key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
                 userId -> Optional.of(new User("bob", "pwd", "topt")),
+                (x, y, z) -> UserId.of(x),
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
@@ -99,6 +103,7 @@ class AuthenticateEndpointImplTest {
         AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
                 key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
                 userId -> Optional.of(new User("bob", "pwd", "topt")),
+                (x, y, z) -> UserId.of(x),
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
@@ -131,6 +136,7 @@ class AuthenticateEndpointImplTest {
         AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
                 key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
                 userId -> Optional.of(new User("bob", "pwd", "topt")),
+                (x, y, z) -> UserId.of(x),
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
@@ -156,6 +162,7 @@ class AuthenticateEndpointImplTest {
         AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
                 key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
                 userId -> Optional.of(new User("bob", "pwd", "ALBACORE")),
+                (x, y, z) -> UserId.of(x),
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
@@ -182,6 +189,7 @@ class AuthenticateEndpointImplTest {
         AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
                 key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
                 userId -> Optional.of(new User("bob", "pwd", "ALBACORE")),
+                (x, y, z) -> UserId.of(x),
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);

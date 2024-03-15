@@ -2,6 +2,7 @@ package app.cbo.oidc.java.server;
 
 import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
 import app.cbo.oidc.java.server.http.userinfo.UserInfoHandler;
+import app.cbo.oidc.java.server.scan.exceptions.DownStreamException;
 import app.cbo.oidc.java.server.utils.MimeType;
 import app.cbo.oidc.java.server.utils.QueryStringParser;
 import com.auth0.jwt.interfaces.DecodedJWT;
@@ -37,7 +38,7 @@ public class ImplicitFlowIntegrationTest {
 
     @Test
     @Disabled
-    public void implicitFlowWithoutAccessToken() throws IOException, URISyntaxException, InterruptedException, AuthFlowIntegrationTest.OutsideRedirect, JOSEException {
+    public void implicitFlowWithoutAccessToken() throws IOException, URISyntaxException, InterruptedException, AuthFlowIntegrationTest.OutsideRedirect, JOSEException, DownStreamException {
 
         int PORT = 4547;
         EntryPoint.main("port=" + PORT, "backend=mem");
@@ -77,7 +78,7 @@ public class ImplicitFlowIntegrationTest {
 
     @Test
     @Disabled
-    public void implicitFlowWithAccessToken() throws IOException, URISyntaxException, InterruptedException, AuthFlowIntegrationTest.OutsideRedirect, JOSEException {
+    public void implicitFlowWithAccessToken() throws IOException, URISyntaxException, InterruptedException, AuthFlowIntegrationTest.OutsideRedirect, JOSEException, DownStreamException {
 
         int PORT = 4548;
         EntryPoint.main("port=" + PORT, "backend=mem");
