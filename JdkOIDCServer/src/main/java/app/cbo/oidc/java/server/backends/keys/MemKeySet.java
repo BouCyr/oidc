@@ -6,8 +6,13 @@ import app.cbo.oidc.java.server.jwt.JWK;
 import app.cbo.oidc.java.server.jwt.JWKSet;
 import app.cbo.oidc.java.server.scan.Injectable;
 
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -31,11 +36,13 @@ public class MemKeySet implements KeySet {
     private void newCurrent() {
         KeyPairGenerator kpg;
         try {
+            var start = System.nanoTime();
             kpg = KeyPairGenerator.getInstance("RSA");
             //rfc7518 : A key of size 2048 bits or larger MUST be used with these algorithms.
             kpg.initialize(2048);
             var kp = kpg.generateKeyPair();
-
+            var dur = Duration.ofNanos(System.nanoTime() - start).toMillis();
+            LOGGER.info(STR."Generated new keypair in \{dur} ms;");
 
             //randomize the kid, so we do not reuse a kid (if we did, a client could store the 'old' key value in some cache)
             this.currentKp = KeyId.of(UUID.randomUUID().toString());

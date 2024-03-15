@@ -11,12 +11,21 @@ import app.cbo.oidc.java.server.scan.Injectable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.security.*;
+import java.security.KeyFactory;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.EncodedKeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.*;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 @Injectable
@@ -60,11 +69,15 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
 
     @NotNull
     private KeyPair newCurrent() throws NoSuchAlgorithmException {
+
+        var start = System.nanoTime();
         KeyPairGenerator kpg;
         kpg = KeyPairGenerator.getInstance("RSA");
         //rfc7518 : A key of size 2048 bits or larger MUST be used with these algorithms.
         kpg.initialize(2048);
         var kp = kpg.generateKeyPair();
+        var dur = Duration.ofNanos(System.nanoTime() - start).toMillis();
+        LOGGER.info(STR."Generated new keypair in \{dur} ms;");
         //randomize the kid, so we do not reuse a kid (if we did, a client could store the 'old' key value in some cache)
         return new KeyPair(true, KeyId.of(UUID.randomUUID().toString()), kp.getPrivate(), kp.getPublic());
     }
