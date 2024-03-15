@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.http.token;
 
+import app.cbo.oidc.java.server.backends.clients.ClientAuthenticator;
 import app.cbo.oidc.java.server.backends.codes.CodeConsumer;
 import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.backends.sessions.SessionFinder;
@@ -44,20 +45,9 @@ public class TokenEndpointImpl implements TokenEndpoint {
     private final SessionFinder sessionFinder;
     private final KeySet keySet;
     private final IdTokenCustomizer idTokenCustomizer;
+    private final ClientAuthenticator clientAuthenticator;
 
-    public TokenEndpointImpl(
-            Issuer myself,
-            CodeConsumer codeConsumer,
-            UserFinder userFinder,
-            SessionFinder sessionFinder,
-            KeySet keySet) {
-        this.myself = myself;
-        this.codeConsumer = codeConsumer;
-        this.userFinder = userFinder;
-        this.sessionFinder = sessionFinder;
-        this.keySet = keySet;
-        this.idTokenCustomizer = new IdTokenCustomizer.Noop();
-    }
+
 
     @BuildWith
     public TokenEndpointImpl(
@@ -66,13 +56,16 @@ public class TokenEndpointImpl implements TokenEndpoint {
             UserFinder userFinder,
             SessionFinder sessionFinder,
             KeySet keySet,
-            IdTokenCustomizer idTokenCustomizer) {
+            IdTokenCustomizer idTokenCustomizer,
+            ClientAuthenticator clientAuthenticator) {
         this.myself = myself;
         this.codeConsumer = codeConsumer;
         this.userFinder = userFinder;
         this.sessionFinder = sessionFinder;
         this.keySet = keySet;
         this.idTokenCustomizer = idTokenCustomizer;
+        this.clientAuthenticator = clientAuthenticator;
+
     }
 
     @Override
@@ -92,7 +85,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
         LOGGER.info(("'" + (!Utils.isEmpty(authClientId) ? authClientId : "?") + "' tries to consume a code"));
 
         //Are the client credentials OK ? (none would be OK for the moment)
-        if (!this.authenticateClient(authClientId, clientSecret)) {
+        if (!this.clientAuthenticator.authenticate(authClientId, clientSecret)) {
             LOGGER.info("Invalid client credentials");
             return new JsonError(AuthErrorInteraction.Code.access_denied.name());
         }

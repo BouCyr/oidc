@@ -3,7 +3,7 @@ server:
 
 oidc:
   client-id: sb
-  client-secret: sb
+  client-secret: sbSecret
   base-url: http://localhost:9451
 
 spring:
@@ -14,7 +14,7 @@ spring:
           mine:
             provider: oidc
             client-id: sb
-            client-secret: sb
+            client-secret: sbSecret
             scope: openid,email,profile
         provider:
           oidc:

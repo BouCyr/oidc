@@ -33,7 +33,9 @@ class TokenEndpointImplTest {
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
                 x -> Optional.of(new User("userA", "", "")),
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet()
+                new MemKeySet(),
+                new IdTokenCustomizer.Noop(),
+                (id, secret) -> id != null && id.equals(secret)
         );
 
         var interaction = tested.treatRequest(
@@ -85,7 +87,9 @@ class TokenEndpointImplTest {
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
                 x -> Optional.of(new User("userA", "", "")),
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet()
+                new MemKeySet(),
+                new IdTokenCustomizer.Noop(),
+                (id, secret) -> id != null && id.equals(secret)
         );
 
         var interaction = tested.treatRequest(
@@ -109,7 +113,9 @@ class TokenEndpointImplTest {
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
                 x -> Optional.of(new User("userA", "", "")),
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet()
+                new MemKeySet(),
+                new IdTokenCustomizer.Noop(),
+                (id, secret) -> id != null && id.equals(secret)
         );
 
         var interaction = tested.treatRequest(
@@ -133,7 +139,9 @@ class TokenEndpointImplTest {
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
                 x -> Optional.of(new User("userA", "", "")),
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet()
+                new MemKeySet(),
+                new IdTokenCustomizer.Noop(),
+                (id, secret) -> id != null && id.equals(secret)
         );
 
         var interaction = tested.treatRequest(
@@ -157,7 +165,9 @@ class TokenEndpointImplTest {
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
                 x -> Optional.of(new User("userA", "", "")),
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet()
+                new MemKeySet(),
+                new IdTokenCustomizer.Noop(),
+                (id, secret) -> id != null && id.equals(secret)
         );
 
         var interaction = tested.treatRequest(
@@ -182,7 +192,9 @@ class TokenEndpointImplTest {
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
                 x -> Optional.of(new User("userA", "", "")),
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet()
+                new MemKeySet(),
+                new IdTokenCustomizer.Noop(),
+                (id, secret) -> id != null && id.equals(secret)
         );
 
         var interaction = tested.treatRequest(
@@ -207,7 +219,9 @@ class TokenEndpointImplTest {
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
                 x -> Optional.of(new User("userA", "", "")),
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet()
+                new MemKeySet(),
+                new IdTokenCustomizer.Noop(),
+                (id, secret) -> id != null && id.equals(secret)
         );
 
         var interaction = tested.treatRequest(
@@ -232,7 +246,9 @@ class TokenEndpointImplTest {
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
                 x -> Optional.empty(),
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet()
+                new MemKeySet(),
+                new IdTokenCustomizer.Noop(),
+                (id, secret) -> id != null && id.equals(secret)
         );
 
         var interaction = tested.treatRequest(
@@ -257,7 +273,9 @@ class TokenEndpointImplTest {
                 (x, y, z) -> java.util.Optional.empty(),
                 x -> Optional.of(new User("userA", "", "")),
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet()
+                new MemKeySet(),
+                new IdTokenCustomizer.Noop(),
+                (id, secret) -> id != null && id.equals(secret)
         );
 
         var interaction = tested.treatRequest(
@@ -282,7 +300,9 @@ class TokenEndpointImplTest {
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
                 x -> Optional.of(new User("userA", "", "")),
                 id -> Optional.empty(),
-                new MemKeySet()
+                new MemKeySet(),
+                new IdTokenCustomizer.Noop(),
+                (id, secret) -> id != null && id.equals(secret)
         );
 
         var interaction = tested.treatRequest(

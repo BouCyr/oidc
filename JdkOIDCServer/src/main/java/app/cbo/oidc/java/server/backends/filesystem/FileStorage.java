@@ -93,7 +93,7 @@ public class FileStorage {
 
         try {
             var filePath = file(writeable);
-            LOGGER.info("Opening reader on " + filePath.toString());
+            LOGGER.info("Opening reader on " + filePath.toAbsolutePath());
             return Optional.of(Files.newBufferedReader(filePath, StandardCharsets.UTF_8));
         } catch (FileNotFoundException | NoSuchFileException e) {
             LOGGER.info(String.format("File '%s' not found  %n", writeable.fileName()));

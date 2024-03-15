@@ -2,6 +2,7 @@ package app.cbo.oidc.java.server;
 
 import app.cbo.oidc.java.server.backends.claims.Claims;
 import app.cbo.oidc.java.server.backends.claims.ClaimsStorer;
+import app.cbo.oidc.java.server.backends.clients.ClientRegistry;
 import app.cbo.oidc.java.server.backends.users.Users;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.datastored.user.claims.Address;
@@ -44,7 +45,7 @@ public class EntryPoint {
 //        var scanner = new app.cbo.oidc.java.server.scan.Scanner("KEYCLOAK", "app.cbo.oidc.java.server")
 
         //scan the classpath for the server and its dependencies
-        var scanner = new app.cbo.oidc.java.server.scan.Scanner("KEYCLOAK", "app.cbo.oidc.java.server")
+        var scanner = new app.cbo.oidc.java.server.scan.Scanner("app.cbo.oidc.java.server")
                 //default
                 .withProperties(
                         List.of(
@@ -54,8 +55,9 @@ public class EntryPoint {
                 //overrides with command line args
                 .withProperties(PropsProviders.fromArgs(args));
 
-        setupData("Cyrille", scanner.get(Users.class), scanner.get(Claims.class));
-        setupData("Marion", scanner.get(Users.class), scanner.get(Claims.class));
+        setupUser("Cyrille", scanner.get(Users.class), scanner.get(Claims.class));
+        setupUser("Marion", scanner.get(Users.class), scanner.get(Claims.class));
+        setUpClient("sb","sbSecret", scanner.get(ClientRegistry.class));
 
         //get root class (server)
         var server = scanner.get(OIDCServer.class);
@@ -111,7 +113,12 @@ public class EntryPoint {
         }
     }
 
-    private static void setupData(String firstName, Users users, ClaimsStorer claimsStorer) {
+
+    private static void setUpClient(String clientId, String secret, ClientRegistry clientRegistry){
+        clientRegistry.setClient(clientId, secret);
+    }
+
+    private static void setupUser(String firstName, Users users, ClaimsStorer claimsStorer) {
         var uid = UserId.of(firstName.toLowerCase(Locale.ROOT));
 
         if (users.find(uid).isPresent()) {
