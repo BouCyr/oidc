@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.http.config;
 
 import app.cbo.oidc.java.server.TestHttpExchange;
+import app.cbo.oidc.java.server.http.PathCustomizer;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,12 +34,13 @@ class ConfigHandlerTest {
     @Test
     void handle() throws IOException {
         var tested = new ConfigHandler(
+                new PathCustomizer.Noop(),
                 Issuer.of("http://oidc.cbo.app"),
-                "http://oidc.cbo.app/auth",
-                "http://oidc.cbo.app/token",
-                "http://oidc.cbo.app/userinfo",
-                "http://oidc.cbo.app/logout",
-                "http://oidc.cbo.app/jwks");
+                () -> "http://oidc.cbo.app/auth",
+                () -> "http://oidc.cbo.app/token",
+                () -> "http://oidc.cbo.app/userinfo",
+//                () -> "http://oidc.cbo.app/logout",
+                () -> "http://oidc.cbo.app/jwks");
 
 
         var req = TestHttpExchange.simpleGet();

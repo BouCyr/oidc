@@ -42,8 +42,7 @@ public class EntryPoint {
 
         configureLogging();
 
-        //TODO [a118608][15/03/2024] Read the profile from the command line before starting the scanner
-
+        //Read profile from the command line before starting the scanner
         var profile = PropsProviders.fromArgs(args)
                 .stream().filter(pair ->pair.left().equals("profile"))
                 .map(Pair::right)

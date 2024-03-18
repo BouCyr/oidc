@@ -2,10 +2,7 @@ package app.cbo.oidc.java.server.http.config;
 
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.http.PathCustomizer;
-import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
-import app.cbo.oidc.java.server.http.jwks.JWKSHandler;
-import app.cbo.oidc.java.server.http.token.TokenHandler;
-import app.cbo.oidc.java.server.http.userinfo.UserInfoHandler;
+import app.cbo.oidc.java.server.http.WithPath;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import app.cbo.oidc.java.server.scan.BuildWith;
 import app.cbo.oidc.java.server.scan.Injectable;
@@ -61,32 +58,17 @@ public class ConfigHandler implements HttpHandlerWithPath {
     private final Issuer myself;
     private final PathCustomizer pathCustomizer;
 
-    @Deprecated
-    public ConfigHandler(
-            Issuer myself,
-            String authorizationPath,
-            String tokenPath,
-            String userinfoPath,
-            String logoutPath,
-            String jwksPath) {
-        this.pathCustomizer = new PathCustomizer(){};//FIXME [a118608][13/03/2024]
-        this.myself = myself;
-        this.authorizationPath = authorizationPath;
-        this.tokenPath = tokenPath;
-        this.userinfoPath = userinfoPath;
-        this.logoutPath = logoutPath;
-        this.jwksPath = jwksPath;
-    }
+
 
     @BuildWith
     public ConfigHandler(
             PathCustomizer pathCustomizer,
             Issuer myself,
-            AuthorizeHandler authorizeHandler,
-            TokenHandler tokenHandler,
-            UserInfoHandler userInfoHandler,
+            WithPath authorizeHandler,
+            WithPath tokenHandler,
+            WithPath userInfoHandler,
             //TODO [24/11/2023] LogoutHandler
-            JWKSHandler jwksHandler
+            WithPath jwksHandler
     ) {
         this.pathCustomizer = pathCustomizer;
         this.myself = myself;

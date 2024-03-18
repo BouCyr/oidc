@@ -2,8 +2,9 @@ package app.cbo.oidc.java.server.http;
 
 import com.sun.net.httpserver.HttpHandler;
 
-public interface HttpHandlerWithPath extends HttpHandler {
+public interface HttpHandlerWithPath extends HttpHandler , WithPath{
 
-    String path();
+
+
 
 }
