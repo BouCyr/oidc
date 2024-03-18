@@ -10,12 +10,13 @@ import java.util.function.Function;
 
 /**
  * Builder of FileSpecification
- * <p>
- * .for(userId = 84).fileName("user.txt") => {base}/84/user.txt
- * .for(userId = a654).in("claims").fileName("profile.txt") => {base}/a654/claims/profile.txt
- * .fileName("properties.ini") => {base}/properties.ini
- * .in("codes").fileName("45-54-65.txt") => {base}/codes/45-54-65.txt
- * .in("blabla","hmmm","wat").fileName("this.pdf") => {base}/blabla/hmmm/wat/this.pdf
+ * <ul>
+ *   <li>.for(userId = 84).fileName("user.txt") => {base}/84/user.txt</li>
+ *   <li>.for(userId = a654).in("claims").fileName("profile.txt") => {base}/a654/claims/profile.txt</li>
+ *   <li>.fileName("properties.ini") => {base}/properties.ini</li>
+ *   <li>.in("codes").fileName("45-54-65.txt") => {base}/codes/45-54-65.txt</li>
+ *   <li>.in("blabla","hmmm","wat").fileName("this.pdf") => {base}/blabla/hmmm/wat/this.pdf</li>
+ * </ul>
  */
 @Injectable
 public class FileSpecifications {
@@ -42,7 +43,7 @@ public class FileSpecifications {
     }
 
     /**
-     * Returns a FileSepcfification for a file in subfolders
+     * Returns a FileSepcification for a file in subfolders
      *
      * @param fileName file name
      * @param folders  subFolders, may be empty

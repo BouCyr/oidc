@@ -24,6 +24,9 @@ public class OngoingAuths implements OngoingAuthsFinder, OngoingAuthsStorer {
 
     private final Map<String, AuthorizeParams> store = new HashMap<>();
 
+    /**
+     * @inheritDoc
+     */
     @NotNull
     public OngoingAuthId store(@NotNull AuthorizeParams p) {
 
@@ -32,6 +35,9 @@ public class OngoingAuths implements OngoingAuthsFinder, OngoingAuthsStorer {
         return OngoingAuthId.of(key);
     }
 
+    /**
+     * @inheritDoc
+     */
     @NotNull
     public Optional<AuthorizeParams> find(@NotNull OngoingAuthId key) {
         if (key.getOngoingAuthId() == null) {

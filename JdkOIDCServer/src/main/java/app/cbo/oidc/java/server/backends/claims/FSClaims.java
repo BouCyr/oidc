@@ -5,12 +5,20 @@ import app.cbo.oidc.java.server.backends.filesystem.FileSpecifications;
 import app.cbo.oidc.java.server.backends.filesystem.FileStorage;
 import app.cbo.oidc.java.server.backends.users.FSUsers;
 import app.cbo.oidc.java.server.datastored.user.UserId;
-import app.cbo.oidc.java.server.datastored.user.claims.*;
+import app.cbo.oidc.java.server.datastored.user.claims.Address;
+import app.cbo.oidc.java.server.datastored.user.claims.Mail;
+import app.cbo.oidc.java.server.datastored.user.claims.Phone;
+import app.cbo.oidc.java.server.datastored.user.claims.Profile;
+import app.cbo.oidc.java.server.datastored.user.claims.ScopedClaims;
 import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -45,7 +53,7 @@ public record FSClaims(FileStorage fsUserStorage) implements Claims {
 
             Optional<Class<? extends ScopedClaims>> scopeClass = this.fromScopeToClass(requestedScope);
             if (scopeClass.isEmpty()) {
-                LOGGER.info("Unrecognized scope : " + requestedScope);
+                LOGGER.info(STR."Unrecognized scope : \{requestedScope}");
                 continue;
             }
 
@@ -54,7 +62,7 @@ public record FSClaims(FileStorage fsUserStorage) implements Claims {
                 map.ifPresent(vals -> result.putAll(this.readMap(vals, requestedScope)));
 
             } catch (IOException e) {
-                LOGGER.severe("IOException while reading claims file '" + requestedScope + "' for user with id '" + userId.get() + "'");
+                LOGGER.severe(STR."IOException while reading claims file '\{requestedScope}' for user with id '\{userId.get()}'");
             }
         }
 
@@ -88,16 +96,17 @@ public record FSClaims(FileStorage fsUserStorage) implements Claims {
     public void store(ScopedClaims... someClaims) {
         // [02/10/2023] This method seems kind of weird
         for (ScopedClaims scoped : someClaims) {
-            if (scoped instanceof Phone p) {
-                this.store(p);
-            } else if (scoped instanceof Profile p) {
-                this.store(p);
-            } else if (scoped instanceof Mail p) {
-                this.store(p);
-            } else if (scoped instanceof Address p) {
-                this.store(p);
-            } else {
-                LOGGER.info("Unknown scopedClaim type :" + scoped.getClass().getSimpleName());
+
+            if(scoped==null){
+                continue;
+            }
+
+            switch (scoped) {
+                case Phone p -> this.store(p);
+                case Profile p -> this.store(p);
+                case Mail p -> this.store(p);
+                case Address p -> this.store(p);
+                default -> LOGGER.info(STR."Unknown scopedClaim type :\{scoped.getClass().getSimpleName()}");
             }
 
         }

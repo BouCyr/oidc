@@ -49,7 +49,7 @@ public class MemKeySet implements KeySet {
             this.pairs.put(currentKp.get(), kp);
 
         } catch (NoSuchAlgorithmException e) {
-            LOGGER.severe("NoSuchAlgorithmException when building keyset : " + e.getMessage());
+            LOGGER.severe(STR."NoSuchAlgorithmException when building keyset : \{e.getMessage()}");
             throw new RuntimeException(e);
         }
     }

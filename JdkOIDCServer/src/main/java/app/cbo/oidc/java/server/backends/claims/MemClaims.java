@@ -4,7 +4,11 @@ import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.datastored.user.claims.ScopedClaims;
 import app.cbo.oidc.java.server.scan.Injectable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -30,7 +34,7 @@ public class MemClaims implements Claims {
         Stream.of(someClaims)
                 .forEach(scopedClaims -> {
                     if (allClaims.removeIf(sc -> sc.userId().equals(scopedClaims.userId()) && sc.getClass().equals(scopedClaims.getClass()))) {
-                        LOGGER.info(scopedClaims.userId().getUserId() + " already had a stored '" + scopedClaims.scopeName() + "' scope. Replacing");
+                        LOGGER.info(STR."\{scopedClaims.userId().getUserId()} already had a stored '\{scopedClaims.scopeName()}' scope. Replacing");
                     }
 
                     allClaims.add(scopedClaims);

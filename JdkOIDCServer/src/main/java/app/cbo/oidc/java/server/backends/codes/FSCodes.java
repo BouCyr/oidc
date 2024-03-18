@@ -19,11 +19,28 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+
+/**
+ * This class represents a file system-based code storage.
+ * It implements the Codes interface and provides methods for code creation and consumption.
+ * The codes are stored in a file system, with the code as the key and the code data as the value.
+ */
 @Injectable
 public record FSCodes(FileStorage userDataFileStorage) implements Codes {
 
     private final static Logger LOGGER = Logger.getLogger(FSCodes.class.getCanonicalName());
 
+    /**
+     * This method is used to consume a code, returning the needed data.
+     * It checks if the provided code, client ID, and redirect URI match the ones stored in the file system.
+     * If the match is successful, it deletes the code file and returns the code data.
+     * If the match is unsuccessful, it returns an empty Optional.
+     *
+     * @param code        The code being received by the server for validation.
+     * @param clientId    The client ID that sent the code back.
+     * @param redirectUri The redirect URI sent with the validation.
+     * @return            The data stored server-side for this code at generation (userId, sessionId, scopes requested and nonce) ; EMPTY if the code is invalid, or not recognized by the server.
+     */
     @NotNull
     @Override
     public Optional<CodeData> consume(@NotNull Code code, @NotNull ClientId clientId, @NotNull String redirectUri) {
@@ -34,7 +51,7 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
         try {
             contents = this.userDataFileStorage().readMap(file).orElseThrow(() -> new IOException("File not found"));
         } catch (IOException e) {
-            LOGGER.info("File not found for code " + code.getCode());
+            LOGGER.info(STR."File not found for code \{code.getCode()}");
             return Optional.empty();
         }
 
@@ -60,6 +77,20 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
         return Optional.of(codeData);
     }
 
+    /**
+     * This method is used to create a new code for a specific user, client, session, and redirect URI.
+     * It generates a unique code, stores it in the file system along with the provided data, and returns the code.
+     * If any of the required parameters are null or blank, it throws a NullPointerException.
+     *
+     * @param userId      The ID of the user for whom the code is being created.
+     * @param clientId    The ID of the client requesting the code.
+     * @param sessionId   The ID of the session during which the code is being created.
+     * @param redirectUri The redirect URI to be associated with the code.
+     * @param scopes      The scopes requested by the client.
+     * @param nonce       A nonce that can be used to associate a client session with an ID token and to mitigate replay attacks.
+     * @return            The newly created code.
+     * @throws NullPointerException if userId, clientId, or redirectUri is null or blank.
+     */
     @NotNull
     @Override
     public Code createFor(@NotNull UserId userId,

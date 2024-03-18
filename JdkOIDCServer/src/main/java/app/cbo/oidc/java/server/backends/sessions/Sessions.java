@@ -23,6 +23,9 @@ public class Sessions implements SessionFinder, SessionSupplier {
 
     private final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
+    /**
+     * @inheritDoc
+     */
     @Override
     @NotNull
     public Optional<Session> find(@NotNull SessionId id) {
@@ -35,6 +38,9 @@ public class Sessions implements SessionFinder, SessionSupplier {
         return existing;
     }
 
+    /**
+     * @inheritDoc
+     */
     public void addAuthentications(@NotNull SessionId id, @NotNull EnumSet<AuthenticationMode> authenticationModes){
         if(id == null || id.getSessionId() == null){
             throw new NullPointerException("session id cannot be null");
@@ -46,13 +52,9 @@ public class Sessions implements SessionFinder, SessionSupplier {
         }
     }
 
-    private void refresh(@NotNull Session session) {
-        if(session == null)
-            throw new NullPointerException("session cannot be null");
-        var updated = Session.refreshed(session);
-        this.sessions.put(session.id(), updated);
-    }
-
+    /**
+     * @inheritDoc
+     */
     @Override
     @NotNull public SessionId createSession(@NotNull User user, @NotNull EnumSet<AuthenticationMode> authenticationModes){
 
@@ -60,6 +62,15 @@ public class Sessions implements SessionFinder, SessionSupplier {
         this.sessions.put(newSession.id(), newSession);
         return SessionId.of(newSession.id());
     }
+
+    private void refresh(@NotNull Session session) {
+        if(session == null)
+            throw new NullPointerException("session cannot be null");
+        var updated = Session.refreshed(session);
+        this.sessions.put(session.id(), updated);
+    }
+
+
 
 
 }

@@ -6,7 +6,7 @@ public interface ClientRegistry extends ClientAuthenticator{
 
     /**
      * Returns the list of registered clients
-     * @return the list of registered clients
+     * @return the set of registered clients
      */
     Set<String> getRegisteredClients();
 

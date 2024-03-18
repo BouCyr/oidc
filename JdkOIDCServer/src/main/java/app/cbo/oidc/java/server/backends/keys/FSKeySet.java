@@ -28,6 +28,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+/**
+ * @inheritDoc
+ */
 @Injectable
 public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeySet {
     public static final FileSpecification KeyFile = FileSpecifications.in("keys").fileName("keySet.txt");
@@ -48,6 +51,76 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
         }
     }
 
+
+    /**
+     * @inheritDoc
+     */
+    @NotNull
+    @Override
+    public JWKSet asJWKSet() {
+
+        return new JWKSet(
+                this.readKeySet().stream()
+                        .map(kp -> JWK.rsaPublicKey(kp.keyId().getKeyId(), (RSAPublicKey) kp.publicKey()))
+                        .toList()
+        );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @NotNull
+    public KeyId rotate() {
+        List<KeyPair> next = new ArrayList<>();
+        this.readKeySet()
+                .forEach(prev -> next.add(
+                        new KeyPair(false, prev.keyId(), prev.privateKey(), prev.publicKey())
+                ));
+        try {
+            next.add(this.newCurrent());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        this.writeKeys(next.toArray(new KeyPair[0]));
+        return findCurrent(next);
+
+
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @NotNull
+    @Override
+    public KeyId current() {
+        var stored = this.readKeySet();
+        return findCurrent(stored);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @NotNull
+    @Override
+    public Optional<PrivateKey> privateKey(@NotNull KeyId keyId) {
+        return this.readKeySet().stream()
+                .filter(kp -> keyId.getKeyId().equals(kp.keyId().getKeyId()))
+                .map(KeyPair::privateKey)
+                .findAny();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @NotNull
+    @Override
+    public Optional<PublicKey> publicKey(@NotNull KeyId keyId) {
+        return this.readKeySet().stream()
+                .filter(kp -> keyId.getKeyId().equals(kp.keyId().getKeyId()))
+                .map(KeyPair::publicKey)
+                .findAny();
+    }
+
     private static KeyId findCurrent(List<KeyPair> stored) {
         return stored.stream()
                 .filter(KeyPair::current)
@@ -56,7 +129,6 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
     }
 
     private void init() {
-        KeyPairGenerator kpg;
         try {
             KeyPair newKP = newCurrent();
             this.writeKeys(newKP);
@@ -90,7 +162,7 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
                 writer.newLine();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -126,16 +198,6 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
         }
     }
 
-    @NotNull
-    @Override
-    public JWKSet asJWKSet() {
-
-        return new JWKSet(
-                this.readKeySet().stream()
-                        .map(kp -> JWK.rsaPublicKey(kp.keyId().getKeyId(), (RSAPublicKey) kp.publicKey()))
-                        .toList()
-        );
-    }
 
     @NotNull
     private List<KeyPair> readKeySet() {
@@ -158,49 +220,15 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
         }
     }
 
-    @NotNull
-    public KeyId rotate() {
-        List<KeyPair> next = new ArrayList<>();
-        this.readKeySet()
-                .forEach(prev -> next.add(
-                        new KeyPair(false, prev.keyId(), prev.privateKey(), prev.publicKey())
-                ));
-        try {
-            next.add(this.newCurrent());
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-        this.writeKeys(next.toArray(new KeyPair[0]));
-        return findCurrent(next);
 
 
-    }
-
-    @NotNull
-    @Override
-    public KeyId current() {
-        var stored = this.readKeySet();
-        return findCurrent(stored);
-    }
-
-    @NotNull
-    @Override
-    public Optional<PrivateKey> privateKey(@NotNull KeyId keyId) {
-        return this.readKeySet().stream()
-                .filter(kp -> keyId.getKeyId().equals(kp.keyId().getKeyId()))
-                .map(KeyPair::privateKey)
-                .findAny();
-    }
-
-    @NotNull
-    @Override
-    public Optional<PublicKey> publicKey(@NotNull KeyId keyId) {
-        return this.readKeySet().stream()
-                .filter(kp -> keyId.getKeyId().equals(kp.keyId().getKeyId()))
-                .map(KeyPair::publicKey)
-                .findAny();
-    }
-
+    /**
+     * This record represents a key pair used for cryptographic operations.
+     * @param current  true if this key is the current one, false otherwise.
+     * @param keyId   the KeyId of the key.
+     * @param privateKey
+     * @param publicKey
+     */
     record KeyPair(boolean current, @NotNull KeyId keyId, @NotNull PrivateKey privateKey,
                    @NotNull PublicKey publicKey) {
     }

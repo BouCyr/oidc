@@ -9,6 +9,9 @@ import app.cbo.oidc.java.server.jsr305.Nullable;
 
 import java.util.List;
 
+/**
+ * A code supplier is responsible for generating and storing a code, and returning it to the client
+ */
 public interface CodeSupplier {
 
     /**

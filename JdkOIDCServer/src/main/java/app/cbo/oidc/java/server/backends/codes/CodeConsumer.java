@@ -7,6 +7,11 @@ import app.cbo.oidc.java.server.jsr305.NotNull;
 
 import java.util.Optional;
 
+/**
+ * This interface represents a code consumer.
+ * It contains a single method, consume, which takes a code, a client ID, and a redirect URI as parameters.
+ * The consume method is intended to be implemented to provide the logic for checking and consuming a code, returning the needed data.
+ */
 public interface CodeConsumer {
 
     /**
