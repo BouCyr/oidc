@@ -32,7 +32,7 @@ public class AuthenticateHandler implements HttpHandlerWithPath {
 
     @Override
     public void handle(@NotNull HttpExchange exchange) throws IOException {
-        // TODO [03/10/2023] I am kind of surprised we do not use the session here ?
+        //TODO [03/10/2023] I am kind of surprised we do not use the session here ?
         try {
 
             Map<String, Collection<String>> params = extractParams(exchange);

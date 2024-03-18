@@ -4,7 +4,11 @@ import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.ReflectionUtils;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -100,7 +104,7 @@ class JSONWriter {
                 if (k instanceof String s) {
                     copyWithStringKeys.put(s, v);
                 } else {
-                    throw new JsonProcessingException("Key should be strings ; found a :" + k.getClass().getSimpleName());
+                    throw new JsonProcessingException(STR."Key should be strings ; found a :\{k.getClass().getSimpleName()}");
                 }
             });
 
@@ -111,7 +115,7 @@ class JSONWriter {
             writeMap(wen.extranodes(), lines::add, breakSupplier);
         }
 
-        buffer.append(lines.stream().collect(Collectors.joining("," + breakSupplier.get())));
+        buffer.append(lines.stream().collect(Collectors.joining(STR.",\{breakSupplier.get()}")));
 
         buffer.append(breakSupplier.get()).append("}");
         return buffer.toString();

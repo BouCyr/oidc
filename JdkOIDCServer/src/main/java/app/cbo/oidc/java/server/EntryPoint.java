@@ -9,6 +9,7 @@ import app.cbo.oidc.java.server.datastored.user.claims.Address;
 import app.cbo.oidc.java.server.datastored.user.claims.Mail;
 import app.cbo.oidc.java.server.datastored.user.claims.Phone;
 import app.cbo.oidc.java.server.datastored.user.claims.Profile;
+import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.scan.exceptions.DownStreamException;
 import app.cbo.oidc.java.server.scan.props.PropsProviders;
 import app.cbo.oidc.java.server.utils.Pair;
@@ -42,10 +43,17 @@ public class EntryPoint {
         configureLogging();
 
         //TODO [a118608][15/03/2024] Read the profile from the command line before starting the scanner
-//        var scanner = new app.cbo.oidc.java.server.scan.Scanner("KEYCLOAK", "app.cbo.oidc.java.server")
+
+        var profile = PropsProviders.fromArgs(args)
+                .stream().filter(pair ->pair.left().equals("profile"))
+                .map(Pair::right)
+                .findAny().orElse(Injectable.DEFAULT);
+        LOGGER.info(STR."Using profile \{profile}");
+
+
 
         //scan the classpath for the server and its dependencies
-        var scanner = new app.cbo.oidc.java.server.scan.Scanner("app.cbo.oidc.java.server")
+        var scanner = new app.cbo.oidc.java.server.scan.Scanner(profile,"app.cbo.oidc.java.server")
                 //default
                 .withProperties(
                         List.of(
@@ -102,13 +110,7 @@ public class EntryPoint {
                     DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
             return
-                    "[" + dtt + "]" +
-                            "[" + logRecord.getLevel() + "]" +
-                            "[thread#" + logRecord.getLongThreadID() + "]" +
-                            "[" + className +
-                            "." + logRecord.getSourceMethodName() + "]" +
-                            " : " + logRecord.getMessage() +
-                            System.lineSeparator();
+                    STR."[\{dtt}][\{logRecord.getLevel()}][thread#\{logRecord.getLongThreadID()}][\{className}.\{logRecord.getSourceMethodName()}] : \{logRecord.getMessage()}\{System.lineSeparator()}";
 
         }
     }

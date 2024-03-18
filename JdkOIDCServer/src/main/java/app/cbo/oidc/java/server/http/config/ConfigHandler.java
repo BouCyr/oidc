@@ -21,7 +21,6 @@ import java.util.logging.Logger;
 public class ConfigHandler implements HttpHandlerWithPath {
 
 
-    //TODO configure generic prefix to match with our 'standard implementation'
     public static final String CONFIG_ENDPOINT = "/.well-known/openid-configuration";
     /*
 
