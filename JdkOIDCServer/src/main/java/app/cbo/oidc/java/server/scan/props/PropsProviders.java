@@ -25,8 +25,6 @@ public class PropsProviders {
     public static List<Pair<String, String>> fromFile(Path propertyFile) {
 
         try (var lines = Files.lines(propertyFile)) {
-
-
             return lines
                     .map(String::trim)
                     .filter(line -> !line.startsWith("#"))

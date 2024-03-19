@@ -37,10 +37,14 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+/**
+ * Homegrown dependency injection engine. Do not do this in real life.
+ */
 public class Scanner {
 
 
     private final static Logger LOGGER = Logger.getLogger(Scanner.class.getCanonicalName());
+
 
     private final String profile;
     private final app.cbo.oidc.java.server.scan.props.Properties properties = new Properties();
@@ -51,21 +55,54 @@ public class Scanner {
     private final Map<ClassId<?>, Object> instances = new HashMap<>();
 
 
-
+    /**
+     * Will prepare dependencies, looking implementations in the provided package and its subpackage
+     * @param profile any class annotated with @Injectable will be considered only if it has the same value as profile
+     * @param basePackage where the implementations will be searched
+     * @throws IOException classLoader issues
+     */
     public Scanner(String profile, String basePackage) throws IOException {
         this(profile, basePackage, Scanner::scanPackage);
     }
+
+    /**
+     * Will prepare dependencies, looking implementations in the provided package and its subpackage
+     * @param profile any class annotated with @Injectable will be considered only if it has the same value as profile
+     * @param basePackage where the implementations will be searched
+     * @param packageScanner a function that will scan the package and return the classes found
+     * @throws IOException classLoader issues
+     */
     public Scanner(String profile, String basePackage, Function<String, Set<Class<?>>> packageScanner) throws IOException {
         this.profile = profile;
 
         this.classes = packageScanner.apply(basePackage);//scanPackage(basePackage);
     }
 
+    /**
+     * Will prepare dependencies, looking implementations in the provided package and its subpackage. Porifle will be "default"
+     * @param basePackage where the implementations will be searched
+     * @throws IOException classLoader issues
+     */
     public Scanner(String basePackage) throws IOException {
         this(Injectable.DEFAULT, basePackage);
     }
 
+    /**
+     * Allows to provide properties to the scanner, allowing setting of @Prop arguments
+     * @param properties list of properties (key/value)
+     * @return the scanner
+     */
+    public Scanner withProperties(List<Pair<String, String>> properties) {
+        properties.forEach(pair -> this.properties.add(pair.left(), pair.right()));
+        return this;
+    }
 
+
+    /**
+     * Homegrown package scanner
+     * @param packageName where the implementations will be searched
+     * @return list of classes found in the package and its subpackages
+     */
     public static Set<Class<?>> scanPackage(String packageName)  {
 
         LOGGER.info("Scanning " + packageName);
@@ -73,7 +110,6 @@ public class Scanner {
         var sysTemClassLoader = ClassLoader.getSystemClassLoader();
 
         Set<Class<?>> classes = new HashSet<>();
-
 
         InputStream stream = sysTemClassLoader.getResourceAsStream(packageName.replaceAll("[.]", "/"));
 
@@ -101,23 +137,29 @@ public class Scanner {
             return Optional.of(Class.forName(packageName + "." + className.substring(0, className.lastIndexOf('.'))));
         } catch (ClassNotFoundException e) {
             // handle the exception
+            LOGGER.severe("Class not found : " + className);
             return Optional.empty();
         }
     }
 
 
-    public Scanner withProperties(List<Pair<String, String>> properties) {
-        properties.forEach(pair -> this.properties.add(pair.left(), pair.right()));
-        return this;
-    }
+    /**
+     * Return the implementation for a class
+     * @param dependency
+     * @return implementation
+     * @param <T> type of the dependency
+     * @throws DownStreamException when a dep of the dep cannot be built
+     */
+    public <T> T get(Class<T> dependency) throws DownStreamException {
 
-    public <T> T get(Class<T> t) throws DownStreamException {
-
+        //first look for the Implementation class
         Class<T> implementation;
-        if (!t.isInterface()) {
-            implementation = t;
+        if (!dependency.isInterface()) {
+            //easy, it's a class
+            implementation = dependency;
         } else {
-            implementation = this.findImplementation(t);
+            //we have to find the correct class for this interface
+            implementation = this.findImplementation(dependency);
         }
 
         var prev = this.buildProgress.get(ClassId.of(implementation));
@@ -167,9 +209,9 @@ public class Scanner {
 
                 }
             } catch (InvalidDepTree e) {
-                throw new DownStreamException(t, e);
+                throw new DownStreamException(dependency, e);
             } catch (DownStreamException e) {
-                throw new DownStreamException(t, e);
+                throw new DownStreamException(dependency, e);
             }
         }
 
@@ -184,7 +226,7 @@ public class Scanner {
         try {
             built = constructor.newInstance(args.toArray());
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            throw new InstanciationFails(t, e);
+            throw new InstanciationFails(dependency, e);
         }
         this.buildProgress.put(ClassId.of(implementation), BuildStatus.BUILT);
         this.instances.put(ClassId.of(implementation), built);
@@ -254,17 +296,18 @@ public class Scanner {
 
     }
 
-    <T> Class<T> findImplementation(Class<T> t) throws NoImplementationFound {
+    <T> Class<T> findImplementation(Class<T> interfaceToImpl) throws NoImplementationFound {
 
+        //all classes that are not the interface, not another interface, and implements the interface
         var implementations = this.classes
                 .stream()
-                .filter(c -> !c.equals(t))
+                .filter(c -> !c.equals(interfaceToImpl))
                 .filter(c -> !c.isInterface())
-                .filter(t::isAssignableFrom)
+                .filter(interfaceToImpl::isAssignableFrom)
                 .filter(c -> c.isAnnotationPresent(Injectable.class))
                 .toList();
 
-        LOGGER.fine(implementations.size() + " implementations found for " + t.getCanonicalName());
+        LOGGER.fine(implementations.size() + " implementations found for " + interfaceToImpl.getCanonicalName());
 
         //is there an impl for the profile ?
         try {
@@ -275,9 +318,9 @@ public class Scanner {
             return (Class<T>) forThisProfile;
 
         } catch (NoResult noResult) {
-            //nothing
+            //nothing, we have plan B
         } catch (TooManyResult tooManyResult) {
-            throw new NoImplementationFound(t, tooManyResult);
+            throw new NoImplementationFound(interfaceToImpl, tooManyResult);
         }
 
         //is there a default impl ?
@@ -288,25 +331,34 @@ public class Scanner {
                     .toList());
             return (Class<T>) forThisProfile;
         } catch (NoSingleResult noResult) {
-            throw new NoImplementationFound(t, noResult);
+            throw new NoImplementationFound(interfaceToImpl, noResult);
         }
 
     }
 
-    <T> Constructor<T> findConstructor(Class<T> c) throws NoConstructorFound {
+    /**
+     * Locate the correct constr. to be used to instanciate the implementation
+     * @param implementation class to instanciate
+     * @return instance
+     * @param <T> type of the implementation
+     * @throws NoConstructorFound when no constructor is found
+     */
+    <T> Constructor<T> findConstructor(Class<T> implementation) throws NoConstructorFound {
 
-        if (c.getDeclaredConstructors().length == 1) {
-            return (Constructor<T>) c.getDeclaredConstructors()[0];
+        //we only have one, use it
+        if (implementation.getDeclaredConstructors().length == 1) {
+            return (Constructor<T>) implementation.getDeclaredConstructors()[0];
         }
 
-        var constructors = Stream.of(c.getDeclaredConstructors())
+        var constructors = Stream.of(implementation.getDeclaredConstructors())
                 .filter(constructor -> constructor.isAnnotationPresent(BuildWith.class))
                 .toList();
 
         try {
+            //find the constructor annotated with @BuildWith
             return (Constructor<T>) ScanUtils.oneAndOnlyOne(constructors);
         } catch (NoSingleResult noResult) {
-            throw new NoConstructorFound(c);
+            throw new NoConstructorFound(implementation);
         }
     }
 }
