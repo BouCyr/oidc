@@ -63,7 +63,7 @@ public interface Claims extends ClaimsResolver, ClaimsStorer {
         try {
             value = nv.getValue().get();
         } catch (Exception e) {
-            LOGGER.info(STR."error while retrieving value of \{name}. Assuming null");
+            LOGGER.info("error while retrieving value of "+name+". Assuming null");
             value = null;
         }
         return new Pair<>(name, value);

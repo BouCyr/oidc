@@ -10,6 +10,8 @@ import app.cbo.oidc.java.server.datastored.user.claims.Mail;
 import app.cbo.oidc.java.server.datastored.user.claims.Phone;
 import app.cbo.oidc.java.server.datastored.user.claims.Profile;
 import app.cbo.oidc.java.server.scan.Injectable;
+import app.cbo.oidc.java.server.scan.PackageScanner;
+import app.cbo.oidc.java.server.scan.Scanner;
 import app.cbo.oidc.java.server.scan.exceptions.DownStreamException;
 import app.cbo.oidc.java.server.scan.props.PropsProviders;
 import app.cbo.oidc.java.server.utils.Pair;
@@ -22,6 +24,8 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -42,17 +46,28 @@ public class EntryPoint {
 
         configureLogging();
 
+        var props = PropsProviders.fromArgs(args);
+
+        //Allow usage of a different classpathScanner
+        //We won't use the default one when running unit tests
+        var packageScanner = getScanner(props);
+
         //Read profile from the command line before starting the scanner
-        var profile = PropsProviders.fromArgs(args)
-                .stream().filter(pair ->pair.left().equals("profile"))
+        var profile = props.stream()
+                .filter(pair ->pair.left().equals("profile"))
                 .map(Pair::right)
                 .findAny().orElse(Injectable.DEFAULT);
-        LOGGER.info(STR."Using profile \{profile}");
+
+
+        LOGGER.info("Using profile "+profile);
 
 
 
         //scan the classpath for the server and its dependencies
-        var scanner = new app.cbo.oidc.java.server.scan.Scanner(profile,"app.cbo.oidc.java.server")
+        var scanner = new app.cbo.oidc.java.server.scan.Scanner(
+                    profile,
+                "app.cbo.oidc.java.server",
+                packageScanner)
                 //default
                 .withProperties(
                         List.of(
@@ -71,6 +86,45 @@ public class EntryPoint {
         LOGGER.info("Starting server");
         server.start();
         LOGGER.info("Started in " + Duration.ofNanos(System.nanoTime() - start).toMillis() + "ms");
+    }
+
+    private static Function<String, Set<Class<?>>> getScanner(List<Pair<String, String>> props)  {
+
+        var override = props.stream()
+                .filter(pair -> pair.left().equals("scanner"))
+                .map(Pair::right)
+                .findAny();
+
+        if(override.isPresent()) {
+            String scannerName = override.get();
+            Class<?> clazz = null;
+            try {
+                clazz = Class.forName(scannerName);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            var constructor = Stream.of(clazz.getDeclaredConstructors())
+                    .filter(ctor -> ctor.getParameterCount() == 0)
+                    .findFirst();
+
+            if (constructor.isEmpty()) {
+                throw new IllegalArgumentException("No default constructor found for " + scannerName);
+            }
+            Object instance;
+            try {
+                instance = constructor.get().newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException("Exception while building the PackageScannerBuilder");
+            }
+            if (instance instanceof PackageScanner psb) {
+                return psb;
+            } else {
+                throw new IllegalArgumentException("Class " + scannerName + " does not implement PackageScannerBuilder");
+            }
+        }else{
+            return Scanner::scanPackage;
+        }
+
     }
 
     private static void configureLogging() {
@@ -109,7 +163,7 @@ public class EntryPoint {
                     DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
             return
-                    STR."[\{dtt}][\{logRecord.getLevel()}][thread#\{logRecord.getLongThreadID()}][\{className}.\{logRecord.getSourceMethodName()}] : \{logRecord.getMessage()}\{System.lineSeparator()}";
+                    "["+dtt+"]["+logRecord.getLevel()+"][thread#"+logRecord.getLongThreadID()+"]["+className+"."+logRecord.getSourceMethodName()+"] : "+logRecord.getMessage()+""+System.lineSeparator();
 
         }
     }

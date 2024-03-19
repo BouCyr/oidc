@@ -2,7 +2,10 @@ package app.cbo.oidc.java.server.http.config;
 
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.http.PathCustomizer;
-import app.cbo.oidc.java.server.http.WithPath;
+import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.http.jwks.JWKSHandler;
+import app.cbo.oidc.java.server.http.token.TokenHandler;
+import app.cbo.oidc.java.server.http.userinfo.UserInfoHandler;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import app.cbo.oidc.java.server.scan.BuildWith;
 import app.cbo.oidc.java.server.scan.Injectable;
@@ -64,11 +67,11 @@ public class ConfigHandler implements HttpHandlerWithPath {
     public ConfigHandler(
             PathCustomizer pathCustomizer,
             Issuer myself,
-            WithPath authorizeHandler,
-            WithPath tokenHandler,
-            WithPath userInfoHandler,
+            AuthorizeHandler authorizeHandler,
+            TokenHandler tokenHandler,
+            UserInfoHandler userInfoHandler,
             //TODO [24/11/2023] LogoutHandler
-            WithPath jwksHandler
+            JWKSHandler jwksHandler
     ) {
         this.pathCustomizer = pathCustomizer;
         this.myself = myself;

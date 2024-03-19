@@ -44,16 +44,16 @@ public class FileStorage {
     }
 
     public static String toLine(String key, String val) {
-        return STR."\{key}:\{val}";
+        return key+":"+val;
     }
 
     public static Pair<String, String> fromLine(String line) {
         var key = line.split(":")[0];
         try {
-            var val = line.substring((STR."\{key}:").length());
+            var val = line.substring((key+":").length());
             return Pair.of(key, val);
         } catch (IndexOutOfBoundsException e) {
-            LOGGER.info(STR."invalid line : '\{line}'");
+            LOGGER.info("invalid line : '"+line);
             throw e;
         }
     }
@@ -93,7 +93,7 @@ public class FileStorage {
 
         try {
             var filePath = file(writeable);
-            LOGGER.info(STR."Opening reader on \{filePath.toAbsolutePath()}");
+            LOGGER.info("Opening reader on "+filePath.toAbsolutePath());
             return Optional.of(Files.newBufferedReader(filePath, StandardCharsets.UTF_8));
         } catch (FileNotFoundException | NoSuchFileException e) {
             LOGGER.info(String.format("File '%s' not found  %n", writeable.fileName()));
@@ -110,13 +110,13 @@ public class FileStorage {
      */
     public BufferedWriter writer(FileSpecification writeable) throws IOException {
         var filePath = file(writeable);
-        LOGGER.info(STR."Opening writer on \{filePath.toString()}");
+        LOGGER.info("Opening writer on "+filePath.toString());
         return Files.newBufferedWriter(filePath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.SYNC, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
     public void delete(FileSpecification file) throws IOException {
         var filePath = file(file);
-        LOGGER.info(STR."Deleting \{filePath.toString()}");
+        LOGGER.info("Deleting "+filePath.toString());
         Files.delete(filePath);
 
     }

@@ -1,25 +1,22 @@
 package app.cbo.oidc.java.server.credentials;
 
 import app.cbo.oidc.java.server.jsr305.NotNull;
+import app.cbo.oidc.java.server.scan.Injectable;
 
 import java.security.SecureRandom;
 
 /**
  * Generates securely a random byte array (used for TOTP secret generation)
  */
+@Injectable
 public class SecretGenerator {
 
     private static SecretGenerator instance = null;
 
-    private SecretGenerator(){ }
+    public SecretGenerator(){ }
 
-    @Deprecated
-    public static SecretGenerator getInstance() {
-        if(instance == null){
-            instance = new SecretGenerator();
-        }
-        return instance;
-    }
+
+
 
 
     private final SecureRandom secureRandom = new SecureRandom();

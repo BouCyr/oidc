@@ -149,7 +149,7 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
         kpg.initialize(2048);
         var kp = kpg.generateKeyPair();
         var dur = Duration.ofNanos(System.nanoTime() - start).toMillis();
-        LOGGER.info(STR."Generated new keypair in \{dur} ms;");
+        LOGGER.info("Generated new keypair in "+dur+" ms;");
         //randomize the kid, so we do not reuse a kid (if we did, a client could store the 'old' key value in some cache)
         return new KeyPair(true, KeyId.of(UUID.randomUUID().toString()), kp.getPrivate(), kp.getPublic());
     }

@@ -7,6 +7,7 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 public class DisplayLoginFormInteraction implements Interaction {
 
@@ -15,7 +16,7 @@ public class DisplayLoginFormInteraction implements Interaction {
     public DisplayLoginFormInteraction(String ongoingAuthId) {
 
 
-        this.payload = STR."""
+        this.payload = """
 <!DOCTYPE html>
                 <html>
                 <head>
@@ -29,7 +30,7 @@ public class DisplayLoginFormInteraction implements Interaction {
                 <div class="FORM ">
                     <h1>WELCOME</h1>
                     <form action="/login" class="container" method="POST">
-                        <input name="ongoing" type="hidden" value="\{ongoingAuthId}"/>
+                        <input name="ongoing" type="hidden" value="¤¤TOKEN¤¤"/>
                         <input id="totp" name="totp" type="hidden">
                         <label autocomplete="off" for="login">Username</label>
                         <input id="login" name="login"/>
@@ -89,7 +90,7 @@ function nextNumber(eltToFocus){
         </script>
     </body>
 </html>
- """;
+ """.replaceAll("¤¤TOKEN¤¤", ongoingAuthId!=null?ongoingAuthId: UUID.randomUUID().toString());
 
 
     }

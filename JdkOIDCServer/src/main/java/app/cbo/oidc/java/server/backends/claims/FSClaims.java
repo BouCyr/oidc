@@ -53,7 +53,7 @@ public record FSClaims(FileStorage fsUserStorage) implements Claims {
 
             Optional<Class<? extends ScopedClaims>> scopeClass = this.fromScopeToClass(requestedScope);
             if (scopeClass.isEmpty()) {
-                LOGGER.info(STR."Unrecognized scope : \{requestedScope}");
+                LOGGER.info("Unrecognized scope : "+requestedScope);
                 continue;
             }
 
@@ -62,7 +62,7 @@ public record FSClaims(FileStorage fsUserStorage) implements Claims {
                 map.ifPresent(vals -> result.putAll(this.readMap(vals, requestedScope)));
 
             } catch (IOException e) {
-                LOGGER.severe(STR."IOException while reading claims file '\{requestedScope}' for user with id '\{userId.get()}'");
+                LOGGER.severe("IOException while reading claims file '"+requestedScope+"' for user with id '"+userId.get()+"'");
             }
         }
 
@@ -106,7 +106,7 @@ public record FSClaims(FileStorage fsUserStorage) implements Claims {
                 case Profile p -> this.store(p);
                 case Mail p -> this.store(p);
                 case Address p -> this.store(p);
-                default -> LOGGER.info(STR."Unknown scopedClaim type :\{scoped.getClass().getSimpleName()}");
+                default -> LOGGER.info("Unknown scopedClaim type :"+scoped.getClass().getSimpleName());
             }
 
         }

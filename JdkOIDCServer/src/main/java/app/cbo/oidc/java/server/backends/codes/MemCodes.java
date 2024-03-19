@@ -103,6 +103,6 @@ public class MemCodes implements Codes {
             @NotNull ClientId clientId,
             @NotNull String redirectUri) {
 
-        return STR."\{code.getCode()}_by_\{clientId.getClientId()}_for_\{redirectUri}";
+        return code.getCode() + "_by_" + clientId.getClientId() + "_for_" + redirectUri;
     }
 }

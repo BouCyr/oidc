@@ -5,7 +5,6 @@ import app.cbo.oidc.java.server.scan.Injectable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * This class represents a memory-based client registry.
@@ -30,7 +29,10 @@ public class MemClientRegistry implements ClientRegistry{
      */
     @Override
     public boolean authenticate(String clientId, String clientSecret) {
-        return clients.getOrDefault(clientId, UUID.randomUUID().toString()).equals(clientSecret);
+
+        if(clientId == null)
+            return false;
+        return clients.getOrDefault(clientId, clientId).equals(clientSecret);
     }
 
     /**

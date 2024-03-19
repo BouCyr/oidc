@@ -104,7 +104,7 @@ class JSONWriter {
                 if (k instanceof String s) {
                     copyWithStringKeys.put(s, v);
                 } else {
-                    throw new JsonProcessingException(STR."Key should be strings ; found a :\{k.getClass().getSimpleName()}");
+                    throw new JsonProcessingException("Key should be strings ; found a "+k.getClass().getSimpleName());
                 }
             });
 
@@ -115,7 +115,7 @@ class JSONWriter {
             writeMap(wen.extranodes(), lines::add, breakSupplier);
         }
 
-        buffer.append(lines.stream().collect(Collectors.joining(STR.",\{breakSupplier.get()}")));
+        buffer.append(lines.stream().collect(Collectors.joining(","+breakSupplier.get())));
 
         buffer.append(breakSupplier.get()).append("}");
         return buffer.toString();

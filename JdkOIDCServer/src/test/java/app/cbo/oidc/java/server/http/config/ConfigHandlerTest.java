@@ -1,7 +1,12 @@
 package app.cbo.oidc.java.server.http.config;
 
 import app.cbo.oidc.java.server.TestHttpExchange;
+import app.cbo.oidc.java.server.backends.keys.MemKeySet;
 import app.cbo.oidc.java.server.http.PathCustomizer;
+import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
+import app.cbo.oidc.java.server.http.jwks.JWKSHandler;
+import app.cbo.oidc.java.server.http.token.TokenHandler;
+import app.cbo.oidc.java.server.http.userinfo.UserInfoHandler;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,11 +41,11 @@ class ConfigHandlerTest {
         var tested = new ConfigHandler(
                 new PathCustomizer.Noop(),
                 Issuer.of("http://oidc.cbo.app"),
-                () -> "http://oidc.cbo.app/auth",
-                () -> "http://oidc.cbo.app/token",
-                () -> "http://oidc.cbo.app/userinfo",
+                new AuthorizeHandler(null, null),
+                new TokenHandler(null),
+                new UserInfoHandler(null),
 //                () -> "http://oidc.cbo.app/logout",
-                () -> "http://oidc.cbo.app/jwks");
+                new JWKSHandler(new MemKeySet()));
 
 
         var req = TestHttpExchange.simpleGet();
@@ -65,7 +70,7 @@ class ConfigHandlerTest {
         assertThat(conf).isNotNull();
 
         checkNode(conf, "issuer", "http://oidc.cbo.app");
-        checkNode(conf, "authorization_endpoint", "http://oidc.cbo.app/auth");
+        checkNode(conf, "authorization_endpoint", "http://oidc.cbo.app/authorize");
         checkNode(conf, "token_endpoint", "http://oidc.cbo.app/token");
         checkNode(conf, "userinfo_endpoint", "http://oidc.cbo.app/userinfo");
         checkNode(conf, "end_session_endpoint", "http://oidc.cbo.app/logout");

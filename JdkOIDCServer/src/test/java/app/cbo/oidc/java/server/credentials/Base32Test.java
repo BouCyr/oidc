@@ -10,7 +10,7 @@ class Base32Test {
     @Test
     void encode() {
 
-        byte[] data = SecretGenerator.getInstance().generateSecret();
+        byte[] data = new SecretGenerator().generateSecret();
         String mine = Base32.encode(data);
         String theirs = new org.apache.commons.codec.binary.Base32().encodeAsString(data);
 
@@ -21,7 +21,7 @@ class Base32Test {
     @Test
     void decode() {
 
-        byte[] data = SecretGenerator.getInstance().generateSecret();
+        byte[] data = new SecretGenerator().generateSecret();
         String asb64 = Base64.getEncoder().encodeToString(data);
 
 

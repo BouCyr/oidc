@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -50,10 +51,14 @@ public class Scanner {
     private final Map<ClassId<?>, Object> instances = new HashMap<>();
 
 
+
     public Scanner(String profile, String basePackage) throws IOException {
+        this(profile, basePackage, Scanner::scanPackage);
+    }
+    public Scanner(String profile, String basePackage, Function<String, Set<Class<?>>> packageScanner) throws IOException {
         this.profile = profile;
 
-        this.classes = scanPackage(basePackage);
+        this.classes = packageScanner.apply(basePackage);//scanPackage(basePackage);
     }
 
     public Scanner(String basePackage) throws IOException {
@@ -61,12 +66,17 @@ public class Scanner {
     }
 
 
-    static Set<Class<?>> scanPackage(String packageName) throws IOException {
+    public static Set<Class<?>> scanPackage(String packageName)  {
 
         LOGGER.info("Scanning " + packageName);
-        InputStream stream = ClassLoader.getSystemClassLoader().getResourceAsStream(packageName.replaceAll("[.]", "/"));
+
+        var sysTemClassLoader = ClassLoader.getSystemClassLoader();
 
         Set<Class<?>> classes = new HashSet<>();
+
+
+        InputStream stream = sysTemClassLoader.getResourceAsStream(packageName.replaceAll("[.]", "/"));
+
         assert stream != null;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
 
@@ -80,6 +90,8 @@ public class Scanner {
                     classes.addAll(scanPackage(packageName + "." + line));
                 }
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         return classes;
     }

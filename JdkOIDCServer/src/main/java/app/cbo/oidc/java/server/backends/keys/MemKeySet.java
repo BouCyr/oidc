@@ -42,14 +42,13 @@ public class MemKeySet implements KeySet {
             kpg.initialize(2048);
             var kp = kpg.generateKeyPair();
             var dur = Duration.ofNanos(System.nanoTime() - start).toMillis();
-            LOGGER.info(STR."Generated new keypair in \{dur} ms;");
 
             //randomize the kid, so we do not reuse a kid (if we did, a client could store the 'old' key value in some cache)
             this.currentKp = KeyId.of(UUID.randomUUID().toString());
             this.pairs.put(currentKp.get(), kp);
 
         } catch (NoSuchAlgorithmException e) {
-            LOGGER.severe(STR."NoSuchAlgorithmException when building keyset : \{e.getMessage()}");
+            LOGGER.severe("NoSuchAlgorithmException when building keyset : "+e.getMessage());
             throw new RuntimeException(e);
         }
     }

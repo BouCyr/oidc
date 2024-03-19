@@ -14,6 +14,6 @@ public class KeycloakPathCustomizer implements PathCustomizer {
     }
 
     public String customize(String basePath){
-        return STR."/realms/\{realmName}\{basePath}";
+        return "/realms/"+realmName+basePath;
     }
 }

@@ -69,13 +69,13 @@ public class FsClientRegistry implements ClientRegistry {
 
         boolean result = false;
         if(this.configured.containsKey(clientId)){
-            LOGGER.info(STR."Client '\{clientId}' is defined in the registry");
+            LOGGER.info("Client '"+clientId+"' is defined in the registry");
             result =  this.configured.get(clientId).equals(clientSecret);
         }else{
-            LOGGER.info(STR."Client '\{clientId}' is NOT defined in the registry ; checking if clientId and secret are equles");
+            LOGGER.info("Client '"+clientId+"' is NOT defined in the registry ; checking if clientId and secret are equals");
             result = !Utils.isEmpty(clientId) && clientId.equals(clientSecret);
         }
-        LOGGER.info(STR."Client authentication result : \{result ? "OK" : "KO"} for client '\{clientId}'");
+        LOGGER.info("Client authentication result : "+(result ? "OK" : "KO")+" for client '"+clientId+"'");
         return result;
 
     }
@@ -114,9 +114,9 @@ public class FsClientRegistry implements ClientRegistry {
         }
         this.configured = readFromFs();
         if(isAReplacement) {
-            LOGGER.info(STR."Client '\{clientId}' has been updated with secret '\{clientSecret}'");
+            LOGGER.info("Client '"+clientId+"' has been updated with secret '"+clientSecret+"'");
         } else {
-            LOGGER.info(STR."Client '\{clientId}' has been registered with secret '\{clientSecret}'");
+            LOGGER.info("Client '"+clientId+"' has been registered with secret '"+clientSecret+"'");
         }
     }
 }

@@ -51,7 +51,7 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
         try {
             contents = this.userDataFileStorage().readMap(file).orElseThrow(() -> new IOException("File not found"));
         } catch (IOException e) {
-            LOGGER.info(STR."File not found for code \{code.getCode()}");
+            LOGGER.info("File not found for code "+code.getCode());
             return Optional.empty();
         }
 
