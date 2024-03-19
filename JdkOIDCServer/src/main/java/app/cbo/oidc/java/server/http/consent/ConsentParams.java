@@ -25,14 +25,6 @@ public record ConsentParams(Set<String> scopesRequested,
     public static final String ONGOING = "ongoing";
     public static final String BACK = "backFromForm";
 
-    public ConsentParams(Set<String> scopesRequested, boolean consentGiven, String clientId, AuthorizeParams ongoing, boolean backFromForm) {
-        this.scopesRequested = scopesRequested;
-        this.consentGiven = consentGiven;
-        this.clientId = clientId;
-        this.ongoing = ongoing;
-        this.backFromForm = backFromForm;
-    }
-
     public ConsentParams(@NotNull OngoingAuthsFinder finder, @NotNull Map<String, Collection<String>> params) throws AuthErrorInteraction {
         this(
                 singleParam(params.get(SCOPES_REQUESTED))

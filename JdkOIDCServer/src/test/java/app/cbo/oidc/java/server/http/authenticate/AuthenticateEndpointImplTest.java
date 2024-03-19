@@ -10,7 +10,11 @@ import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.authorize.AuthorizeParams;
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +44,20 @@ class AuthenticateEndpointImplTest {
         final AtomicReference<User> loggedIn = new AtomicReference<>();
 
 
+        AuthenticateEndpointImpl tested = createAuthEndpoint(loggedIn, modes);
+
+        tested.treatRequest(Map.of("login", List.of("bob")));
+
+        assertThat(loggedIn)
+                .hasValueMatching(u -> u.getUserId().equals(UserId.of("bob")));
+        assertThat(modes)
+                .isNotEmpty()
+                .containsExactly(AuthenticationMode.DECLARATIVE);
+
+
+    }
+
+    private static AuthenticateEndpointImpl createAuthEndpoint(AtomicReference<User> loggedIn, EnumSet<AuthenticationMode> modes) {
         var memUSers = new MemUsers(p -> p);
         AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
                 key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
@@ -54,16 +72,7 @@ class AuthenticateEndpointImplTest {
                 },
                 (provided, storedEncoded) -> true
         );
-
-        tested.treatRequest(Map.of("login", List.of("bob")));
-
-        assertThat(loggedIn)
-                .hasValueMatching(u -> u.getUserId().equals(UserId.of("bob")));
-        assertThat(modes)
-                .isNotEmpty()
-                .containsExactly(AuthenticationMode.DECLARATIVE);
-
-
+        return tested;
     }
 
     @Test

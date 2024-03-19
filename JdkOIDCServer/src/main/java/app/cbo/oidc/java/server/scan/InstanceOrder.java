@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 
 /**
- * When several implementations are required in a LIST in a @Injectable constructor, this will be used to order them
+ * When several implementations are required in a LIST in an @Injectable constructor, this will be used to order them
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

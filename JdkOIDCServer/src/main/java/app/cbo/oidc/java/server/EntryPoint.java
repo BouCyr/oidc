@@ -97,7 +97,7 @@ public class EntryPoint {
 
         if(override.isPresent()) {
             String scannerName = override.get();
-            Class<?> clazz = null;
+            Class<?> clazz;
             try {
                 clazz = Class.forName(scannerName);
             } catch (ClassNotFoundException e) {
@@ -163,7 +163,7 @@ public class EntryPoint {
                     DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
             return
-                    "["+dtt+"]["+logRecord.getLevel()+"][thread#"+logRecord.getLongThreadID()+"]["+className+"."+logRecord.getSourceMethodName()+"] : "+logRecord.getMessage()+""+System.lineSeparator();
+                    "["+dtt+"]["+logRecord.getLevel()+"][thread#"+logRecord.getLongThreadID()+"]["+className+"."+logRecord.getSourceMethodName()+"] : "+logRecord.getMessage()+System.lineSeparator();
 
         }
     }
@@ -195,9 +195,9 @@ public class EntryPoint {
                 "Charles",
                 "cbo",
                 "cbo@cbo.app",
-                "http://profile.cbo.app/me", //URL
-                "http://profile.cbo.app/picture", //URL
-                "http://profile.cbo.app/", //URL
+                "https://profile.cbo.app/me", //URL
+                "https://profile.cbo.app/picture", //URL
+                "https://profile.cbo.app/", //URL
                 "mind your business",
                 "1982-11-29",
                 "Europe/Paris",

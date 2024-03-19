@@ -44,7 +44,7 @@ class StaticResourceHandlerTest {
                 .containsKey("content-type");
         assertThat(req.getResponseHeaders().get("content-type"))
                 .hasSize(1);
-        assertThat(req.getResponseHeaders().get("content-type").get(0))
+        assertThat(req.getResponseHeaders().get("content-type").getFirst())
                 .isEqualTo("text/css");
 
 
@@ -71,7 +71,7 @@ class StaticResourceHandlerTest {
                 .containsKey("content-type");
         assertThat(req.getResponseHeaders().get("content-type"))
                 .hasSize(1);
-        assertThat(req.getResponseHeaders().get("content-type").get(0))
+        assertThat(req.getResponseHeaders().get("content-type").getFirst())
                 .isEqualTo("image/svg+xml");
 
 

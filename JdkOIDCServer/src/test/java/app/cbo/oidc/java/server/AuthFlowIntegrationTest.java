@@ -42,7 +42,7 @@ public class AuthFlowIntegrationTest {
     private static final String SCHEME = "http://";
     private static final String DOMAIN = "localhost";
 
-    private static final String ROOT(int PORT) {
+    private static String ROOT(int PORT) {
         return SCHEME + DOMAIN + ":" + PORT;
     }
 
@@ -95,7 +95,7 @@ public class AuthFlowIntegrationTest {
     }
 
     static HttpResponse<String> submitCredentialsAndRedirectToConsents(int PORT, String userName, HttpClient browser, HttpResponse<String> loginPage) throws IOException, InterruptedException, URISyntaxException, OutsideRedirect {
-        var totp = TOTP.get("ALBACORE"); //[05/04/2023] should you an external way to generate TOTP
+        var totp = TOTP.get("ALBACORE");
         var loginOngoings = QueryStringParser.from(loginPage.uri().getQuery()).get("ongoing");
         assertThat(loginOngoings)
                 .isNotNull()
@@ -150,7 +150,7 @@ public class AuthFlowIntegrationTest {
     }
 
     @Test
-    public void authorizationFlow() throws IOException, URISyntaxException, InterruptedException, OutsideRedirect, JOSEException, DownStreamException {
+    void authorizationFlow() throws IOException, URISyntaxException, InterruptedException, OutsideRedirect, JOSEException, DownStreamException {
         int PORT = 4546;
         EntryPoint.main("profile=mem",
                 "port=" + PORT,

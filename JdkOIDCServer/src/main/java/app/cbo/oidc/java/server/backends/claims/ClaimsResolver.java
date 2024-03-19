@@ -12,7 +12,7 @@ public interface ClaimsResolver {
     /**
      * For a list of requested scope, returns the user info in the form of Map (with field name as string, and the value as a String or Number, except for Address)
      *
-     * @param userId          the user being requested/autehnticated
+     * @param userId          the user being requested/authenticated
      * @param requestedScopes the list of requested scopes (for id_token/userinfo contents)
      * @return a Map, pretty much ready for JSON serialization
      */

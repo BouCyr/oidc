@@ -20,21 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ConfigHandlerTest {
 
-    ////FIXME [a118608][13/03/2024] 
-//    @Test
-//    void path() {
-//
-//        var tested = new ConfigHandler(
-//                new PathCustomizer(),
-//                null,
-//                null,
-//                null,
-//                null,
-//                null,
-//                null);
-//
-//        Assertions.assertThat(tested.path()).isEqualTo(ConfigHandler.CONFIG_ENDPOINT);
-//    }
+
 
     @Test
     void handle() throws IOException {
@@ -61,7 +47,7 @@ class ConfigHandlerTest {
                 .containsKey("content-type");
         assertThat(req.getResponseHeaders().get("content-type"))
                 .hasSize(1);
-        assertThat(req.getResponseHeaders().get("content-type").get(0))
+        assertThat(req.getResponseHeaders().get("content-type").getFirst())
                 .isEqualTo("application/json");
 
         var conf = new ObjectMapper().reader().readTree(json);

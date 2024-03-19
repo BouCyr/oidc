@@ -70,9 +70,8 @@ public class Scanner {
      * @param profile any class annotated with @Injectable will be considered only if it has the same value as profile
      * @param basePackage where the implementations will be searched
      * @param packageScanner a function that will scan the package and return the classes found
-     * @throws IOException classLoader issues
      */
-    public Scanner(String profile, String basePackage, Function<String, Set<Class<?>>> packageScanner) throws IOException {
+    public Scanner(String profile, String basePackage, Function<String, Set<Class<?>>> packageScanner) {
         this.profile = profile;
 
         this.classes = packageScanner.apply(basePackage);//scanPackage(basePackage);
@@ -101,7 +100,7 @@ public class Scanner {
     /**
      * Homegrown package scanner
      * @param packageName where the implementations will be searched
-     * @return list of classes found in the package and its subpackages
+     * @return Set of classes found in the package and its subpackages
      */
     public static Set<Class<?>> scanPackage(String packageName)  {
 
@@ -145,7 +144,7 @@ public class Scanner {
 
     /**
      * Return the implementation for a class
-     * @param dependency
+     * @param dependency class to be instanciated
      * @return implementation
      * @param <T> type of the dependency
      * @throws DownStreamException when a dep of the dep cannot be built

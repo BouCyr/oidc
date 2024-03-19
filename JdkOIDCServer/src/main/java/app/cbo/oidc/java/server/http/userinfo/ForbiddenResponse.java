@@ -98,7 +98,7 @@ public class ForbiddenResponse extends Exception implements Interaction {
         /*
         400 invalid request
         401 Unauthorized -> authentication required
-        403 Forbidden    -> i know you are, but you have insufficient rights
+        403 Forbidden    -> I know who you are, but you have insufficient rights
         405 Method Not Allowed
 
          */

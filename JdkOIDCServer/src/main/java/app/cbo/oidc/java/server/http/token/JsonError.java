@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
  * 3.1.3.4.  Token Error Response
  * The HTTP response body uses the application/json media type with HTTP response code of 400.
  *
+ * <p>
  * <code>
  * HTTP/1.1 400 Bad Request
  * Content-Type: application/json
@@ -23,6 +24,7 @@ import java.nio.charset.StandardCharsets;
  * "error": "invalid_request"
  * }
  * </code>
+ * </p>
  */
 public class JsonError extends Exception implements Interaction {
 

@@ -20,11 +20,11 @@ import java.util.Optional;
  *                  <p>
  *                  <p>
  *                  rq: aud/azp is quite confusing
- *                  cf. https://bitbucket.org/openid/connect/issues/973/
+ *                  cf. <a href="https://bitbucket.org/openid/connect/issues/973/">...</a>
  *                  <p>
  *                  When present, 'azp' should always contains the clientId that requested the ID token
  *                  'aud' should always contain the list of clients that can consume the ID token, INCLUDING the 'azp'
- *                  BUT if there is only only allowed client id 'aud', 'azp' will be assumed as equal to this client id and may be omitted
+ *                  BUT if there is only one allowed client id 'aud', 'azp' will be assumed as equal to this client id and may be omitted
  *                  BUT if there is both 'azp' and 'aud', and if 'aud' contains one and only one clientId that is not equal to 'azp', then 'azp' should be considered as part of 'aud' anyway
  *                  <p>
  *

@@ -42,7 +42,7 @@ public class JWTAccessTokenValidator implements AccessTokenValidator {
         var b64Payload = parts[1];
         var signature = parts[2];
 
-        // Warning ; b64 encoding is not perfectly standard in the case of JWT/OIDC ('=' padding was removed)
+        // Warning ; b64 encoding is not perfectly standard in the case of JWT/OIDC ( '=' padding was removed )
         var payloadBytes = JWS.base64urldecode(b64Payload);
         var payload = new String(payloadBytes);
         var decodedPayload = AccessOrRefreshToken.fromJson(payload);

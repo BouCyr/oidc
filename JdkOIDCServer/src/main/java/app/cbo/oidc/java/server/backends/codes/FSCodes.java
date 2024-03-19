@@ -47,7 +47,7 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
 
         var file = FileSpecifications.in("codes", clientId.get())
                 .fileName(code.getCode());
-        Map<String, String> contents = null;
+        Map<String, String> contents;
         try {
             contents = this.userDataFileStorage().readMap(file).orElseThrow(() -> new IOException("File not found"));
         } catch (IOException e) {

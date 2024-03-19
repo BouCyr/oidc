@@ -4,7 +4,11 @@ import app.cbo.oidc.java.server.scan.ClassId;
 import app.cbo.oidc.java.server.scan.exceptions.UnknownPropertyType;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -58,22 +62,14 @@ public class Properties {
                 .orElseThrow(() -> new UnknownPropertyType(target));
     }
 
-    private static class Mapper<U> {
-
-        private final ClassId<U> clss;
-        private final Function<String, U> converter;
-
-        public Mapper(ClassId<U> clss, Function<String, U> converter) {
-            this.clss = clss;
-            this.converter = converter;
-        }
+    private record Mapper<U>(ClassId<U> clss, Function<String, U> converter) {
 
         public ClassId<U> getTargetClass() {
-            return clss;
-        }
+                return clss;
+            }
 
-        public U convert(String value) {
-            return this.converter.apply(value);
+            public U convert(String value) {
+                return this.converter.apply(value);
+            }
         }
-    }
 }

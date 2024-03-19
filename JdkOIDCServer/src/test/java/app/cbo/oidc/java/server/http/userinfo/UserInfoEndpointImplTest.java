@@ -101,7 +101,7 @@ class UserInfoEndpointImplTest {
     }
 
     @Test
-    void treatRequest_sub_differ() throws IOException {
+    void treatRequest_sub_differ() {
 
         var tested = new UserInfoEndpointImpl(
                 (userId, requestedScopes) -> Map.of(

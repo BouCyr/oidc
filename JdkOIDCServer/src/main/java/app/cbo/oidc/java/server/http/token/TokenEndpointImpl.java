@@ -10,7 +10,6 @@ import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Code;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.Interaction;
-import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
 import app.cbo.oidc.java.server.json.JSON;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
@@ -70,7 +69,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
 
     @Override
     @NotNull
-    public Interaction treatRequest(@NotNull TokenParams params, @Nullable String authClientId, @Nullable String clientSecret) throws JsonError, ForbiddenResponse {
+    public Interaction treatRequest(@NotNull TokenParams params, @Nullable String authClientId, @Nullable String clientSecret) {
         /*
         The Authorization Server MUST validate the Token Request as follows:
 

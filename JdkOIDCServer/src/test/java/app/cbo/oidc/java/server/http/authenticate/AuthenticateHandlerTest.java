@@ -101,7 +101,7 @@ class AuthenticateHandlerTest {
         assertThat(req.getResponseHeaders().get("location"))
                 .isNotEmpty()
                 .hasSize(1);
-        assertThat(req.getResponseHeaders().get("location").get(0))
+        assertThat(req.getResponseHeaders().get("location").getFirst())
                 .isNotEmpty()
                 .startsWith("http://client.cbo.app")
                 .contains("state=STATE")

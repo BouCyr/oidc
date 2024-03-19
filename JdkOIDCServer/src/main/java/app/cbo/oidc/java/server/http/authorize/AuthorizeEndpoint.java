@@ -189,12 +189,12 @@ public class AuthorizeEndpoint {
         // the Authorization Response MUST return the parameters defined in Section 4.1.2 of OAuth 2.0
 
         if (originalParams.redirectUri().isEmpty()) {
-            //should not happens here, but...
+            //should not happen here, but...
             return new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Missing redirect_uri");
         }
         if (originalParams.clientId().isEmpty()) {
-            //should not happens here, but...
-            return new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Missing clientid");
+            //should not happen here, but...
+            return new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Missing clientId");
         }
 
 
@@ -222,7 +222,7 @@ public class AuthorizeEndpoint {
 
     private ImplicitFlowSuccessInteraction implicitFlowSuccess(User user, AuthorizeParams originalParams, Session session) {
         var clock = Clock.systemUTC();
-        //TODO [26/05/2023] extract idtoken generation, clock handling and keyset mgt in a dedicated service (done twice here & code endpoint)
+        //TODO [26/05/2023] extract idToken generation, clock handling and keyset mgt in a dedicated service (done twice here & code endpoint)
         var idToken = new IdToken(
                 user.sub(),
                 this.myself.getIssuerId(),

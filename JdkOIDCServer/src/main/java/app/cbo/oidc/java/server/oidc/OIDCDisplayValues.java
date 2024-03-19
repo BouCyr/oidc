@@ -9,7 +9,7 @@ import app.cbo.oidc.java.server.utils.EnumValuesHelper;
  * -popup : The Authorization Server SHOULD display the authentication and consent UI consistent with a popup User Agent window. The popup User Agent window should be of an appropriate size for a login-focused dialog and should not obscure the entire window that it is popping up over.
  * -touch : The Authorization Server SHOULD display the authentication and consent UI consistent with a device that leverages a touch interface.
  * -wap : The Authorization Server SHOULD display the authentication and consent UI consistent with a "feature phone" type display.
- *
+ * <p>
  * The Authorization Server MAY also attempt to detect the capabilities of the User Agent and present an appropriate display.
  */
 public enum OIDCDisplayValues implements EnumValuesHelper.ParamEnum {

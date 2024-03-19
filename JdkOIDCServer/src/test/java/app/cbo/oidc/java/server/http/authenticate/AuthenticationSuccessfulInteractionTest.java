@@ -28,13 +28,13 @@ class AuthenticationSuccessfulInteractionTest {
 
         Assertions.assertThat(req.getResponseHeaders()).containsKey("location");
         Assertions.assertThat(req.getResponseHeaders().get("location")).hasSize(1);
-        Assertions.assertThat(req.getResponseHeaders().get("location").get(0))
+        Assertions.assertThat(req.getResponseHeaders().get("location").getFirst())
                 .startsWith(AuthorizeHandler.AUTHORIZE_ENDPOINT)
                 .contains("state=STATE");
 
         Assertions.assertThat(req.getResponseHeaders()).containsKey("set-cookie");
         Assertions.assertThat(req.getResponseHeaders().get("set-cookie")).hasSize(1);
-        Assertions.assertThat(req.getResponseHeaders().get("set-cookie").get(0))
+        Assertions.assertThat(req.getResponseHeaders().get("set-cookie").getFirst())
                 .isEqualTo("sessionId=my_sessionId; Secure; Path=/");
 
 

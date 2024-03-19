@@ -5,7 +5,10 @@ import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -89,7 +92,7 @@ public class TestHttpExchange extends HttpExchange {
     }
 
     @Override
-    public void sendResponseHeaders(int rCode, long responseLength) throws IOException {
+    public void sendResponseHeaders(int rCode, long responseLength) {
 
         this.statuscode = rCode;
         this.responseLength = responseLength;

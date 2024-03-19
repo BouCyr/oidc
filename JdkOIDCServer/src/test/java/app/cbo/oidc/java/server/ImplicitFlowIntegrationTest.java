@@ -26,19 +26,19 @@ public class ImplicitFlowIntegrationTest {
     private static final String SCHEME = "http://";
     private static final String DOMAIN = "localhost";
 
-    private static final String ROOT(int PORT) {
+    private static String ROOT(int PORT) {
         return SCHEME + DOMAIN + ":" + PORT;
     }
 
 
     @BeforeAll
-    static void startup() throws IOException {
+    static void startup() {
 
     }
 
     @Test
     @Disabled
-    public void implicitFlowWithoutAccessToken() throws IOException, URISyntaxException, InterruptedException, AuthFlowIntegrationTest.OutsideRedirect, JOSEException, DownStreamException {
+    void implicitFlowWithoutAccessToken() throws IOException, URISyntaxException, InterruptedException, AuthFlowIntegrationTest.OutsideRedirect, JOSEException, DownStreamException {
 
         int PORT = 4547;
         EntryPoint.main("port=" + PORT, "backend=mem");
@@ -78,7 +78,7 @@ public class ImplicitFlowIntegrationTest {
 
     @Test
     @Disabled
-    public void implicitFlowWithAccessToken() throws IOException, URISyntaxException, InterruptedException, AuthFlowIntegrationTest.OutsideRedirect, JOSEException, DownStreamException {
+    void implicitFlowWithAccessToken() throws IOException, URISyntaxException, InterruptedException, AuthFlowIntegrationTest.OutsideRedirect, JOSEException, DownStreamException {
 
         int PORT = 4548;
         EntryPoint.main("port=" + PORT, "backend=mem");

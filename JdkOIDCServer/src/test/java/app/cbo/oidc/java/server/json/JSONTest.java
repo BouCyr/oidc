@@ -5,7 +5,11 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -272,15 +276,15 @@ class JSONTest {
                 .isEmpty();
     }
 
-    public static record WithOptional(int anInt, Optional<String> maybeAString) {
+    public record WithOptional(int anInt, Optional<String> maybeAString) {
 
     }
 
-    public static record WithArray(int[] ints) {
+    public record WithArray(int[] ints) {
 
     }
 
-    public static record WithChar(char payload) {
+    public record WithChar(char payload) {
     }
 
     public static class Throwing {
@@ -305,19 +309,19 @@ class JSONTest {
         }
     }
 
-    public static record FlatRecord(int integer, String myString) {
+    public record FlatRecord(int integer, String myString) {
     }
 
-    public static record MasterRecord(float integer, String myString, FlatRecord sub) {
+    public record MasterRecord(float integer, String myString, FlatRecord sub) {
     }
 
-    public static record WithListRecord(float integer, String myString, Collection<FlatRecord> subs) {
+    public record WithListRecord(float integer, String myString, Collection<FlatRecord> subs) {
     }
 
-    public static record WithListOfString(Collection<String> strings) {
+    public record WithListOfString(Collection<String> strings) {
     }
 
-    public static record WithMapRecord(float integer, String myString, Map<String, FlatRecord> subs) {
+    public record WithMapRecord(float integer, String myString, Map<String, FlatRecord> subs) {
     }
 
 

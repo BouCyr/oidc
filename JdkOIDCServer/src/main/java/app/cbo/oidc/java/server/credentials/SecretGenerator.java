@@ -10,16 +10,9 @@ import java.security.SecureRandom;
  */
 @Injectable
 public class SecretGenerator {
-
-    private static SecretGenerator instance = null;
+    private final SecureRandom secureRandom = new SecureRandom();
 
     public SecretGenerator(){ }
-
-
-
-
-
-    private final SecureRandom secureRandom = new SecureRandom();
 
     @NotNull public byte[] generateSecret(){
         return this.generateSecret(160/8);

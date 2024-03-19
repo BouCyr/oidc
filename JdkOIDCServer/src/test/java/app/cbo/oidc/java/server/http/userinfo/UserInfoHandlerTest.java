@@ -12,9 +12,7 @@ class UserInfoHandlerTest {
 
     @Test
     void path() {
-        Interaction emptyInteraction = exchange -> {
-            exchange.sendResponseHeaders(200, 0);
-        };
+        Interaction emptyInteraction = exchange -> exchange.sendResponseHeaders(200, 0);
         UserInfoEndpoint mock = accessToken -> emptyInteraction;
         var tested = new UserInfoHandler(mock);
 
@@ -23,9 +21,7 @@ class UserInfoHandlerTest {
 
     @Test
     void handle_no_access_token() throws IOException {
-        Interaction emptyInteraction = exchange -> {
-            exchange.sendResponseHeaders(200, 0);
-        };
+        Interaction emptyInteraction = exchange -> exchange.sendResponseHeaders(200, 0);
 
         UserInfoEndpoint mock = accessToken -> emptyInteraction;
         var tested = new UserInfoHandler(mock);
@@ -40,9 +36,7 @@ class UserInfoHandlerTest {
 
     @Test
     void handle_with_access_token() throws IOException {
-        Interaction emptyInteraction = exchange -> {
-            exchange.sendResponseHeaders(4999, 0);
-        };
+        Interaction emptyInteraction = exchange -> exchange.sendResponseHeaders(4999, 0);
 
         UserInfoEndpoint mock = accessToken -> emptyInteraction;
         var tested = new UserInfoHandler(mock);

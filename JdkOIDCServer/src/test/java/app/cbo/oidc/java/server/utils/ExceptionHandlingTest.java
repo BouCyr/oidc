@@ -3,8 +3,6 @@ package app.cbo.oidc.java.server.utils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.stream.Collectors;
-
 class ExceptionHandlingTest {
 
     @Test
@@ -14,7 +12,7 @@ class ExceptionHandlingTest {
             this.thrower();
         }catch(Exception e) {
             var stack = ExceptionHandling.getStackTrace(e);
-            var lines = stack.lines().collect(Collectors.toList());
+            var lines = stack.lines().toList();
             /*
     java.lang.RuntimeException: BLAM
 	at app.cbo.oidc.java.server.utils.ExceptionHandlingTest.thrower(ExceptionHandlingTest.java:28)

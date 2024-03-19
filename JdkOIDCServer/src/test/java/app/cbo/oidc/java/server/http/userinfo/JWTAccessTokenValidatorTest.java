@@ -44,7 +44,7 @@ class JWTAccessTokenValidatorTest {
     }
 
     @Test
-    void invalid_jwt() throws ForbiddenResponse {
+    void invalid_jwt() {
 
         var keyset = new MemKeySet();
         var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
@@ -62,7 +62,7 @@ class JWTAccessTokenValidatorTest {
     }
 
     @Test
-    void wrong_typ() throws ForbiddenResponse {
+    void wrong_typ() {
 
         var keyset = new MemKeySet();
         var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
@@ -90,7 +90,7 @@ class JWTAccessTokenValidatorTest {
     }
 
     @Test
-    void expired_jwt() throws ForbiddenResponse {
+    void expired_jwt() {
 
         var keyset = new MemKeySet();
         var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
@@ -119,7 +119,7 @@ class JWTAccessTokenValidatorTest {
     }
 
     @Test
-    void wrong_issuer() throws ForbiddenResponse {
+    void wrong_issuer() {
 
         var keyset = new MemKeySet();
         var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);

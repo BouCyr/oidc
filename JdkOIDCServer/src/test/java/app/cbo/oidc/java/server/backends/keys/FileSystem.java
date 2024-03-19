@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
-public class FS extends KeySetTest {
+public class FileSystem extends KeySetTest {
 
     Path folder;
     FileStorage storage;

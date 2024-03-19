@@ -77,7 +77,7 @@ class TokenEndpointImplTest {
         assertThatNoException().isThrownBy(() -> new ObjectMapper().reader().readTree(req.getResponseBodyBytes()));
         assertThat(req.getResponseHeaders()).containsKey("Content-Type");
         assertThat(req.getResponseHeaders().get("Content-Type")).hasSize(1);
-        assertThat(req.getResponseHeaders().get("Content-Type").get(0)).isEqualTo("application/json");
+        assertThat(req.getResponseHeaders().get("Content-Type").getFirst()).isEqualTo("application/json");
     }
 
     @Test

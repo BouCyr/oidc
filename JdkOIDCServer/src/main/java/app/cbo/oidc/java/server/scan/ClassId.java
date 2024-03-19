@@ -1,11 +1,13 @@
 package app.cbo.oidc.java.server.scan;
 
+import java.util.Objects;
+
 public class ClassId<U> {
     private final String id;
 
 
-    public ClassId(Class<U> clss) {
-        this.id = clss.getCanonicalName();
+    public ClassId(Class<U> clazz) {
+        this.id = clazz.getCanonicalName();
     }
 
     public static <U> ClassId<U> of(Class<U> implementation) {
@@ -23,7 +25,7 @@ public class ClassId<U> {
 
         ClassId<?> classId = (ClassId<?>) o;
 
-        return id != null ? id.equals(classId.id) : classId.id == null;
+        return Objects.equals(id, classId.id);
     }
 
     @Override

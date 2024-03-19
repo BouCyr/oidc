@@ -4,7 +4,12 @@ import app.cbo.oidc.java.server.jwt.JWA;
 import org.assertj.core.api.Assertions;
 
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +49,14 @@ class KeySetTest {
             Assertions.fail("Verification failed");
             return;
         }
+        try {
+            boolean cool = verify(pub.get(), payloadTwo, sigTwo);
+            assertThat(cool)
+                    .isTrue();
+        } catch (Exception e) {
+            Assertions.fail("Verification failed");
+            return;
+        }
 
         keyset.rotate();
 
@@ -66,8 +79,7 @@ class KeySetTest {
         Signature privateSignature = Signature.getInstance(JWA.RS256.javaName());
         privateSignature.initVerify(pub);
         privateSignature.update(payload.getBytes(StandardCharsets.UTF_8));
-        var cool = privateSignature.verify(sigOne);
-        return cool;
+        return privateSignature.verify(sigOne);
     }
 
     private byte[] sign(PrivateKey priv, String payload) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {

@@ -6,7 +6,6 @@ import app.cbo.oidc.java.server.json.JSON;
 /**
  * Address claim take the form of "address": [JSON OBJECT]
  * <p>
- * Th
  */
 public record Address(UserId userId, String address) implements ScopedClaims {
 
@@ -25,12 +24,12 @@ public record Address(UserId userId, String address) implements ScopedClaims {
         return "address";
     }
 
-    public static record AddressPayload(String formatted,
-                                        String street_address,
-                                        String locality,
-                                        String region,
-                                        String postal_code,
-                                        String country) {
+    public record AddressPayload(String formatted,
+                                 String street_address,
+                                 String locality,
+                                 String region,
+                                 String postal_code,
+                                 String country) {
 
     }
 }

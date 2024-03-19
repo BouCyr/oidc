@@ -8,7 +8,11 @@ import app.cbo.oidc.java.server.utils.EnumValuesHelper;
 import app.cbo.oidc.java.server.utils.QueryStringBuilder;
 import app.cbo.oidc.java.server.utils.Utils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static app.cbo.oidc.java.server.utils.ParamsHelper.singleParam;
 import static app.cbo.oidc.java.server.utils.ParamsHelper.spaceSeparatedList;
@@ -102,7 +106,7 @@ public record AuthorizeParams(
      */
     public static void checkParamsForFlow(AuthorizeParams params, OIDCFlow flow) throws AuthErrorInteraction {
         //RQ :
-        // redirect_uri MUST be https for auhtorization flow, except if the client is 'confidential'
+        // redirect_uri MUST be https for authorization flow, except if the client is 'confidential'
         // redirect_uri MUST be https OR http://localhost for implicit flow.
         // CBO : I chose not to implement this ; this server is meant to be used as a dvpt crutch, TLS is not a given
 
@@ -127,7 +131,7 @@ public record AuthorizeParams(
      */
     public String toQueryString() {
 
-        //please note '.add' will not append anything to the query string if the param is null/tempty
+        //please note '.add' will not append anything to the query string if the param is null/empty
         // and toSingle & etc. will return empty if the value is Optional.empty
         return new QueryStringBuilder()
                 .add(toSpaceSeparated("scope", scopes()))

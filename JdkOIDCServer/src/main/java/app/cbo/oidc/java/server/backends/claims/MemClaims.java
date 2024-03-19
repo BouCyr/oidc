@@ -20,7 +20,7 @@ public class MemClaims implements Claims {
 
     private final static Logger LOGGER = Logger.getLogger(MemClaims.class.getCanonicalName());
 
-    List<ScopedClaims> allClaims = new ArrayList<>();
+    final List<ScopedClaims> allClaims = new ArrayList<>();
 
     public MemClaims() {
     }

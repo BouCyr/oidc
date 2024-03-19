@@ -2,7 +2,11 @@ package app.cbo.oidc.java.server.http;
 
 import app.cbo.oidc.java.server.http.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.jsr305.NotNull;
-import app.cbo.oidc.java.server.utils.*;
+import app.cbo.oidc.java.server.utils.ExceptionHandling;
+import app.cbo.oidc.java.server.utils.ExchangeResponseUtils;
+import app.cbo.oidc.java.server.utils.HttpCode;
+import app.cbo.oidc.java.server.utils.MimeType;
+import app.cbo.oidc.java.server.utils.Utils;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
@@ -88,7 +92,7 @@ public  class AuthErrorInteraction extends Exception implements Interaction {
             ExchangeResponseUtils.build(exchange, HttpCode.FOUND, null, null);
         }else{
             LOGGER.info("Returning httpStatus 500 since we do not know where to send the error.");
-            HttpCode status = status = HttpCode.SERVER_ERROR;
+            HttpCode status = HttpCode.SERVER_ERROR;
             if(error == Code.temporarily_unavailable)
                 status = HttpCode.UNAVAILABLE;
 

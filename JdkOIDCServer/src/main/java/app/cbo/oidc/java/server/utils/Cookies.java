@@ -4,15 +4,19 @@ import app.cbo.oidc.java.server.backends.sessions.Sessions;
 import app.cbo.oidc.java.server.datastored.SessionId;
 import com.sun.net.httpserver.HttpExchange;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 public class Cookies {
 
     /**
-     * A cookie, and its value
+     * A cookie and its value
      * A COOKIE WITH NO VALUE WILL HAVE THE EMPTY STRING AS VALUE
      */
-    public static record Cookie(String name, String value){
+    public record Cookie(String name, String value){
 
         public Cookie(String key) {
             this(key, null);

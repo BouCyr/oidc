@@ -67,7 +67,7 @@ public class FsClientRegistry implements ClientRegistry {
     public boolean authenticate(String clientId, String clientSecret) {
 
 
-        boolean result = false;
+        boolean result;
         if(this.configured.containsKey(clientId)){
             LOGGER.info("Client '"+clientId+"' is defined in the registry");
             result =  this.configured.get(clientId).equals(clientSecret);

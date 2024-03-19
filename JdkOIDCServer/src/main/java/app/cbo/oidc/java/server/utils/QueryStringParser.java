@@ -1,8 +1,11 @@
 package app.cbo.oidc.java.server.utils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class QueryStringParser {
 
@@ -18,7 +21,7 @@ public class QueryStringParser {
         var params = Pattern.compile("&")
                 .splitAsStream(decodedQueryString)
                 .map(QueryStringParser::toKV)
-                .collect(Collectors.toList());
+                .toList();
 
         final Map<String, Collection<String>> result = new HashMap<>();
         params

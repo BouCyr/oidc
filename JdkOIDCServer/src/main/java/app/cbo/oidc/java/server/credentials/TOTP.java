@@ -14,13 +14,13 @@ package app.cbo.oidc.java.server.credentials;
 
 import app.cbo.oidc.java.server.jsr305.NotNull;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.time.Instant;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -55,7 +55,7 @@ public class TOTP {
      * @param b32 secret key
      * @param skewAfter number of previous TOTP to compute
      * @param skewBefore number of next TOTP to compute
-     * @returns topts (including previous and next ones)
+     * @return topts (including previous and next ones)
      */
     @NotNull static List<String> get(@NotNull String b32,  int skewBefore, int skewAfter){
         var secret = Base32.decode(b32);
@@ -133,7 +133,7 @@ public class TOTP {
      *
      * @param hex: the HEX string
      *
-     * @return: a byte array
+     * @return a byte array
      */
 
     private static byte[] hexStr2Bytes(String hex){

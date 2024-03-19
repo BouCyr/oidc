@@ -24,7 +24,7 @@ public class OIDCServer implements Closeable {
     private final List<HttpHandlerWithPath> handlers;
 
 
-    public OIDCServer(@Prop("port") int port, List<HttpHandlerWithPath> handlers) throws IOException {
+    public OIDCServer(@Prop("port") int port, List<HttpHandlerWithPath> handlers) {
         this.port = port;
         this.handlers = handlers;
 
@@ -51,7 +51,7 @@ public class OIDCServer implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         LOGGER.info("Closing down server");
         this.shutdown();
     }

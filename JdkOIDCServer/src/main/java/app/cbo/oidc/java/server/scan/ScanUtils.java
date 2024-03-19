@@ -16,7 +16,7 @@ class ScanUtils {
      * @throws TooManyResult if the collection has more than one element
      */
     public static <U> U oneAndOnlyOne(Collection<U> items) throws NoResult, TooManyResult {
-        if (items == null || items.size() == 0) {
+        if (items == null || items.isEmpty()) {
             throw new NoResult();
         }
         if (items.size() > 1) {

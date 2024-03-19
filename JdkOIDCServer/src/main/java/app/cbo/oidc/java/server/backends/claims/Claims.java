@@ -21,7 +21,7 @@ public interface Claims extends ClaimsResolver, ClaimsStorer {
     Logger LOGGER = Logger.getLogger(Claims.class.getCanonicalName());
 
     /**
-     * Checks if a specificic ScopedClaim is requested
+     * Checks if a specific ScopedClaim is requested
      *
      * @param scopes       the list of scopes requested
      * @param scopedClaims the scope being checked
@@ -37,10 +37,10 @@ public interface Claims extends ClaimsResolver, ClaimsStorer {
     }
 
     /**
-     * Transforms a ScopedClaims into a Collection of key/value pair, vith the field name as key and the user info in value
+     * Transforms a ScopedClaims into a Collection of key/value pair, with the field name as key and the user info in value
      *
      * @param scopedClaims the user ScopedClaims being transformed
-     * @return a Collection of key/value pair, vith the field name as key and the user info in value
+     * @return a Collection of key/value pair, with the field name as key and the user info in value
      */
     static Collection<Pair<String, Object>> toNameAndValue(ScopedClaims scopedClaims) {
         return ReflectionUtils.toNameAndValue(scopedClaims)
@@ -52,7 +52,7 @@ public interface Claims extends ClaimsResolver, ClaimsStorer {
     }
 
     /**
-     * Transform a NameAndValue into a pait<String, Object></String,>
+     * Transform a NameAndValue into a pair<String, Object></String,>
      *
      * @param nv being transforms
      * @return a Pair, with the name as Left and the value as Right

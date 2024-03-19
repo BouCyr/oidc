@@ -86,7 +86,7 @@ class JSONWriter {
         buffer.append("{").append(breakSupplier.get());
 
         //find all getters & record accessors
-        //we create a new ArrayList ; we need to be sure sure list is mutable, since we are going to add a few more lines
+        //we create a new ArrayList ; we need to be sure list is mutable, since we are going to add a few more lines
         var lines = new ArrayList<String>();
 
         if (!(o instanceof Map<?, ?>)) {

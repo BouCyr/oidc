@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JWKSHandlerTest {
 
-    JWKSHandler tested = new JWKSHandler(new MemKeySet());
+    final JWKSHandler tested = new JWKSHandler(new MemKeySet());
 
     @Test
     void path() {
@@ -37,7 +37,7 @@ class JWKSHandlerTest {
                 .containsKey("Content-Type");
         assertThat(req.getResponseHeaders().get("Content-Type"))
                 .hasSize(1);
-        assertThat(req.getResponseHeaders().get("Content-Type").get(0))
+        assertThat(req.getResponseHeaders().get("Content-Type").getFirst())
                 .isEqualTo(MimeType.JWKSET.mimeType());
 
         String response = new String(req.getResponseBodyBytes(), StandardCharsets.UTF_8);

@@ -39,7 +39,7 @@ public class PropsProviders {
     private static Pair<String, String> toPair(String arg) {
         var parts = arg.split("=");
         if (parts.length != 2) {
-            throw new IllegalArgumentException("Not a valid prop arg: '" + parts + "'");
+            throw new IllegalArgumentException("Not a valid prop arg: '" + arg + "'");
         }
         return Pair.of(parts[0].trim(), parts[1].trim());
     }
