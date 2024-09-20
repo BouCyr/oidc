@@ -54,9 +54,11 @@ public class AuthenticateEndpointImpl implements AuthenticateEndpoint {
 
 
         if (Utils.isBlank(params.login())) {
+            LOGGER.info("No login found in params, dispaying the login form");
             return new DisplayLoginFormInteraction(params.ongoing());
         } else {
 
+            LOGGER.info("We have a login");
             var authentications = EnumSet.of(DECLARATIVE);
 
             var userFound = this.userFinder.find(params::login);
@@ -65,7 +67,9 @@ public class AuthenticateEndpointImpl implements AuthenticateEndpoint {
             if (userFound.isPresent()) {
                 user = userFound.get();
                 authentications.add(USER_FOUND);
+                LOGGER.info("We have a matching user in storage");
             } else {
+                LOGGER.info("We do not have a matching user in storage, creating one");
                 var newId = this.userCreator.create(params.login(), null, null);
                 user = this.userFinder.find(newId).orElseThrow(() -> new RuntimeException("Unable to retrieve the user I just created... :("));
 
@@ -73,7 +77,9 @@ public class AuthenticateEndpointImpl implements AuthenticateEndpoint {
 
 
             if (!Utils.isBlank(params.password())) {
+                LOGGER.info("User gave us a password");
                 if (passwordChecker.confront(params.password(), user.pwd())) {
+                    LOGGER.info("Given password matches the stored password");
                     authentications.add(PASSWORD_OK);
                 } else {
                     //TODO [24/05/2023] AuthenticationInvalidInteraction (ie an AuthenticationSuccessfulInteraction + an error msg)
@@ -82,7 +88,9 @@ public class AuthenticateEndpointImpl implements AuthenticateEndpoint {
             }
 
             if (!Utils.isBlank(params.totp())) {
+                LOGGER.info("User gave us a TOTP");
                 if (TOTP.confront(params.totp(), user.totpKey())) {
+                    LOGGER.info("TOTP is valid");
                     authentications.add(TOTP_OK);
                 } else {
                     //TODO [24/05/2023] AuthenticationInvalidInteraction (ie an AuthenticationSuccessfulInteraction + an error msg)

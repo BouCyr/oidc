@@ -56,6 +56,7 @@ public class Properties {
 
     }
 
+    @SuppressWarnings("unchecked")
     private <U> Mapper<U> getMapper(Class<U> target) {
         return (Mapper<U>) this.mappers.stream().filter(m -> m.getTargetClass().equals(ClassId.of(target)))
                 .findFirst()
