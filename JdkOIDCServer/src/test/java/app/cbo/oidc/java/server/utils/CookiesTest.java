@@ -16,7 +16,7 @@ class CookiesTest {
 
         Assertions.assertThat(found)
                 .isPresent()
-                .get().extracting(SessionId::getSessionId)
+                .get().extracting(SessionId::id)
                 .isEqualTo("XoXo");
 
     }

@@ -42,7 +42,7 @@ public class UserInfoEndpointImpl implements UserInfoEndpoint {
 
         if (userInfo.containsKey("sub")) {
 
-            if (!userInfo.get("sub").equals(decodedPayload.sub().getUserId())) {
+            if (!userInfo.get("sub").equals(decodedPayload.sub().id())) {
                 LOGGER.warning("'sub' claims from access_token differs from claims");
                 throw new RuntimeException("Unexpected data error");
             }
@@ -50,7 +50,7 @@ public class UserInfoEndpointImpl implements UserInfoEndpoint {
             return new UserInfoResponse(userInfo);
         } else {
             var copy = new HashMap<>(userInfo);//userinfo may be immutable
-            copy.put("sub", decodedPayload.sub().getUserId());
+            copy.put("sub", decodedPayload.sub().id());
             return new UserInfoResponse(copy);
         }
     }

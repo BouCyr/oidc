@@ -27,7 +27,7 @@ public class MemUsers implements Users {
     @Override
     @NotNull
     public Optional<User> find(@NotNull UserId userId) {
-        return Optional.ofNullable(this.users.get(userId.getUserId()));
+        return Optional.ofNullable(this.users.get(userId.id()));
     }
 
     public boolean update(@NotNull User user) {

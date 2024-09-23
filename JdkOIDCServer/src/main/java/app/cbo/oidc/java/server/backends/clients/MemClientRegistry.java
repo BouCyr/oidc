@@ -1,10 +1,13 @@
 package app.cbo.oidc.java.server.backends.clients;
 
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.scan.Injectable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * This class represents a memory-based client registry.
@@ -13,6 +16,8 @@ import java.util.Set;
  */
 @Injectable("mem")
 public class MemClientRegistry implements ClientRegistry{
+
+    private final static Logger LOGGER = Logger.getLogger(MemClientRegistry.class.getCanonicalName());
 
     /**
      * A map to store the clients. The key is the client ID and the value is the client secret.
@@ -28,11 +33,13 @@ public class MemClientRegistry implements ClientRegistry{
      * @return             Returns true if the client ID and client secret match the ones stored in the clients map, false otherwise.
      */
     @Override
-    public boolean authenticate(String clientId, String clientSecret) {
+    public boolean authenticate(ClientId clientId, String clientSecret) {
 
-        if(clientId == null)
+        if(clientId == null || clientId.id() == null){
+            LOGGER.info("Cannot authenticate NULL clientId");
             return false;
-        return clients.getOrDefault(clientId, clientId).equals(clientSecret);
+        }
+        return clients.getOrDefault(clientId.get(), clientId.get()).equals(clientSecret);
     }
 
     /**
@@ -41,8 +48,11 @@ public class MemClientRegistry implements ClientRegistry{
      * @return Returns a set containing the IDs of all registered clients.
      */
     @Override
-    public Set<String> getRegisteredClients() {
-        return this.clients.keySet();
+    public Set<ClientId> getRegisteredClients() {
+        return this.clients.keySet()
+                .stream()
+                .map(ClientId::new)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -53,7 +63,7 @@ public class MemClientRegistry implements ClientRegistry{
      * @param clientSecret The secret of the client to be registered or updated.
      */
     @Override
-    public void setClient(String clientId, String clientSecret) {
-        this.clients.put(clientId, clientSecret);
+    public void setClient(ClientId clientId, String clientSecret) {
+        this.clients.put(clientId.get(), clientSecret);
     }
 }

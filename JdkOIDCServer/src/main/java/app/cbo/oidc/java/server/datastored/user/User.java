@@ -29,7 +29,7 @@ public record User(String sub, String pwd, String totpKey, Map<String, Set<Strin
         }
     }
 
-    public UserId getUserId(){
+    public UserId getId(){
         return UserId.of(this.sub());
     }
 

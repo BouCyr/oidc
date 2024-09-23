@@ -4,6 +4,7 @@ import app.cbo.oidc.java.server.backends.claims.Claims;
 import app.cbo.oidc.java.server.backends.claims.ClaimsStorer;
 import app.cbo.oidc.java.server.backends.clients.ClientRegistry;
 import app.cbo.oidc.java.server.backends.users.Users;
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.datastored.user.claims.Address;
 import app.cbo.oidc.java.server.datastored.user.claims.Mail;
@@ -170,7 +171,7 @@ public class EntryPoint {
 
 
     private static void setUpClient(String clientId, String secret, ClientRegistry clientRegistry){
-        clientRegistry.setClient(clientId, secret);
+        clientRegistry.setClient(ClientId.of(clientId), secret);
     }
 
     private static void setupUser(String firstName, Users users, ClaimsStorer claimsStorer) {
@@ -181,7 +182,7 @@ public class EntryPoint {
         }
 
         LOGGER.info("Creating user");
-        users.create(uid.getUserId(), "sesame", "ALBACORE");
+        users.create(uid.id(), "sesame", "ALBACORE");
 
         LOGGER.info("Creating user data");
         Phone phone = new Phone(uid, "0682738532", false);

@@ -55,7 +55,7 @@ public class JWS {
         }
 
 
-        JWSHeader header = new JWSHeader(algo.rfcName(), "JWT", keyId != null ? keyId.getKeyId() : null);
+        JWSHeader header = new JWSHeader(algo.rfcName(), "JWT", keyId != null ? keyId.id() : null);
 
         String signedPart = toJWSPart(header) + "." + toJWSPart(payload);
 

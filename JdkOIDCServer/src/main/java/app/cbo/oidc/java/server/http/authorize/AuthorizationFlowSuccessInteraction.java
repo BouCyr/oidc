@@ -19,7 +19,7 @@ public record AuthorizationFlowSuccessInteraction(AuthorizeParams params, Code c
             throw new IllegalArgumentException("redirect_uri empty");
         }
 
-        String uri = params.redirectUri().get() + "?code=" + code().getCode();
+        String uri = params.redirectUri().get() + "?code=" + code().code();
         if (params.state().isPresent()) {
             uri += "&state=" + params.state().get();
         }

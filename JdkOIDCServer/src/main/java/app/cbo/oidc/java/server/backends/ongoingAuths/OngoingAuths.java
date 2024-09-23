@@ -32,18 +32,18 @@ public class OngoingAuths implements OngoingAuthsFinder, OngoingAuthsStorer {
 
         String key = UUID.randomUUID().toString();
         store.put(key, p);
-        return OngoingAuthId.of(key);
+        return new OngoingAuthId(key);
     }
 
     /**
      * @inheritDoc
      */
     @NotNull
-    public Optional<AuthorizeParams> find(@NotNull OngoingAuthId key) {
-        if (key.getOngoingAuthId() == null) {
+    public Optional<AuthorizeParams> find(@NotNull OngoingAuthId authId) {
+        if (authId.id() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(store.remove(key.getOngoingAuthId()));
+        return Optional.ofNullable(store.remove(authId.id()));
     }
 
 }

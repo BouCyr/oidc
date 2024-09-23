@@ -33,7 +33,7 @@ public class CodesTest {
         assertThat(userIdFoundBack)
                 .isPresent()
                 .get()
-                .extracting(codeData -> codeData.userId().getUserId())
+                .extracting(codeData -> codeData.userId().id())
                 .isEqualTo(BOB);
     }
 

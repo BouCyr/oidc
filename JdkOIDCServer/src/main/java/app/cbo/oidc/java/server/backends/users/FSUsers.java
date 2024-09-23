@@ -51,7 +51,7 @@ public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder
     }
 
     private UserId writeUSer(User newUser) {
-        try (var writer = this.fsUserStorage.writer(this.fileOf(newUser.getUserId()))) {
+        try (var writer = this.fsUserStorage.writer(this.fileOf(newUser.getId()))) {
             for (var dataLine : userToStrings(newUser)) {
                 writer.write(dataLine);
                 writer.newLine();
@@ -60,7 +60,7 @@ public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder
             LOGGER.severe("IOException while writing user. This is not normal. " + e.getMessage());
             throw new RuntimeException(e);
         }
-        return newUser.getUserId();
+        return newUser.getId();
     }
 
     @NotNull
@@ -87,7 +87,7 @@ public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder
 
     @Override
     public boolean update(@NotNull User user) {
-        if (this.find(user.getUserId()).isEmpty()) {
+        if (this.find(user.getId()).isEmpty()) {
             return false;
         }
         try {

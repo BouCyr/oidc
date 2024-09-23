@@ -79,13 +79,13 @@ public class MemKeySet implements KeySet {
     @Override
     @NotNull
     public Optional<PrivateKey> privateKey(@NotNull KeyId keyId) {
-        return Optional.ofNullable(pairs.get(keyId.getKeyId())).map(KeyPair::getPrivate);
+        return Optional.ofNullable(pairs.get(keyId.id())).map(KeyPair::getPrivate);
     }
 
     @Override
     @NotNull
     public Optional<PublicKey> publicKey(@NotNull KeyId keyId) {
-        return Optional.ofNullable(pairs.get(keyId.getKeyId())).map(KeyPair::getPublic);
+        return Optional.ofNullable(pairs.get(keyId.id())).map(KeyPair::getPublic);
     }
 
 }

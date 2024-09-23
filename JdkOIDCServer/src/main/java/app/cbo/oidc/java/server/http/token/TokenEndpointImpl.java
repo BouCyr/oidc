@@ -69,7 +69,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
 
     @Override
     @NotNull
-    public Interaction treatRequest(@NotNull TokenParams params, @Nullable String authClientId, @Nullable String clientSecret) {
+    public Interaction treatRequest(@NotNull TokenParams params, @Nullable ClientId authClientId, @Nullable String clientSecret) {
         /*
         The Authorization Server MUST validate the Token Request as follows:
 
@@ -81,7 +81,9 @@ public class TokenEndpointImpl implements TokenEndpoint {
         Verify that the Authorization Code used was issued in response to an OpenID Connect Authentication Request (so that an ID Token will be returned from the Token Endpoint).
         */
 
-        LOGGER.info(("'" + (!Utils.isEmpty(authClientId) ? authClientId : "?") + "' tries to consume a code"));
+        if(authClientId != null) {
+            LOGGER.info(("'" + (!Utils.isEmpty(authClientId.get()) ? authClientId : "?") + "' tries to consume a code"));
+        }
 
         //Are the client credentials OK ? (none would be OK for the moment)
         if (!this.clientAuthenticator.authenticate(authClientId, clientSecret)) {
@@ -99,7 +101,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
 
         //the clientId may be found in credentials OR in the params.
         //we already check that we have at least one, and if two that they match
-        var clientId = ClientId.of(authClientId != null ? authClientId : params.clientId());
+        var clientId = authClientId != null ? authClientId : ClientId.of(params.clientId());
 
 
         if (Utils.isEmpty(params.redirectUri())) {
@@ -139,14 +141,14 @@ public class TokenEndpointImpl implements TokenEndpoint {
         var idToken = new IdToken(
                 user.get().sub(),
                 this.myself.getIssuerId(),
-                List.of(clientId.getClientId()),
+                List.of(clientId.id()),
                 Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
                 Instant.now(clock).getEpochSecond(),
                 session.get().authTime().toEpochSecond(ZoneOffset.UTC),
                 Optional.ofNullable(codeData.get().nonce()),
                 new AuthenticationLevel(session.get().authentications()).name(),
                 session.get().authentications().stream().map(Enum::name).toList(),
-                Optional.of(clientId.getClientId()),
+                Optional.of(clientId.id()),
                 new HashMap<>());
         idToken.extranodes().put("at_hash", "rooooo"); //TODO [25/04/2023] at_hash management
 

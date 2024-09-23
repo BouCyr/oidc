@@ -85,7 +85,7 @@ public class ConsentHandler implements HttpHandlerWithPath {
         var ongoingId = ParamsHelper.singleParam(raw.get(ConsentParams.ONGOING))
                 .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Cannot retrieve current authorization in request"));
 
-        var ongoingRequest = this.ongoingAuthsFinder.find(OngoingAuthId.of(ongoingId))
+        var ongoingRequest = this.ongoingAuthsFinder.find(new OngoingAuthId(ongoingId))
                 .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Cannot retrieve current authorization in storage"));
 
         var requested = Set.copyOf(ongoingRequest.scopes());

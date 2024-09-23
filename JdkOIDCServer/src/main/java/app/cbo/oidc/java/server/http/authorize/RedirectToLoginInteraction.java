@@ -18,7 +18,7 @@ public record RedirectToLoginInteraction(OngoingAuthId ongoingAuthId) implements
     public void handle(@NotNull HttpExchange exchange) throws IOException {
 
 
-        exchange.getResponseHeaders().add("Location", "/login?" + AuthenticateParams.ONGOING + "=" + ongoingAuthId().getOngoingAuthId());
+        exchange.getResponseHeaders().add("Location", "/login?" + AuthenticateParams.ONGOING + "=" + ongoingAuthId().id());
         exchange.sendResponseHeaders(HttpCode.FOUND.code(), 0);
         exchange.getResponseBody().flush();
         exchange.getResponseBody().close();

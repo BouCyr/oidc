@@ -46,12 +46,12 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
     public Optional<CodeData> consume(@NotNull Code code, @NotNull ClientId clientId, @NotNull String redirectUri) {
 
         var file = FileSpecifications.in("codes", clientId.get())
-                .fileName(code.getCode());
+                .fileName(code.code());
         Map<String, String> contents;
         try {
             contents = this.userDataFileStorage().readMap(file).orElseThrow(() -> new IOException("File not found"));
         } catch (IOException e) {
-            LOGGER.info("File not found for code "+code.getCode());
+            LOGGER.info("File not found for code "+code.code());
             return Optional.empty();
         }
 
@@ -63,7 +63,7 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
 
         var codeData = new CodeData(
                 UserId.of(contents.get("userId")),
-                SessionId.of(contents.get("sessionId")),
+                new SessionId(contents.get("sessionId")),
                 List.of(contents.get("scopes").split(";")),
                 contents.get("nonce")
         );
@@ -99,21 +99,21 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
                           @NotNull String redirectUri,
                           @NotNull List<String> scopes,
                           @Nullable String nonce) {
-        if (userId.getUserId() == null || clientId.getClientId() == null || Utils.isBlank(redirectUri)) {
+        if (userId.id() == null || clientId.id() == null || Utils.isBlank(redirectUri)) {
             throw new NullPointerException("Input cannot be null");
         }
 
         Code code = Code.of(UUID.randomUUID().toString());
 
         var file = FileSpecifications.in("codes", clientId.get())
-                .fileName(code.getCode());
+                .fileName(code.code());
 
         try {
             this.userDataFileStorage().writeMap(file,
                     Map.of(
-                            "userId", userId.getUserId(),
+                            "userId", userId.id(),
                             "redirectUri", redirectUri,
-                            "sessionId", sessionId.getSessionId(),
+                            "sessionId", sessionId.id(),
                             "nonce", nonce == null ? "" : nonce,
                             "scopes", String.join(";", scopes)
                     ));

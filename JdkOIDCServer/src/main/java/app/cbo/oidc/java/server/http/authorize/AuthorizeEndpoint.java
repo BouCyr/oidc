@@ -210,9 +210,9 @@ public class AuthorizeEndpoint {
 
     private AuthorizationFlowSuccessInteraction authorizationFlowSuccess(User user, AuthorizeParams originalParams, Session session) {
         Code authCode = this.codeSupplier.createFor(
-                user.getUserId(),
+                user.getId(),
                 ClientId.of(originalParams.clientId().get()),
-                SessionId.of(session.id()),
+                new SessionId(session.id()),
                 originalParams.redirectUri().get(),
                 originalParams.scopes(),
                 originalParams.nonce().orElse(null));
@@ -263,7 +263,7 @@ public class AuthorizeEndpoint {
             // (which is the case for the response_type value id_token), the resulting Claims are returned in the ID Token.
 
             LOGGER.info("Implicit flow without access_token ; claims are added to the id_token");
-            var claims = this.claimsResolver.claimsFor(user.getUserId(), Set.copyOf(originalParams.scopes()));
+            var claims = this.claimsResolver.claimsFor(user.getId(), Set.copyOf(originalParams.scopes()));
             claims.forEach((claim, val) -> idToken.extranodes().put(claim, val));
 
             var itWrapped = JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey);

@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.http.token;
 
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
@@ -57,7 +58,10 @@ public class TokenHandler implements HttpHandlerWithPath {
             }
 
             this.tokenEndpoint
-                    .treatRequest(param, clientId, clientSecret)
+                    .treatRequest(
+                            param,
+                            clientId!=null ? ClientId.of(clientId):null,
+                            clientSecret)
                     .handle(exchange);
 
 

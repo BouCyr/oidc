@@ -54,7 +54,7 @@ public class MemCodes implements Codes {
                           @NotNull List<String> scopes,
                           @Nullable String nonce) {
 
-        if (userId.getUserId() == null || clientId.getClientId() == null || Utils.isBlank(redirectUri)) {
+        if (userId.id() == null || clientId.id() == null || Utils.isBlank(redirectUri)) {
             throw new NullPointerException("Input cannot be null");
         }
 
@@ -81,7 +81,7 @@ public class MemCodes implements Codes {
     @NotNull
     public Optional<CodeData> consume(@NotNull Code code, @NotNull ClientId clientId, @NotNull String redirectUri) {
 
-        if (code.getCode() == null || clientId.getClientId() == null || Utils.isBlank(redirectUri)) {
+        if (code.code() == null || clientId.id() == null || Utils.isBlank(redirectUri)) {
             return Optional.empty();
         }
 
@@ -103,6 +103,6 @@ public class MemCodes implements Codes {
             @NotNull ClientId clientId,
             @NotNull String redirectUri) {
 
-        return code.getCode() + "_by_" + clientId.getClientId() + "_for_" + redirectUri;
+        return code.code() + "_by_" + clientId.id() + "_for_" + redirectUri;
     }
 }

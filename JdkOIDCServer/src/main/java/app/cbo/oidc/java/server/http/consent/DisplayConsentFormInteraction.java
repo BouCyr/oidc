@@ -64,7 +64,7 @@ public class DisplayConsentFormInteraction implements Interaction {
                         </body>
                         </html>
                         """.formatted(ConsentHandler.CONSENT_ENDPOINT,
-                        ConsentParams.ONGOING, ongoingAuthId.getOngoingAuthId(),
+                        ConsentParams.ONGOING, ongoingAuthId.id(),
                         ConsentParams.BACK,
                         authorizeParams.clientId().orElse("?"),
                         notYetGiven,

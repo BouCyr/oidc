@@ -29,7 +29,7 @@ class SessionsTest {
         assertThat(foundBack)
                 .isPresent();
 
-        assertThat(foundBack.get().userId().getUserId()).isEqualTo("cyrille");
+        assertThat(foundBack.get().userId().id()).isEqualTo("cyrille");
         assertThat(foundBack.get().authentications()).containsExactly(AuthenticationMode.PASSWORD_OK, AuthenticationMode.TOTP_OK);
 
         assertThat(foundBack.get().authTime()).isCloseTo(LocalDateTime.now(), new TemporalUnitWithinOffset(5L, ChronoUnit.SECONDS));
@@ -46,7 +46,7 @@ class SessionsTest {
         assertDoesNotThrow(() -> sessions.createSession(usr, null));
 
         assertThat(sessions.find(null)).isEmpty();
-        assertThat(sessions.find(() -> null)).isEmpty();
+        assertThat(sessions.find(SessionId.of(null))).isEmpty();
 
         assertThatThrownBy(() -> sessions.addAuthentications(null, EnumSet.of(AuthenticationMode.TOTP_OK)))
                 .isInstanceOf(NullPointerException.class);

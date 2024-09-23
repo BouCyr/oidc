@@ -62,15 +62,15 @@ class KeySetTest {
 
         var newCurrent = keyset.current();
         assertThat(newCurrent).isNotNull();
-        assertThat(newCurrent.getKeyId()).isNotEqualTo(firstCurrent.getKeyId());
+        assertThat(newCurrent.id()).isNotEqualTo(firstCurrent.id());
 
         var jwks = keyset.asJWKSet();
 
         assertThat(jwks.keys())
                 .hasSize(2);
-        assertThat(jwks.keys().stream().filter(kp -> kp.kid().equals(firstCurrent.getKeyId())))
+        assertThat(jwks.keys().stream().filter(kp -> kp.kid().equals(firstCurrent.id())))
                 .hasSize(1);
-        assertThat(jwks.keys().stream().filter(kp -> kp.kid().equals(newCurrent.getKeyId())))
+        assertThat(jwks.keys().stream().filter(kp -> kp.kid().equals(newCurrent.id())))
                 .hasSize(1);
 
     }

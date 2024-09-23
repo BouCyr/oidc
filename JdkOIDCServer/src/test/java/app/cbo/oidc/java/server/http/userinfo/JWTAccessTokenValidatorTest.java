@@ -36,7 +36,7 @@ class JWTAccessTokenValidatorTest {
 
         assertThat(decoded)
                 .isNotNull();
-        assertThat(decoded.sub().getUserId())
+        assertThat(decoded.sub().id())
                 .isEqualTo("userID");
         assertThat(decoded.scopes())
                 .containsExactlyInAnyOrder("scope1", "scope2");

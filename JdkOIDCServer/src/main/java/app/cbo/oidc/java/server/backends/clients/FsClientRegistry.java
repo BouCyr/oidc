@@ -2,6 +2,7 @@ package app.cbo.oidc.java.server.backends.clients;
 
 import app.cbo.oidc.java.server.backends.filesystem.FileSpecifications;
 import app.cbo.oidc.java.server.backends.filesystem.FileStorage;
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.scan.BuildWith;
 import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * This class represents a file system-based client registry.
@@ -64,16 +66,21 @@ public class FsClientRegistry implements ClientRegistry {
      * @return             Returns true if the client ID and client secret match the ones stored in the file system, false otherwise.
      */
     @Override
-    public boolean authenticate(String clientId, String clientSecret) {
+    public boolean authenticate(ClientId clientId, String clientSecret) {
+
+        if(clientId == null || clientId.id() == null){
+            LOGGER.info("Cannot authenticate NULL clientId");
+            return false;
+        }
 
 
         boolean result;
-        if(this.configured.containsKey(clientId)){
+        if(this.configured.containsKey(clientId.id())){
             LOGGER.info("Client '"+clientId+"' is defined in the registry");
-            result =  this.configured.get(clientId).equals(clientSecret);
+            result =  this.configured.get(clientId.id()).equals(clientSecret);
         }else{
             LOGGER.info("Client '"+clientId+"' is NOT defined in the registry ; checking if clientId and secret are equals");
-            result = !Utils.isEmpty(clientId) && clientId.equals(clientSecret);
+            result = !Utils.isEmpty(clientId.id()) && clientId.id().equals(clientSecret);
         }
         LOGGER.info("Client authentication result : "+(result ? "OK" : "KO")+" for client '"+clientId+"'");
         return result;
@@ -86,8 +93,8 @@ public class FsClientRegistry implements ClientRegistry {
      * @return Returns a set containing the IDs of all registered clients.
      */
     @Override
-    public Set<String> getRegisteredClients() {
-        return this.configured.keySet();
+    public Set<ClientId> getRegisteredClients() {
+        return this.configured.keySet().stream().map(ClientId::new).collect(Collectors.toSet());
     }
 
     /**
@@ -98,13 +105,13 @@ public class FsClientRegistry implements ClientRegistry {
      * @param clientSecret The secret of the client to be registered or updated.
      */
     @Override
-    public void setClient(String clientId, String clientSecret) {
+    public void setClient(ClientId clientId, String clientSecret) {
 
         //create new HashMap, we need to be sure this instance is mutable
         var diskContents = new HashMap<>(this.readFromFs());
 
 
-        var isAReplacement = (diskContents.put(clientId, clientSecret)) != null;
+        var isAReplacement = (diskContents.put(clientId.get(), clientSecret)) != null;
 
 
         try {

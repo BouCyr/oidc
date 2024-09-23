@@ -61,7 +61,7 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
 
         return new JWKSet(
                 this.readKeySet().stream()
-                        .map(kp -> JWK.rsaPublicKey(kp.keyId().getKeyId(), (RSAPublicKey) kp.publicKey()))
+                        .map(kp -> JWK.rsaPublicKey(kp.keyId().id(), (RSAPublicKey) kp.publicKey()))
                         .toList()
         );
     }
@@ -104,7 +104,7 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
     @Override
     public Optional<PrivateKey> privateKey(@NotNull KeyId keyId) {
         return this.readKeySet().stream()
-                .filter(kp -> keyId.getKeyId().equals(kp.keyId().getKeyId()))
+                .filter(kp -> keyId.id().equals(kp.keyId().id()))
                 .map(KeyPair::privateKey)
                 .findAny();
     }
@@ -116,7 +116,7 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
     @Override
     public Optional<PublicKey> publicKey(@NotNull KeyId keyId) {
         return this.readKeySet().stream()
-                .filter(kp -> keyId.getKeyId().equals(kp.keyId().getKeyId()))
+                .filter(kp -> keyId.id().equals(kp.keyId().id()))
                 .map(KeyPair::publicKey)
                 .findAny();
     }
@@ -168,7 +168,7 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
 
     @NotNull
     private String toLine(@NotNull KeyPair kp) {
-        return kp.keyId().getKeyId()
+        return kp.keyId().id()
                 + ";"
                 + (kp.current() ? "1" : "0")
                 + ";"

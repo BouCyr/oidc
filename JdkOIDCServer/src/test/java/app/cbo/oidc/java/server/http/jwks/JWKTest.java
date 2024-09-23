@@ -42,7 +42,7 @@ class JWKTest {
         var theirs = new RSAKey.Builder((RSAPublicKey) publicKey)
                 .algorithm(JWSAlgorithm.RS256)
                 .keyUse(KeyUse.SIGNATURE)
-                .keyID(kid.getKeyId()).build();
+                .keyID(kid.id()).build();
 
         String theirsAsJson = theirs.toJSONObject().toJSONString();
         //give it to jackson to do proper indent
@@ -53,7 +53,7 @@ class JWKTest {
         var publicKeyFromNimbus = RSAKey.parse(theirsAsJson);
 
         //JWK build using our code
-        var mine = JWK.rsaPublicKey(kid.getKeyId(), (RSAPublicKey) publicKey);
+        var mine = JWK.rsaPublicKey(kid.id(), (RSAPublicKey) publicKey);
         var mineJson = JSON.jsonify(mine);
 
         System.out.println("AS COMPUTED BY OUR CODE (jdk impl.):");

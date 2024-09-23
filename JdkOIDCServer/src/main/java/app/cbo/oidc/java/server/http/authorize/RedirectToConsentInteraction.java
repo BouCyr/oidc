@@ -26,7 +26,7 @@ public record RedirectToConsentInteraction(OngoingAuthId ongoingAuthId, String c
 
 
         exchange.getResponseHeaders().add("Location", ConsentHandler.CONSENT_ENDPOINT
-                + "?" + ConsentParams.ONGOING + "=" + ongoingAuthId().getOngoingAuthId()
+                + "?" + ConsentParams.ONGOING + "=" + ongoingAuthId().id()
                 + "&" + ConsentParams.SCOPES_REQUESTED + "=" + String.join(" ", this.scopes)
                 + "&" + ConsentParams.CLIENT_ID + "=" + clientId()
         );

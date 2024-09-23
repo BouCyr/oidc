@@ -34,9 +34,9 @@ public class Cookies {
      * @return the value of the cookie if found, empty if not
      */
     public static Optional<SessionId> findSessionCookie(Collection<Cookie> cookies){
-        for(Cookie e : cookies){
-            if(Sessions.SESSION_ID_COOKIE_NAME.equals(e.name()) && !Utils.isBlank(e.value())){
-                return Optional.of(e::value);
+        for(Cookie cookie : cookies){
+            if(Sessions.SESSION_ID_COOKIE_NAME.equals(cookie.name()) && !Utils.isBlank(cookie.value())){
+                return Optional.of(new SessionId(cookie.value()));
             }
         }
         return Optional.empty();

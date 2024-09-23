@@ -28,7 +28,7 @@ class AuthenticateEndpointImplTest {
                 key -> Optional.empty(),
                 userId -> Optional.empty(),
                 (x, y, z) -> UserId.of(x),
-                (user, authenticationModes) -> new SessionId.Simple("sessionId"),
+                (user, authenticationModes) -> SessionId.of("sessionId"),
                 (provided, storedEncoded) -> true
         );
 
@@ -49,7 +49,7 @@ class AuthenticateEndpointImplTest {
         tested.treatRequest(Map.of("login", List.of("bob")));
 
         assertThat(loggedIn)
-                .hasValueMatching(u -> u.getUserId().equals(UserId.of("bob")));
+                .hasValueMatching(u -> u.getId().equals(UserId.of("bob")));
         assertThat(modes)
                 .isNotEmpty()
                 .containsExactly(AuthenticationMode.DECLARATIVE);
@@ -68,7 +68,7 @@ class AuthenticateEndpointImplTest {
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
-                    return new SessionId.Simple("sessionId");
+                    return SessionId.of("sessionId");
                 },
                 (provided, storedEncoded) -> true
         );
@@ -87,7 +87,7 @@ class AuthenticateEndpointImplTest {
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
-                    return new SessionId.Simple("sessionId");
+                    return SessionId.of("sessionId");
                 },
                 (provided, storedEncoded) -> true
         );
@@ -97,7 +97,7 @@ class AuthenticateEndpointImplTest {
                 .isInstanceOf(AuthenticationSuccessfulInteraction.class);
 
         assertThat(loggedIn)
-                .hasValueMatching(u -> u.getUserId().equals(UserId.of("bob")));
+                .hasValueMatching(u -> u.getId().equals(UserId.of("bob")));
         assertThat(modes)
                 .isNotEmpty()
                 .containsExactly(AuthenticationMode.DECLARATIVE, AuthenticationMode.USER_FOUND);
@@ -116,7 +116,7 @@ class AuthenticateEndpointImplTest {
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
-                    return new SessionId.Simple("sessionId");
+                    return SessionId.of("sessionId");
                 },
                 (provided, storedEncoded) -> true
         );
@@ -128,7 +128,7 @@ class AuthenticateEndpointImplTest {
                 .isInstanceOf(AuthenticationSuccessfulInteraction.class);
 
         assertThat(loggedIn)
-                .hasValueMatching(u -> u.getUserId().equals(UserId.of("bob")));
+                .hasValueMatching(u -> u.getId().equals(UserId.of("bob")));
         assertThat(modes)
                 .isNotEmpty()
                 .containsExactly(AuthenticationMode.DECLARATIVE,
@@ -149,7 +149,7 @@ class AuthenticateEndpointImplTest {
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
-                    return new SessionId.Simple("sessionId");
+                    return SessionId.of("sessionId");
                 },
                 (provided, storedEncoded) -> false //FALSE !!!
         );
@@ -175,7 +175,7 @@ class AuthenticateEndpointImplTest {
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
-                    return new SessionId.Simple("sessionId");
+                    return SessionId.of("sessionId");
                 },
                 (provided, storedEncoded) -> true
         );
@@ -202,7 +202,7 @@ class AuthenticateEndpointImplTest {
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
-                    return new SessionId.Simple("sessionId");
+                    return SessionId.of("sessionId");
                 },
                 (provided, storedEncoded) -> true
         );
@@ -216,7 +216,7 @@ class AuthenticateEndpointImplTest {
                 .isInstanceOf(AuthenticationSuccessfulInteraction.class);
 
         assertThat(loggedIn)
-                .hasValueMatching(u -> u.getUserId().equals(UserId.of("bob")));
+                .hasValueMatching(u -> u.getId().equals(UserId.of("bob")));
         assertThat(modes)
                 .isNotEmpty()
                 .containsExactly(AuthenticationMode.DECLARATIVE,

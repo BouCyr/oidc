@@ -1,5 +1,5 @@
 server:
-  port: 0
+  port: 9452
 
 oidc:
   client-id: sb

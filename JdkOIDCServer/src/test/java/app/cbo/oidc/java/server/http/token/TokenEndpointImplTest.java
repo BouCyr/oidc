@@ -1,8 +1,10 @@
 package app.cbo.oidc.java.server.http.token;
 
 import app.cbo.oidc.java.server.TestHttpExchange;
+import app.cbo.oidc.java.server.backends.clients.ClientAuthenticator;
 import app.cbo.oidc.java.server.backends.keys.MemKeySet;
 import app.cbo.oidc.java.server.credentials.AuthenticationMode;
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.CodeData;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.datastored.SessionId;
@@ -25,6 +27,8 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 class TokenEndpointImplTest {
 
+
+    private final ClientAuthenticator clientPwdIsClientId = (id, secret) -> id!=null && id.id()!=null && id.id().equals(secret);
     @Test
     void nominal() throws ForbiddenResponse, JsonError, IOException {
 
@@ -35,12 +39,12 @@ class TokenEndpointImplTest {
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId
         );
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code", "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -89,12 +93,12 @@ class TokenEndpointImplTest {
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId
         );
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code", "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                ClientId.of("CLIENT"),
                 "wrong_wrong_wrong" //WRONG !!!
         );
 
@@ -115,12 +119,12 @@ class TokenEndpointImplTest {
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId
         );
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code", "code", "", "CLIENT"),
-                "CLIENT",
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -141,12 +145,12 @@ class TokenEndpointImplTest {
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId
         );
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code", "code", null, "CLIENT"),
-                "CLIENT",
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -167,13 +171,13 @@ class TokenEndpointImplTest {
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId
         );
 
         var interaction = tested.treatRequest(
                 new TokenParams("",//!!!!
                         "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -194,13 +198,13 @@ class TokenEndpointImplTest {
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId
         );
 
         var interaction = tested.treatRequest(
                 new TokenParams(null,//!!!!
                         "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -221,13 +225,13 @@ class TokenEndpointImplTest {
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId
         );
 
         var interaction = tested.treatRequest(
                 new TokenParams("INVALID",//!!!!
                         "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -248,13 +252,13 @@ class TokenEndpointImplTest {
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId
         );
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code",
                         "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -275,13 +279,13 @@ class TokenEndpointImplTest {
                 id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId
         );
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code",
                         "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -302,13 +306,13 @@ class TokenEndpointImplTest {
                 id -> Optional.empty(),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId
         );
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code",
                         "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 

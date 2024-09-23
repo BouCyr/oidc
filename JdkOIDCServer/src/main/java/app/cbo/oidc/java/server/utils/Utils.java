@@ -2,6 +2,7 @@ package app.cbo.oidc.java.server.utils;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class Utils {
 
@@ -10,6 +11,10 @@ public class Utils {
     }
     public static boolean isBlank(String s){
         return isEmpty(s) || s.isBlank();
+    }
+
+    public static boolean isBlank(Supplier<String> s){
+        return s!= null && isBlank(s.get());
     }
 
     public static boolean isEmpty(Optional<String> s){
