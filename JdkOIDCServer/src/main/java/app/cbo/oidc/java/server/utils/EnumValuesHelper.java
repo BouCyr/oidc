@@ -18,7 +18,7 @@ public class EnumValuesHelper {
      * @return the enum value if matching, empty if not
      */
     @SafeVarargs
-    public static <E extends Enum<E> & ParamEnum> Optional<E> fromParam(String paramValue, E... values){
+    public static <E extends Enum<E> & ParamEnum> Optional<E> fromParam(String paramValue, E... values) {
 
         return Stream.of(values)
                 .filter(e -> e.paramValue().equals(paramValue))
@@ -27,15 +27,16 @@ public class EnumValuesHelper {
 
     /**
      * Converts some Strings to the provided enum
+     *
      * @param paramValues string (found in query string)
-     * @param values All possible values
-     * @param <E> type of the enum
+     * @param values      All possible values
+     * @param <E>         type of the enum
      * @return the enum values
      */
     @SafeVarargs
-    public static <E extends Enum<E> & ParamEnum> List<E> fromParams(Collection<String> paramValues, E... values){
+    public static <E extends Enum<E> & ParamEnum> List<E> fromParams(Collection<String> paramValues, E... values) {
 
-        if(paramValues == null){
+        if (paramValues == null) {
             return Collections.emptyList();
         }
 
@@ -47,7 +48,7 @@ public class EnumValuesHelper {
     }
 
 
-    public interface ParamEnum{
+    public interface ParamEnum {
         String paramValue();
     }
 }

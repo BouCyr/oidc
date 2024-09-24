@@ -11,7 +11,7 @@ class PasswordEncoderTest {
     private final Passwords tested = new PBKDF2WithHmacSHA1PasswordHash();
 
     @Test
-    void nominal(){
+    void nominal() {
 
 
         String password = "hunter2";
@@ -24,7 +24,7 @@ class PasswordEncoderTest {
     }
 
     @Test
-    void nominal_blank(){
+    void nominal_blank() {
         String password = "";
 
         var encoded = tested.encode(password);
@@ -35,7 +35,7 @@ class PasswordEncoderTest {
     }
 
     @Test
-    void diff(){
+    void diff() {
         String password = "hunter2";
 
         var encoded = tested.encode(password);
@@ -46,9 +46,9 @@ class PasswordEncoderTest {
     }
 
     @Test
-    void nullability(){
+    void nullability() {
 
-        Assertions.assertThatThrownBy(() ->  tested.encode(null))
+        Assertions.assertThatThrownBy(() -> tested.encode(null))
                 .isInstanceOf(NullPointerException.class);
 
         Assertions.assertThat(tested.confront(null, null))
@@ -60,7 +60,7 @@ class PasswordEncoderTest {
     }
 
     @Test
-    void blankProvided_nnstored(){
+    void blankProvided_nnstored() {
         String password = "";
 
         var encoded = tested.encode(password);

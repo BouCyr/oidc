@@ -4,9 +4,17 @@ import java.util.function.Supplier;
 
 
 public record SessionId(String id) implements Supplier<String> {
-    @Override public String get() { return id(); }
+    public static SessionId of(String id) {
+        return new SessionId(id);
+    }
 
-    @Override public String toString() { return id(); }
+    @Override
+    public String get() {
+        return id();
+    }
 
-    public static SessionId of(String id){ return new SessionId(id);}
+    @Override
+    public String toString() {
+        return id();
+    }
 }

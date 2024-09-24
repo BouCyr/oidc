@@ -16,11 +16,11 @@ public enum HttpCode {
 
     private final int code;
 
-    public int code() {
-        return code;
-    }
-
     HttpCode(int code) {
         this.code = code;
+    }
+
+    public int code() {
+        return code;
     }
 }

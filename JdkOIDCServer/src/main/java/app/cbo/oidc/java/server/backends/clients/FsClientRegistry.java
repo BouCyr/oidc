@@ -47,7 +47,7 @@ public class FsClientRegistry implements ClientRegistry {
     private Map<String, String> readFromFs() {
         final Map<String, String> diskContents;
         try {
-            diskContents = this.fsUserStorage.readMap(FileSpecifications.full("clients.txt","clients"))
+            diskContents = this.fsUserStorage.readMap(FileSpecifications.full("clients.txt", "clients"))
                     .orElse(Collections.emptyMap());
 
 
@@ -63,26 +63,26 @@ public class FsClientRegistry implements ClientRegistry {
      *
      * @param clientId     The ID of the client to be authenticated.
      * @param clientSecret The secret of the client to be authenticated.
-     * @return             Returns true if the client ID and client secret match the ones stored in the file system, false otherwise.
+     * @return Returns true if the client ID and client secret match the ones stored in the file system, false otherwise.
      */
     @Override
     public boolean authenticate(ClientId clientId, String clientSecret) {
 
-        if(clientId == null || clientId.id() == null){
+        if (clientId == null || clientId.id() == null) {
             LOGGER.info("Cannot authenticate NULL clientId");
             return false;
         }
 
 
         boolean result;
-        if(this.configured.containsKey(clientId.id())){
-            LOGGER.info("Client '"+clientId+"' is defined in the registry");
-            result =  this.configured.get(clientId.id()).equals(clientSecret);
-        }else{
-            LOGGER.info("Client '"+clientId+"' is NOT defined in the registry ; checking if clientId and secret are equals");
+        if (this.configured.containsKey(clientId.id())) {
+            LOGGER.info("Client '" + clientId + "' is defined in the registry");
+            result = this.configured.get(clientId.id()).equals(clientSecret);
+        } else {
+            LOGGER.info("Client '" + clientId + "' is NOT defined in the registry ; checking if clientId and secret are equals");
             result = !Utils.isEmpty(clientId.id()) && clientId.id().equals(clientSecret);
         }
-        LOGGER.info("Client authentication result : "+(result ? "OK" : "KO")+" for client '"+clientId+"'");
+        LOGGER.info("Client authentication result : " + (result ? "OK" : "KO") + " for client '" + clientId + "'");
         return result;
 
     }
@@ -120,10 +120,10 @@ public class FsClientRegistry implements ClientRegistry {
             throw new RuntimeException(e);
         }
         this.configured = readFromFs();
-        if(isAReplacement) {
-            LOGGER.info("Client '"+clientId+"' has been updated with secret '"+clientSecret+"'");
+        if (isAReplacement) {
+            LOGGER.info("Client '" + clientId + "' has been updated with secret '" + clientSecret + "'");
         } else {
-            LOGGER.info("Client '"+clientId+"' has been registered with secret '"+clientSecret+"'");
+            LOGGER.info("Client '" + clientId + "' has been registered with secret '" + clientSecret + "'");
         }
     }
 }

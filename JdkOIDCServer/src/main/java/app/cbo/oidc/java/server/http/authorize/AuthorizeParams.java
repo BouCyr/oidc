@@ -32,10 +32,10 @@ public record AuthorizeParams(
 
         //TODO [17/03/2023] cf 5.5 'claims'
         //TODO [17/03/2023] cf 6  "Passing Request Parameters as JWTs" - this will be another nightmare
-){
+) {
 
 
-    public AuthorizeParams(Map<String, Collection<String>> params){
+    public AuthorizeParams(Map<String, Collection<String>> params) {
         this(
                 spaceSeparatedList(singleParam(params.get("scope")).orElse("")),
                 spaceSeparatedList(singleParam(params.get("response_type")).orElse("")),
@@ -66,7 +66,7 @@ public record AuthorizeParams(
      * @throws AuthErrorInteraction if some params were invalid
      */
     public static void checkParams(AuthorizeParams p) throws AuthErrorInteraction {
-        if(p == null){
+        if (p == null) {
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Invalid request");
         }
 
@@ -80,24 +80,25 @@ public record AuthorizeParams(
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.unsupported_response_type, "'response_type' param is REQUIRED'", p);
         }
         if (Utils.isBlank(p.clientId().orElse(ClientId.of("")))) {
-            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'client_id' param is REQUIRED'",p);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "'client_id' param is REQUIRED'", p);
         }
-        if(Utils.isBlank(p.redirectUri())){
+        if (Utils.isBlank(p.redirectUri())) {
 
-            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'redirect_uri' param is REQUIRED'",p);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "'redirect_uri' param is REQUIRED'", p);
         }
-        if(p.maxAge().isPresent()) {
+        if (p.maxAge().isPresent()) {
             try {
                 Long.parseLong(p.maxAge().get());
-            }catch (NumberFormatException e){
-                throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'max_age' param must be an integer value'", p);
+            } catch (NumberFormatException e) {
+                throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "'max_age' param must be an integer value'", p);
             }
         }
     }
 
     /**
      * Checks whether the params were correctly filled by the client FOR THIS PARTICULAR FLOW
-     * @param flow the requested flow
+     *
+     * @param flow   the requested flow
      * @param params the authentication request params
      * @throws AuthErrorInteraction if some params were invalid
      */
@@ -153,13 +154,13 @@ public record AuthorizeParams(
     //TODO [03/04/2023] in .utils ?
     private String toSingle(String key, Optional<String> value) {
 
-        return value.map(v -> key+"="+v).orElse("");
+        return value.map(v -> key + "=" + v).orElse("");
     }
 
     //TODO [03/04/2023] in .utils ?
     private String toSpaceSeparated(String key, List<String> values) {
         StringBuilder builder = new StringBuilder();
-        if(!Utils.isEmpty(values)){
+        if (!Utils.isEmpty(values)) {
             builder
                     .append(key)
                     .append("=")

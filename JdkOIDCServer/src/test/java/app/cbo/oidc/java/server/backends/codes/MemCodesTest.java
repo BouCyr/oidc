@@ -33,6 +33,7 @@ class MemCodesTest extends CodesTest {
 
         wrong_redirecturi(new MemCodes());
     }
+
     @Test
     void nullability_create() {
 

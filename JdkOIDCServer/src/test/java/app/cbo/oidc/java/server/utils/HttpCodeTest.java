@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 class HttpCodeTest {
 
     @Test
-    void test(){
+    void test() {
         Assertions.assertThat(HttpCode.OK.code()).isEqualTo(200);
 
 

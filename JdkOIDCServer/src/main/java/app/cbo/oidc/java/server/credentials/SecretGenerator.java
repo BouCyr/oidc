@@ -12,13 +12,16 @@ import java.security.SecureRandom;
 public class SecretGenerator {
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public SecretGenerator(){ }
-
-    @NotNull public byte[] generateSecret(){
-        return this.generateSecret(160/8);
+    public SecretGenerator() {
     }
 
-    @NotNull public byte[] generateSecret(int size){
+    @NotNull
+    public byte[] generateSecret() {
+        return this.generateSecret(160 / 8);
+    }
+
+    @NotNull
+    public byte[] generateSecret(int size) {
         byte[] secret = new byte[size];//use 160, since I'm not sure about my Base32 padding
         this.secureRandom.nextBytes(secret);
         return secret;

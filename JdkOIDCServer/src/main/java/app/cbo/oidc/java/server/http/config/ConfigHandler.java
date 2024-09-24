@@ -62,7 +62,6 @@ public class ConfigHandler implements HttpHandlerWithPath {
     private final PathCustomizer pathCustomizer;
 
 
-
     @BuildWith
     public ConfigHandler(
             PathCustomizer pathCustomizer,

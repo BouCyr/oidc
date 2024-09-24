@@ -14,7 +14,7 @@ select_account
 The Authorization Server SHOULD prompt the End-User to select a userId account. This enables an End-User who has multiple accounts at the Authorization Server to select amongst the multiple accounts that they might have current sessions for. If it cannot obtain an account selection choice made by the End-User, it MUST return an error, typically account_selection_required.
 The prompt parameter can be used by the Client to make sure that the End-User is still present for the current session or to bring attention to the request. If this parameter contains none with any other value, an error is returned.
  */
-public enum OIDCPromptValues implements EnumValuesHelper.ParamEnum{
+public enum OIDCPromptValues implements EnumValuesHelper.ParamEnum {
     NONE("none"),
     LOGIN("login"),
     CONSENT("consent"),
@@ -26,7 +26,7 @@ public enum OIDCPromptValues implements EnumValuesHelper.ParamEnum{
         this.paramValue = paramValue;
     }
 
-    public String paramValue(){
+    public String paramValue() {
         return this.paramValue;
     }
 

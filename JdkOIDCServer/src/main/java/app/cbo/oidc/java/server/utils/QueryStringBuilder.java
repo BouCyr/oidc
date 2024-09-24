@@ -2,8 +2,8 @@ package app.cbo.oidc.java.server.utils;
 
 public class QueryStringBuilder {
 
+    private final StringBuilder builder = new StringBuilder();
     private boolean has = false;
-    private final StringBuilder builder=new StringBuilder();
 
     /**
      * Append an item to the queryString

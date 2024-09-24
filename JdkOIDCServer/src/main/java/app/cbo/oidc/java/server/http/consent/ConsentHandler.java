@@ -24,10 +24,8 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 @Injectable
 public class ConsentHandler implements HttpHandlerWithPath {
 
-    private final static Logger LOGGER = Logger.getLogger(ConsentHandler.class.getCanonicalName());
-
     public static final String CONSENT_ENDPOINT = "/consent";
-
+    private final static Logger LOGGER = Logger.getLogger(ConsentHandler.class.getCanonicalName());
     private final OngoingAuthsFinder ongoingAuthsFinder;
     private final ConsentEndpoint consentEndpoint;
     private final SessionFinder sessionFinder;

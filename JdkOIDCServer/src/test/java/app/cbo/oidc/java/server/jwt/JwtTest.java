@@ -21,22 +21,6 @@ class JwtTest {
     private final RSAPrivateKey privateK;
     private final RSAPublicKey publicK;
 
-    static IdToken testToken(String sub, String iss) {
-        return new IdToken(sub,
-                iss,
-                Collections.emptyList(),
-                5 * 60 + new Date().getTime() / 1000,
-                new Date().getTime() / 1000,
-                new Date().getTime() / 1000,
-                Optional.of("nonce"),
-                "NONE",
-                Collections.emptyList(),
-                Optional.empty(),
-                new HashMap<>()
-        );
-    }
-
-
     JwtTest() throws NoSuchAlgorithmException {
         var kpg = KeyPairGenerator.getInstance("RSA");
         var kp = kpg.generateKeyPair();
@@ -55,6 +39,21 @@ class JwtTest {
         System.out.println(Base64.getEncoder().encodeToString(this.privateK.getEncoded()));
         System.out.println("-----END PRIVATE KEY-----");
 
+    }
+
+    static IdToken testToken(String sub, String iss) {
+        return new IdToken(sub,
+                iss,
+                Collections.emptyList(),
+                5 * 60 + new Date().getTime() / 1000,
+                new Date().getTime() / 1000,
+                new Date().getTime() / 1000,
+                Optional.of("nonce"),
+                "NONE",
+                Collections.emptyList(),
+                Optional.empty(),
+                new HashMap<>()
+        );
     }
 
     @Test

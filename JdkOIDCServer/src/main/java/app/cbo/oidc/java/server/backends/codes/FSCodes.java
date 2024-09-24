@@ -41,7 +41,7 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
      * @param code        The code being received by the server for validation.
      * @param clientId    The client ID that sent the code back.
      * @param redirectUri The redirect URI sent with the validation.
-     * @return            The data stored server-side for this code at generation (userId, sessionId, scopes requested and nonce) ; EMPTY if the code is invalid, or not recognized by the server.
+     * @return The data stored server-side for this code at generation (userId, sessionId, scopes requested and nonce) ; EMPTY if the code is invalid, or not recognized by the server.
      */
     @NotNull
     @Override
@@ -62,7 +62,7 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
         try {
             contents = this.userDataFileStorage().readMap(file).orElseThrow(() -> new IOException("File not found"));
         } catch (IOException e) {
-            LOGGER.info("File not found for code "+code.code());
+            LOGGER.info("File not found for code " + code.code());
             return Optional.empty();
         }
 
@@ -99,7 +99,7 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
      * @param redirectUri The redirect URI to be associated with the code.
      * @param scopes      The scopes requested by the client.
      * @param nonce       A nonce that can be used to associate a client session with an ID token and to mitigate replay attacks.
-     * @return            The newly created code.
+     * @return The newly created code.
      * @throws NullPointerException if userId, clientId, or redirectUri is null or blank.
      */
     @NotNull
@@ -111,9 +111,9 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
                           @NotNull List<String> scopes,
                           @Nullable String nonce) {
         if (isBlank(userId)
-            || isBlank(sessionId)
-            || isBlank(clientId)
-            || isBlank(redirectUri)) {
+                || isBlank(sessionId)
+                || isBlank(clientId)
+                || isBlank(redirectUri)) {
             throw new NullPointerException("Input cannot be null");
         }
 

@@ -4,12 +4,7 @@ import app.cbo.oidc.java.server.jwt.JWA;
 import org.assertj.core.api.Assertions;
 
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.SignatureException;
+import java.security.*;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;

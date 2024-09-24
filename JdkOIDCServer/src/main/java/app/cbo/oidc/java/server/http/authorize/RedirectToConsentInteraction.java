@@ -29,7 +29,7 @@ public record RedirectToConsentInteraction(OngoingAuthId ongoingAuthId, ClientId
         exchange.getResponseHeaders().add("Location", ConsentHandler.CONSENT_ENDPOINT
                 + "?" + ConsentParams.ONGOING + "=" + ongoingAuthId().id()
                 + "&" + ConsentParams.SCOPES_REQUESTED + "=" + String.join(" ", this.scopes)
-                                                      + "&" + ConsentParams.CLIENT_ID + "=" + clientId().id()
+                + "&" + ConsentParams.CLIENT_ID + "=" + clientId().id()
         );
         exchange.sendResponseHeaders(HttpCode.FOUND.code(), 0);
         exchange.getResponseBody().flush();

@@ -19,24 +19,24 @@ public enum MimeType {
     private final String mime;
     private final String standardExtension;
 
+    MimeType(String mime, String extension) {
+        this.mime = mime;
+        this.standardExtension = extension;
+    }
+
+    public static Optional<MimeType> fromExtension(String extension) {
+        return Stream.of(MimeType.values())
+                .filter(MimeType::hasStandardExtension)
+                .filter(mt -> mt.standardExtension.equals(extension))
+                .findFirst();
+
+    }
+
     public String mimeType() {
         return mime;
     }
 
     public boolean hasStandardExtension() {
         return !Utils.isBlank(this.standardExtension);
-    }
-
-    MimeType(String mime, String extension) {
-        this.mime=mime;
-        this.standardExtension = extension;
-    }
-
-    public static Optional<MimeType> fromExtension(String extension){
-        return  Stream.of(MimeType.values())
-                .filter(MimeType::hasStandardExtension)
-                .filter(mt -> mt.standardExtension.equals(extension))
-                .findFirst();
-
     }
 }

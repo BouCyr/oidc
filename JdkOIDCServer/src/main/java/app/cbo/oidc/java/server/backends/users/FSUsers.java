@@ -30,6 +30,72 @@ public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder
     private static final String TOTP_K = "totp";
     private static final String CONSENTS_K = "consents";
 
+    public static Collection<String> userToStrings(@NotNull User user) {
+        return List.of(
+                toLine(SUB_K, user.sub()),
+                toLine(PWD_K, user.pwd()),
+                toLine(TOTP_K, user.totpKey()),
+                toLine(CONSENTS_K, consentsToString(user.consentedTo()))
+        );
+
+    }
+
+    public static String consentsToString(Map<String, Set<String>> consentedTo) {
+        // clientA->profile;email,clientB->email,phone,address
+        return consentedTo.keySet()
+                .stream()
+                .map(clientId -> clientId + "->" + String.join(";", consentedTo.get(clientId)))
+                .collect(Collectors.joining(","));
+    }
+
+    public static Optional<User> userFromStrings(@NotNull Collection<String> stringified) {
+        if (Utils.isEmpty(stringified)) {
+            return Optional.empty();
+        }
+
+        //String sub, String pwd, String totpKey, Map<String, Set<String>> consentedTo
+        String sub = null;
+        String pwd = null;
+        String totpKey = null;
+        Map<String, Set<String>> consents = null;
+
+        for (var line : stringified) {
+            var pair = fromLine(line);
+            switch (pair.left()) {
+                case SUB_K -> sub = pair.right();
+                case PWD_K -> pwd = pair.right();
+                case TOTP_K -> totpKey = pair.right();
+                case CONSENTS_K -> consents = readStringConsents(pair.right());
+                default -> LOGGER.info("unknown key found in file 'user.txt' : " + pair.right());
+            }
+        }
+
+        if (sub != null)
+            return Optional.of(new User(sub, pwd, totpKey, consents));
+        else {
+            LOGGER.warning("No userid/sub found in file");
+            return Optional.empty();
+        }
+    }
+
+    public static Map<String, Set<String>> readStringConsents(String val) {
+
+        if (Utils.isBlank(val))
+            return Collections.emptyMap();
+
+        try {
+            Map<String, Set<String>> map = new HashMap<>();
+            var clientIds = val.split(",");
+            for (var consentAndclient : clientIds) {
+                var clientId = consentAndclient.split("->")[0];
+                var consents = Set.of(consentAndclient.split("->")[1].split(";"));
+                map.put(clientId, consents);
+            }
+            return map;
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException("Invalid consent string : '" + val + "'", e);
+        }
+    }
 
     @Override
     public UserId create(@NotNull String login, @Nullable String clearPwd, @Nullable String totpKey) {
@@ -96,74 +162,6 @@ public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder
         } catch (Exception e) {
             LOGGER.severe("IOException while updating user. This is not normal. " + e.getMessage());
             return false;
-        }
-    }
-
-
-    public static Collection<String> userToStrings(@NotNull User user) {
-        return List.of(
-                toLine(SUB_K, user.sub()),
-                toLine(PWD_K, user.pwd()),
-                toLine(TOTP_K, user.totpKey()),
-                toLine(CONSENTS_K, consentsToString(user.consentedTo()))
-        );
-
-    }
-
-    public static String consentsToString(Map<String, Set<String>> consentedTo) {
-        // clientA->profile;email,clientB->email,phone,address
-        return consentedTo.keySet()
-                .stream()
-                .map(clientId -> clientId + "->" + String.join(";", consentedTo.get(clientId)))
-                .collect(Collectors.joining(","));
-    }
-
-    public static Optional<User> userFromStrings(@NotNull Collection<String> stringified) {
-        if (Utils.isEmpty(stringified)) {
-            return Optional.empty();
-        }
-
-        //String sub, String pwd, String totpKey, Map<String, Set<String>> consentedTo
-        String sub = null;
-        String pwd = null;
-        String totpKey = null;
-        Map<String, Set<String>> consents = null;
-
-        for (var line : stringified) {
-            var pair = fromLine(line);
-            switch (pair.left()) {
-                case SUB_K -> sub = pair.right();
-                case PWD_K -> pwd = pair.right();
-                case TOTP_K -> totpKey = pair.right();
-                case CONSENTS_K -> consents = readStringConsents(pair.right());
-                default -> LOGGER.info("unknown key found in file 'user.txt' : " + pair.right());
-            }
-        }
-
-        if (sub != null)
-            return Optional.of(new User(sub, pwd, totpKey, consents));
-        else {
-            LOGGER.warning("No userid/sub found in file");
-            return Optional.empty();
-        }
-    }
-
-    public static Map<String, Set<String>> readStringConsents(String val) {
-
-        if (Utils.isBlank(val))
-            return Collections.emptyMap();
-
-        try {
-            Map<String, Set<String>> map = new HashMap<>();
-            var clientIds = val.split(",");
-            for (var consentAndclient : clientIds) {
-                var clientId = consentAndclient.split("->")[0];
-                var consents = Set.of(consentAndclient.split("->")[1].split(";"));
-                map.put(clientId, consents);
-            }
-            return map;
-        } catch (RuntimeException e) {
-            throw new IllegalArgumentException("Invalid consent string : '" + val + "'", e);
         }
     }
 

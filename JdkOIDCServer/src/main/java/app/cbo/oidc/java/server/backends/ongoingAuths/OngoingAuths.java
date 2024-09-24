@@ -18,11 +18,11 @@ import java.util.UUID;
 public class OngoingAuths implements OngoingAuthsFinder, OngoingAuthsStorer {
 
 
+    private final Map<String, AuthorizeParams> store = new HashMap<>();
+
+
     public OngoingAuths() {
     }
-
-
-    private final Map<String, AuthorizeParams> store = new HashMap<>();
 
     /**
      * @inheritDoc

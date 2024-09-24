@@ -13,19 +13,19 @@ import java.util.Arrays;
 import java.util.Base64;
 
 @Injectable
-public class PBKDF2WithHmacSHA1PasswordHash implements Passwords{
+public class PBKDF2WithHmacSHA1PasswordHash implements Passwords {
 
     public PBKDF2WithHmacSHA1PasswordHash() {
     }
 
 
-    public String encode(@NotNull String clear){
+    public String encode(@NotNull String clear) {
 
         SecureRandom random = new SecureRandom();
         byte[] salt = new byte[16];
         random.nextBytes(salt);
         var hash = hash(clear, salt);
-        return Base64.getEncoder().encodeToString(salt)+"."+Base64.getEncoder().encodeToString(hash);
+        return Base64.getEncoder().encodeToString(salt) + "." + Base64.getEncoder().encodeToString(hash);
     }
 
     private byte[] hash(String clear, byte[] salt) {
@@ -34,13 +34,13 @@ public class PBKDF2WithHmacSHA1PasswordHash implements Passwords{
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
             return factory.generateSecret(spec).getEncoded();
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-            throw new RuntimeException("unable to hash password",e);
+            throw new RuntimeException("unable to hash password", e);
         }
     }
 
-    public boolean confront(@NotNull String provided, @NotNull String storedEncoded){
+    public boolean confront(@NotNull String provided, @NotNull String storedEncoded) {
 
-        if(provided == null || storedEncoded == null)
+        if (provided == null || storedEncoded == null)
             return false;
 
         var tabs = storedEncoded.split("\\.");
@@ -48,7 +48,7 @@ public class PBKDF2WithHmacSHA1PasswordHash implements Passwords{
         var storedHash = Base64.getDecoder().decode(tabs[1]);
         var providedHash = this.hash(provided, salt);
 
-        return (Arrays.compare(providedHash, storedHash)==0);
+        return (Arrays.compare(providedHash, storedHash) == 0);
 
     }
 }

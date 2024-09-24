@@ -30,12 +30,12 @@ public record User(String sub, String pwd, String totpKey, Map<String, Set<Strin
         }
     }
 
-    public UserId getId(){
-        return UserId.of(this.sub());
-    }
-
     public User(@NotNull String sub, @Nullable String pwd, @Nullable String totpKey) {
         this(sub, pwd, totpKey, new HashMap<>());
+    }
+
+    public UserId getId() {
+        return UserId.of(this.sub());
     }
 
     public boolean hasConsentedTo(@NotNull ClientId clientId, String scope) {
@@ -48,7 +48,7 @@ public record User(String sub, String pwd, String totpKey, Map<String, Set<Strin
 
     public boolean hasConsentedToAll(@NotNull ClientId clientId, List<String> scopes) {
         return this.consentedTo.containsKey(clientId.id())
-               && this.consentedTo.get(clientId.id()).containsAll(scopes);
+                && this.consentedTo.get(clientId.id()).containsAll(scopes);
     }
 
 

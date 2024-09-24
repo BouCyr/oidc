@@ -39,19 +39,19 @@ public enum OIDCFlow {
         boolean hasIdToken = responseTypes.contains("id_token");
         boolean hasToken = responseTypes.contains("token");
 
-        if(responseTypes.size()==1){
-            if(hasCode)
+        if (responseTypes.size() == 1) {
+            if (hasCode)
                 return AUTHORIZATION;
-            if(hasIdToken)
+            if (hasIdToken)
                 return IMPLICIT;
-        } else if(responseTypes.size()==2){
-            if(hasIdToken && hasToken)
+        } else if (responseTypes.size() == 2) {
+            if (hasIdToken && hasToken)
                 return IMPLICIT;
-            if(hasCode && (hasIdToken || hasToken))
+            if (hasCode && (hasIdToken || hasToken))
                 return HYBRID;
 
-        } else if(responseTypes.size() == 3){
-            if(hasCode && hasIdToken && hasToken)
+        } else if (responseTypes.size() == 3) {
+            if (hasCode && hasIdToken && hasToken)
                 return HYBRID;
         }
         throw new AuthErrorInteraction(AuthErrorInteraction.Code.unsupported_response_type, "Invalid response_type", p);

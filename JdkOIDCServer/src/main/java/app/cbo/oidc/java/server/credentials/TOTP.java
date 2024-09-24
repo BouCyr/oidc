@@ -2,14 +2,14 @@ package app.cbo.oidc.java.server.credentials;
 
 
 /**
- Copyright (c) 2011 IETF Trust and the persons identified as
- authors of the code. All rights reserved.
-
- Redistribution and use in source and binary forms, with or without
- modification, is permitted pursuant to, and subject to the license
- terms contained in, the Simplified BSD License set forth in Section
- 4.c of the IETF Trust's Legal Provisions Relating to IETF Documents
- (http://trustee.ietf.org/license-info).
+ * Copyright (c) 2011 IETF Trust and the persons identified as
+ * authors of the code. All rights reserved.
+ * <p>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, is permitted pursuant to, and subject to the license
+ * terms contained in, the Simplified BSD License set forth in Section
+ * 4.c of the IETF Trust's Legal Provisions Relating to IETF Documents
+ * (http://trustee.ietf.org/license-info).
  */
 
 import app.cbo.oidc.java.server.jsr305.NotNull;
@@ -35,16 +35,26 @@ import java.util.stream.IntStream;
 
 public class TOTP {
 
+    private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
+    private static final int[] DIGITS_POWER
+            // 0 1  2   3    4     5      6       7        8
+            = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+
+
+    private TOTP() {
+    }
+
     /**
      * Generate a 6 digits OTP from the current time and the given b32 secret key, using HmacSHA1 and a 30s ttl
      *
      * @param b32 secret key
      *
      */
-    @NotNull public static String get(@NotNull String b32){
+    @NotNull
+    public static String get(@NotNull String b32) {
         var secret = Base32.decode(b32);
         var asHex = bytesToHex(secret);
-        var time = (Instant.now().getEpochSecond())/30;
+        var time = (Instant.now().getEpochSecond()) / 30;
         return TOTP.generateTOTP(asHex, Long.toHexString(time).toUpperCase(), "6");
     }
 
@@ -57,18 +67,18 @@ public class TOTP {
      * @param skewBefore number of next TOTP to compute
      * @return topts (including previous and next ones)
      */
-    @NotNull static List<String> get(@NotNull String b32,  int skewBefore, int skewAfter){
+    @NotNull
+    static List<String> get(@NotNull String b32, int skewBefore, int skewAfter) {
         var secret = Base32.decode(b32);
         var asHex = bytesToHex(secret);
 
-        return IntStream.rangeClosed(-1*skewBefore, skewAfter)
+        return IntStream.rangeClosed(-1 * skewBefore, skewAfter)
                 .boxed()
                 .map(i -> {
                     var time = i + ((Instant.now().getEpochSecond()) / 30);
                     return TOTP.generateTOTP(asHex, Long.toHexString(time).toUpperCase(), "6");
                 }).toList();
     }
-
 
     /**
      * Checks a provided totp against the (stored) secretkey
@@ -79,14 +89,11 @@ public class TOTP {
      */
     public static boolean confront(@NotNull String providedTotp, @NotNull String totpKey) {
 
-        return get(totpKey,1,1)
+        return get(totpKey, 1, 1)
                 .stream()
                 .anyMatch(t -> t.equals(providedTotp));
 
     }
-
-    private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
-
 
     static String bytesToHex(byte[] bytes) {
         byte[] hexChars = new byte[bytes.length * 2];
@@ -97,8 +104,6 @@ public class TOTP {
         }
         return new String(hexChars, StandardCharsets.UTF_8);
     }
-
-    private TOTP() {}
 
     /**
      * This method uses the JCE to provide the crypto algorithm.
@@ -112,9 +117,8 @@ public class TOTP {
      */
 
 
-
     private static byte[] hmac_sha(String crypto, byte[] keyBytes,
-                                   byte[] text){
+                                   byte[] text) {
         try {
             Mac hmac;
             hmac = Mac.getInstance(crypto);
@@ -127,7 +131,6 @@ public class TOTP {
         }
     }
 
-
     /**
      * This method converts a HEX string to Byte[]
      *
@@ -136,22 +139,17 @@ public class TOTP {
      * @return a byte array
      */
 
-    private static byte[] hexStr2Bytes(String hex){
+    private static byte[] hexStr2Bytes(String hex) {
         // Adding one byte to get the right conversion
         // Values starting with "0" can be converted
-        byte[] bArray = new BigInteger("10" + hex,16).toByteArray();
+        byte[] bArray = new BigInteger("10" + hex, 16).toByteArray();
 
         // Copy all the REAL bytes, not the "first"
         byte[] ret = new byte[bArray.length - 1];
         for (int i = 0; i < ret.length; i++)
-            ret[i] = bArray[i+1];
+            ret[i] = bArray[i + 1];
         return ret;
     }
-
-    private static final int[] DIGITS_POWER
-            // 0 1  2   3    4     5      6       7        8
-            = {1,10,100,1000,10000,100000,1000000,10000000,100000000 };
-
 
     /**
      * This method generates a TOTP value for the given
@@ -165,8 +163,8 @@ public class TOTP {
      */
 
     static String generateTOTP(String key,
-                                      String time,
-                                      String returnDigits){
+                               String time,
+                               String returnDigits) {
         return generateTOTP(key, time, returnDigits, "HmacSHA1");
     }
 
@@ -183,8 +181,8 @@ public class TOTP {
      */
 
     static String generateTOTP256(String key,
-                                         String time,
-                                         String returnDigits){
+                                  String time,
+                                  String returnDigits) {
         return generateTOTP(key, time, returnDigits, "HmacSHA256");
     }
 
@@ -201,8 +199,8 @@ public class TOTP {
      */
 
     static String generateTOTP512(String key,
-                                         String time,
-                                         String returnDigits){
+                                  String time,
+                                  String returnDigits) {
         return generateTOTP(key, time, returnDigits, "HmacSHA512");
     }
 
@@ -220,9 +218,9 @@ public class TOTP {
      */
 
     static String generateTOTP(String key,
-                                      String time,
-                                      String returnDigits,
-                                      String crypto){
+                               String time,
+                               String returnDigits,
+                               String crypto) {
         int codeDigits = Integer.decode(returnDigits);
         StringBuilder result;
 
@@ -230,15 +228,13 @@ public class TOTP {
         // First 8 bytes are for the movingFactor
         // Compliant with base RFC 4226 (HOTP)
         StringBuilder timeBuilder = new StringBuilder(time);
-        while (timeBuilder.length() < 16 )
+        while (timeBuilder.length() < 16)
             timeBuilder.insert(0, "0");
         time = timeBuilder.toString();
 
         // Get the HEX in a Byte[]
         byte[] msg = hexStr2Bytes(time);
         byte[] k = hexStr2Bytes(key);
-
-
 
 
         byte[] hash = hmac_sha(crypto, k, msg);

@@ -10,17 +10,31 @@ import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.authorize.AuthorizeParams;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AuthenticateEndpointImplTest {
+
+    private static AuthenticateEndpointImpl createAuthEndpoint(AtomicReference<User> loggedIn, EnumSet<AuthenticationMode> modes) {
+        var memUSers = new MemUsers(p -> p);
+        AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
+                key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
+                //user finder
+                memUSers,
+                //user creator
+                memUSers,
+                (user, authenticationModes) -> {
+                    loggedIn.set(user);
+                    modes.addAll(authenticationModes);
+                    return SessionId.of("sessionId");
+                },
+                (provided, storedEncoded) -> true
+        );
+        return tested;
+    }
 
     @Test
     void no_session() throws AuthErrorInteraction {
@@ -55,24 +69,6 @@ class AuthenticateEndpointImplTest {
                 .containsExactly(AuthenticationMode.DECLARATIVE);
 
 
-    }
-
-    private static AuthenticateEndpointImpl createAuthEndpoint(AtomicReference<User> loggedIn, EnumSet<AuthenticationMode> modes) {
-        var memUSers = new MemUsers(p -> p);
-        AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
-                key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
-                //user finder
-                memUSers,
-                //user creator
-                memUSers,
-                (user, authenticationModes) -> {
-                    loggedIn.set(user);
-                    modes.addAll(authenticationModes);
-                    return SessionId.of("sessionId");
-                },
-                (provided, storedEncoded) -> true
-        );
-        return tested;
     }
 
     @Test

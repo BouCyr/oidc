@@ -16,7 +16,7 @@ public interface SessionSupplier {
      * This method is used to create a new session for a user with a set of authentication modes.
      * It returns the SessionId of the created session.
      *
-     * @param user The User for whom the session is to be created.
+     * @param user                The User for whom the session is to be created.
      * @param authenticationModes The set of AuthenticationModes to be used for the session.
      * @return The SessionId of the created session.
      */

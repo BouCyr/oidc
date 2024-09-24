@@ -17,7 +17,7 @@ public interface ClientAuthenticator {
      *
      * @param clientId     The ID of the client to be authenticated.
      * @param clientSecret The secret of the client to be authenticated.
-     * @return             Returns true if the client is authenticated successfully, false otherwise.
+     * @return Returns true if the client is authenticated successfully, false otherwise.
      */
     boolean authenticate(@NotNull ClientId clientId, @Nullable String clientSecret);
 }

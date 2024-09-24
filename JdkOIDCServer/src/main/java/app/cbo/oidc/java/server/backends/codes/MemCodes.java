@@ -40,7 +40,7 @@ public class MemCodes implements Codes {
      * @param redirectUri The redirect URI to be associated with the code.
      * @param scopes      The scopes requested by the client.
      * @param nonce       A nonce that can be used to associate a client session with an ID token and to mitigate replay attacks.
-     * @return            The newly created code.
+     * @return The newly created code.
      * @throws NullPointerException if userId, clientId, or redirectUri is null or blank.
      */
     @Override
@@ -73,7 +73,7 @@ public class MemCodes implements Codes {
      * @param code        The code being received by the server for validation.
      * @param clientId    The client ID that sent the code back.
      * @param redirectUri The redirect URI sent with the validation.
-     * @return            The data stored server-side for this code at generation (userId, sessionId, scopes requested and nonce) ; EMPTY if the code is invalid, or not recognized by the server.
+     * @return The data stored server-side for this code at generation (userId, sessionId, scopes requested and nonce) ; EMPTY if the code is invalid, or not recognized by the server.
      */
     @Override
     @NotNull
@@ -93,7 +93,7 @@ public class MemCodes implements Codes {
      * @param code        The code being received by the server for validation.
      * @param clientId    The client ID that sent the code back.
      * @param redirectUri The redirect URI sent with the validation.
-     * @return            A unique key computed from the code, client ID, and redirect URI.
+     * @return A unique key computed from the code, client ID, and redirect URI.
      */
     @NotNull
     private String computeKey(

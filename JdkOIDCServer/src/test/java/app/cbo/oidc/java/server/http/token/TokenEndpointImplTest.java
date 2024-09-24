@@ -25,7 +25,8 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 class TokenEndpointImplTest {
 
 
-    private final ClientAuthenticator clientPwdIsClientId = (id, secret) -> id!=null && id.id()!=null && id.id().equals(secret);
+    private final ClientAuthenticator clientPwdIsClientId = (id, secret) -> id != null && id.id() != null && id.id().equals(secret);
+
     @Test
     void nominal() throws ForbiddenResponse, JsonError, IOException {
 

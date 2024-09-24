@@ -33,18 +33,18 @@ class ParamsHelperTest {
     }
 
     @AfterAll
-    static void stopServer(){
-        if(server != null) {
+    static void stopServer() {
+        if (server != null) {
             System.out.println("--Stopping http server--");
             server.stop(0);
         }
     }
 
     static URI uri(String path) throws URISyntaxException {
-        if(!path.startsWith("/"))
-            path = "/"+path;
+        if (!path.startsWith("/"))
+            path = "/" + path;
 
-        return new URI( localhost() + path);
+        return new URI(localhost() + path);
     }
 
     private static String localhost() {
@@ -52,13 +52,11 @@ class ParamsHelperTest {
     }
 
 
-
-
     @Test
     public void test() throws Exception {
 
 
-        server.createContext("/test", (hx) ->{
+        server.createContext("/test", (hx) -> {
             try {
                 Map<String, Collection<String>> params;
                 try {
@@ -91,7 +89,7 @@ class ParamsHelperTest {
                 hx.sendResponseHeaders(200, 0);
                 hx.close();
                 System.out.println("Sending response");
-            }catch (AssertionError a){
+            } catch (AssertionError a) {
                 hx.sendResponseHeaders(500, 0);
                 hx.getResponseBody().write(a.getMessage().getBytes(StandardCharsets.UTF_8));
                 hx.close();
@@ -155,9 +153,6 @@ class ParamsHelperTest {
 
 
     }
-
-
-
 
 
 }

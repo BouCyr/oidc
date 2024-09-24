@@ -155,7 +155,7 @@ public class AuthFlowIntegrationTest {
         EntryPoint.main("profile=mem",
                 "port=" + PORT,
                 "backend=mem",
-                "scanner="+TestScanner.class.getCanonicalName());
+                "scanner=" + TestScanner.class.getCanonicalName());
 
 
         var cookies = new MyCookies();

@@ -53,12 +53,10 @@ class OngoingAuthsTest {
         var auths = new OngoingAuths();
         var code = auths.store(this.createParams());
 
-        var foundBack = auths.find(OngoingAuthId.of( "??"));
+        var foundBack = auths.find(OngoingAuthId.of("??"));
         assertThat(foundBack)
                 .isEmpty();
     }
-
-
 
 
     @Test

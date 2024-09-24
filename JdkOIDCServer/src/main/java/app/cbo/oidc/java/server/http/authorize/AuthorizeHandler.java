@@ -24,10 +24,8 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 @Injectable
 public class AuthorizeHandler implements HttpHandlerWithPath {
 
-    private final static Logger LOGGER = Logger.getLogger(AuthorizeHandler.class.getCanonicalName());
-
     public static final String AUTHORIZE_ENDPOINT = "/authorize";
-
+    private final static Logger LOGGER = Logger.getLogger(AuthorizeHandler.class.getCanonicalName());
     private final AuthorizeEndpoint endpoint;
     private final SessionFinder sessionFinder;
 
@@ -63,19 +61,16 @@ public class AuthorizeHandler implements HttpHandlerWithPath {
             var result = this.endpoint.treatRequest(session, parsedParams);
             result.handle(exchange);
             return;
-        }catch(AuthErrorInteraction error){
+        } catch (AuthErrorInteraction error) {
 
             error.handle(exchange);
             return;
-        }catch(Exception e){
+        } catch (Exception e) {
 
             new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "?").handle(exchange);
             return;
         }
     }
-
-
-
 
 
 }

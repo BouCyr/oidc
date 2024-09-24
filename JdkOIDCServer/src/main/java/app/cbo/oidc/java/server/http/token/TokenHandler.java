@@ -17,10 +17,8 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 @Injectable
 public class TokenHandler implements HttpHandlerWithPath {
 
-    private final static Logger LOGGER = Logger.getLogger(TokenHandler.class.getCanonicalName());
-
     public static final String TOKEN_ENDPOINT = "/token";
-
+    private final static Logger LOGGER = Logger.getLogger(TokenHandler.class.getCanonicalName());
     private final TokenEndpoint tokenEndpoint;
 
     public TokenHandler(TokenEndpoint tokenEndpoint) {
@@ -60,7 +58,7 @@ public class TokenHandler implements HttpHandlerWithPath {
             this.tokenEndpoint
                     .treatRequest(
                             param,
-                            clientId!=null ? ClientId.of(clientId):null,
+                            clientId != null ? ClientId.of(clientId) : null,
                             clientSecret)
                     .handle(exchange);
 

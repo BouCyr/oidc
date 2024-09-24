@@ -27,11 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,18 +51,17 @@ public class EntryPoint {
 
         //Read profile from the command line before starting the scanner
         var profile = props.stream()
-                .filter(pair ->pair.left().equals("profile"))
+                .filter(pair -> pair.left().equals("profile"))
                 .map(Pair::right)
                 .findAny().orElse(Injectable.DEFAULT);
 
 
-        LOGGER.info("Using profile "+profile);
-
+        LOGGER.info("Using profile " + profile);
 
 
         //scan the classpath for the server and its dependencies
         var scanner = new app.cbo.oidc.java.server.scan.Scanner(
-                    profile,
+                profile,
                 "app.cbo.oidc.java.server",
                 packageScanner)
                 //default
@@ -80,7 +75,7 @@ public class EntryPoint {
 
         setupUser("Cyrille", scanner.get(Users.class), scanner.get(Claims.class));
         setupUser("Marion", scanner.get(Users.class), scanner.get(Claims.class));
-        setUpClient("sb","sbSecret", scanner.get(ClientRegistry.class));
+        setUpClient("sb", "sbSecret", scanner.get(ClientRegistry.class));
 
         //get root class (server)
         var server = scanner.get(OIDCServer.class);
@@ -89,14 +84,14 @@ public class EntryPoint {
         LOGGER.info("Started in " + Duration.ofNanos(System.nanoTime() - start).toMillis() + "ms");
     }
 
-    private static Function<String, Set<Class<?>>> getScanner(List<Pair<String, String>> props)  {
+    private static Function<String, Set<Class<?>>> getScanner(List<Pair<String, String>> props) {
 
         var override = props.stream()
                 .filter(pair -> pair.left().equals("scanner"))
                 .map(Pair::right)
                 .findAny();
 
-        if(override.isPresent()) {
+        if (override.isPresent()) {
             String scannerName = override.get();
             Class<?> clazz;
             try {
@@ -122,7 +117,7 @@ public class EntryPoint {
             } else {
                 throw new IllegalArgumentException("Class " + scannerName + " does not implement PackageScannerBuilder");
             }
-        }else{
+        } else {
             return Scanner::scanPackage;
         }
 
@@ -138,39 +133,7 @@ public class EntryPoint {
         mainLogger.addHandler(handler);
     }
 
-    public static class LogFormatter extends SimpleFormatter {
-
-        private final String basePackageFull;
-        private final String basePackageShort;
-
-        public LogFormatter() {
-            //shorten the app.cbo.... package name when present.
-            this.basePackageFull = EntryPoint.class.getPackageName();
-            this.basePackageShort = Stream.of(basePackageFull.split("\\."))
-                    .map(pkgLevel -> pkgLevel.substring(0, 1))
-                    .collect(Collectors.joining("."));
-        }
-
-        @Override
-        public synchronized String format(LogRecord logRecord) {
-
-            //shorten the app.cbo.... package name when present.
-            String className = logRecord.getSourceClassName();
-            if (className.startsWith(basePackageFull)) {
-                className = basePackageShort + className.substring(basePackageFull.length());
-            }
-
-            var dtt = LocalDateTime.ofInstant(logRecord.getInstant(), ZoneId.systemDefault()).format(
-                    DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-
-            return
-                    "["+dtt+"]["+logRecord.getLevel()+"][thread#"+logRecord.getLongThreadID()+"]["+className+"."+logRecord.getSourceMethodName()+"] : "+logRecord.getMessage()+System.lineSeparator();
-
-        }
-    }
-
-
-    private static void setUpClient(String clientId, String secret, ClientRegistry clientRegistry){
+    private static void setUpClient(String clientId, String secret, ClientRegistry clientRegistry) {
         clientRegistry.setClient(ClientId.of(clientId), secret);
     }
 
@@ -207,5 +170,36 @@ public class EntryPoint {
         );
         claimsStorer.store(phone, mail, address, profile);
         LOGGER.info("All data created & stored");
+    }
+
+    public static class LogFormatter extends SimpleFormatter {
+
+        private final String basePackageFull;
+        private final String basePackageShort;
+
+        public LogFormatter() {
+            //shorten the app.cbo.... package name when present.
+            this.basePackageFull = EntryPoint.class.getPackageName();
+            this.basePackageShort = Stream.of(basePackageFull.split("\\."))
+                    .map(pkgLevel -> pkgLevel.substring(0, 1))
+                    .collect(Collectors.joining("."));
+        }
+
+        @Override
+        public synchronized String format(LogRecord logRecord) {
+
+            //shorten the app.cbo.... package name when present.
+            String className = logRecord.getSourceClassName();
+            if (className.startsWith(basePackageFull)) {
+                className = basePackageShort + className.substring(basePackageFull.length());
+            }
+
+            var dtt = LocalDateTime.ofInstant(logRecord.getInstant(), ZoneId.systemDefault()).format(
+                    DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+            return
+                    "[" + dtt + "][" + logRecord.getLevel() + "][thread#" + logRecord.getLongThreadID() + "][" + className + "." + logRecord.getSourceMethodName() + "] : " + logRecord.getMessage() + System.lineSeparator();
+
+        }
     }
 }

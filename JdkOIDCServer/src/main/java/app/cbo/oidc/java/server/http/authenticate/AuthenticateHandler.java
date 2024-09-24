@@ -16,9 +16,9 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 @Injectable
 public class AuthenticateHandler implements HttpHandlerWithPath {
 
-    private final static Logger LOGGER = Logger.getLogger(AuthenticateHandler.class.getCanonicalName());
     public static final String AUTHENTICATE_ENDPOINT = "/login";
 
+    private final static Logger LOGGER = Logger.getLogger(AuthenticateHandler.class.getCanonicalName());
     private final AuthenticateEndpoint endpoint;
 
     public AuthenticateHandler(AuthenticateEndpoint endpoint) {
@@ -39,10 +39,10 @@ public class AuthenticateHandler implements HttpHandlerWithPath {
             var result = this.endpoint.treatRequest(params);
             result.handle(exchange);
             return;
-        }catch(AuthErrorInteraction error){
+        } catch (AuthErrorInteraction error) {
             error.handle(exchange);
             return;
-        }catch(Exception e){
+        } catch (Exception e) {
             LOGGER.info("unexpected error");
             e.printStackTrace();
             new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "?").handle(exchange);

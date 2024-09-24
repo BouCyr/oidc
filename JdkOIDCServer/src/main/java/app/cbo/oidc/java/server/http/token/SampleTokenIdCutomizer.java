@@ -11,7 +11,7 @@ import java.util.UUID;
  * Put @Injectable("someProfile") and startup the server to see the result.
  */
 @Deprecated(forRemoval = true)
-public class SampleTokenIdCutomizer implements IdTokenCustomizer{
+public class SampleTokenIdCutomizer implements IdTokenCustomizer {
 
 
     @Override

@@ -17,6 +17,13 @@ public enum JWA {
         this.javaName = javaName;
     }
 
+    public static Optional<JWA> fromRFC(String rfcName) {
+        return Stream.of(JWA.values())
+                .filter(jwa -> jwa.rfcName().equals(rfcName))
+                .findFirst();
+
+    }
+
     public String type() {
         return type;
     }
@@ -27,12 +34,5 @@ public enum JWA {
 
     public String javaName() {
         return javaName;
-    }
-
-    public static Optional<JWA> fromRFC(String rfcName) {
-        return Stream.of(JWA.values())
-                .filter(jwa -> jwa.rfcName().equals(rfcName))
-                .findFirst();
-
     }
 }

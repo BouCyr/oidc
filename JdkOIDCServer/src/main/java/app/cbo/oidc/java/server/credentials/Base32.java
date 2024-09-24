@@ -7,6 +7,7 @@ public class Base32 {
     private static final int MASK = 0x1f;
     private static final int SHIFT = 5;
     private static final int[] INDEXES = new int[128];
+
     static {
         Arrays.fill(INDEXES, -1);
         for (int i = 0; i < BASE32_ALPHABET.length(); i++) {

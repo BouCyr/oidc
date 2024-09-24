@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class UsersTest {
 
-    static Passwords passwords(){
+    static Passwords passwords() {
         return new PBKDF2WithHmacSHA1PasswordHash();
     }
 

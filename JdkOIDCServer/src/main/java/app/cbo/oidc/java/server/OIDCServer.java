@@ -13,15 +13,11 @@ import java.util.logging.Logger;
 public class OIDCServer implements Closeable {
 
 
-    private static final Logger LOGGER = Logger.getLogger(OIDCServer.class.getCanonicalName());
     public static final String HOST_NAME = "0.0.0.0";
-
-
+    private static final Logger LOGGER = Logger.getLogger(OIDCServer.class.getCanonicalName());
     private final int port;
-    private HttpServer httpServer;
-
-
     private final List<HttpHandlerWithPath> handlers;
+    private HttpServer httpServer;
 
 
     public OIDCServer(@Prop("port") int port, List<HttpHandlerWithPath> handlers) {

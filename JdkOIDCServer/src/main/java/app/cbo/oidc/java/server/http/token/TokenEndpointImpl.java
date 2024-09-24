@@ -46,7 +46,6 @@ public class TokenEndpointImpl implements TokenEndpoint {
     private final ClientAuthenticator clientAuthenticator;
 
 
-
     @BuildWith
     public TokenEndpointImpl(
             Issuer myself,
@@ -80,7 +79,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
         Verify that the Authorization Code used was issued in response to an OpenID Connect Authentication Request (so that an ID Token will be returned from the Token Endpoint).
         */
 
-        if(authClientId != null) {
+        if (authClientId != null) {
             LOGGER.info(("'" + (!Utils.isEmpty(authClientId.get()) ? authClientId : "?") + "' tries to consume a code"));
         }
 

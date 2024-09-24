@@ -11,7 +11,7 @@ class CookiesTest {
 
     @Test
     void findSessionCookie() {
-        var cookiesFromHeader = Cookies.parseCookies(List.of("a=A","b=B","sessionId=XoXo"));
+        var cookiesFromHeader = Cookies.parseCookies(List.of("a=A", "b=B", "sessionId=XoXo"));
         var found = Cookies.findSessionCookie(cookiesFromHeader);
 
         Assertions.assertThat(found)
@@ -23,7 +23,7 @@ class CookiesTest {
 
     @Test
     void noSessionCookie() {
-        var cookiesFromHeader = Cookies.parseCookies(List.of("a=A","b=B"));
+        var cookiesFromHeader = Cookies.parseCookies(List.of("a=A", "b=B"));
         var found = Cookies.findSessionCookie(cookiesFromHeader);
 
         Assertions.assertThat(found)
@@ -34,14 +34,14 @@ class CookiesTest {
     @Test
     void parseCookies_empty() {
         Assertions.assertThat(Cookies.parseCookies(Collections.emptyList())).isEmpty();
-        List<String> cookies =null;
+        List<String> cookies = null;
         Assertions.assertThat(Cookies.parseCookies(cookies)).isEmpty();
 
     }
 
     @Test
     void parseCookies() {
-        var cookiesFromHeader = Cookies.parseCookies(List.of("a=A","b=B","z"));
+        var cookiesFromHeader = Cookies.parseCookies(List.of("a=A", "b=B", "z"));
 
         Assertions.assertThat(cookiesFromHeader)
                 .hasSize(3)

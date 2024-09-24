@@ -9,11 +9,11 @@ public class KeycloakPathCustomizer implements PathCustomizer {
 
     private final String realmName;
 
-    public KeycloakPathCustomizer(@Prop(value="realm", or="realm") String realmName) {
+    public KeycloakPathCustomizer(@Prop(value = "realm", or = "realm") String realmName) {
         this.realmName = realmName;
     }
 
-    public String customize(String basePath){
-        return "/realms/"+realmName+basePath;
+    public String customize(String basePath) {
+        return "/realms/" + realmName + basePath;
     }
 }

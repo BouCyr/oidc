@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 public class AuthorizeEndpoint {
 
 
+    private final static Logger LOGGER = Logger.getLogger(AuthorizeEndpoint.class.getCanonicalName());
     private final Issuer myself;
     private final OngoingAuthsStorer ongoingAuthsStorer;
     private final UserFinder userFinder;
@@ -56,9 +57,6 @@ public class AuthorizeEndpoint {
         this.claimsResolver = claimsResolver;
     }
 
-
-    private final static Logger LOGGER = Logger.getLogger(AuthorizeEndpoint.class.getCanonicalName());
-
     @NotNull
     public Interaction treatRequest(
             @NotNull Optional<Session> session,
@@ -66,11 +64,11 @@ public class AuthorizeEndpoint {
 
         //deduce the requested flow from response types
         OIDCFlow flow = OIDCFlow.fromResponseType(params.responseTypes(), params);
-        LOGGER.info("Selected OIDC flow is "+flow.name());
+        LOGGER.info("Selected OIDC flow is " + flow.name());
 
         //additional checks for specific flows
         AuthorizeParams.checkParamsForFlow(params, flow);
-        LOGGER.info("Request params are valid for flow "+flow.name() );
+        LOGGER.info("Request params are valid for flow " + flow.name());
 
         //3.1.2.3.  Authorization Server Authenticates End-User
         return checkIfAuthenticated(session, flow, params);
@@ -83,11 +81,11 @@ public class AuthorizeEndpoint {
                                              AuthorizeParams params) throws AuthErrorInteraction {
 
         LOGGER.info("Checking if userId already has a (valid) session");
-        if(userSession.isEmpty() && params.prompt().contains(OIDCPromptValues.NONE)){
-            LOGGER.info("User has no session and client required no interaction. Sending back with error "+ AuthErrorInteraction.Code.access_denied);
+        if (userSession.isEmpty() && params.prompt().contains(OIDCPromptValues.NONE)) {
+            LOGGER.info("User has no session and client required no interaction. Sending back with error " + AuthErrorInteraction.Code.access_denied);
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.access_denied, "Requested no interaction with no authenticated userId", params);
         }
-        if(userSession.isEmpty() || params.prompt().contains(OIDCPromptValues.LOGIN)){
+        if (userSession.isEmpty() || params.prompt().contains(OIDCPromptValues.LOGIN)) {
             LOGGER.info("User has no session or client required new authentication. Redirect to login page");
             return new RedirectToLoginInteraction(ongoingAuthsStorer.store(params));
         }
@@ -98,11 +96,11 @@ public class AuthorizeEndpoint {
                 .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to find user linked to session"));
 
 
-        if(params.maxAge().isPresent()){
+        if (params.maxAge().isPresent()) {
             final long maxAge;
-            try{
+            try {
                 maxAge = Long.parseLong(params.maxAge().get());
-            }catch(NumberFormatException e){
+            } catch (NumberFormatException e) {
                 throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "max_age should be parsable as a long");
             }
             var sessionAge = Duration.between(session.authTime(), LocalDateTime.now());

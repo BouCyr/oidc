@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * The clients are stored in a HashMap, with the client ID as the key and the client secret as the value.
  */
 @Injectable("mem")
-public class MemClientRegistry implements ClientRegistry{
+public class MemClientRegistry implements ClientRegistry {
 
     private final static Logger LOGGER = Logger.getLogger(MemClientRegistry.class.getCanonicalName());
 
@@ -30,12 +30,12 @@ public class MemClientRegistry implements ClientRegistry{
      *
      * @param clientId     The ID of the client to be authenticated.
      * @param clientSecret The secret of the client to be authenticated.
-     * @return             Returns true if the client ID and client secret match the ones stored in the clients map, false otherwise.
+     * @return Returns true if the client ID and client secret match the ones stored in the clients map, false otherwise.
      */
     @Override
     public boolean authenticate(ClientId clientId, String clientSecret) {
 
-        if(clientId == null || clientId.id() == null){
+        if (clientId == null || clientId.id() == null) {
             LOGGER.info("Cannot authenticate NULL clientId");
             return false;
         }

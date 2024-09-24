@@ -22,7 +22,7 @@ public class ParamsHelper {
             params = QueryStringParser.from(exchange.getRequestURI().getQuery());
         } else if ("POST".equals(exchange.getRequestMethod())) {
             params = readPostBody(exchange);
-        } else{
+        } else {
             String msg = "Invalid HTTP method";
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, msg, null, null);
         }
@@ -53,8 +53,8 @@ public class ParamsHelper {
      * @param param A collection of String
      * @return the first non-empty, non-blank value of the list, or empty
      */
-    public static Optional<String> singleParam(Collection<String> param){
-        if(param == null ||param.isEmpty())
+    public static Optional<String> singleParam(Collection<String> param) {
+        if (param == null || param.isEmpty())
             return Optional.empty();
 
         //if we have scopes=openid email&scopes=blabla, we take only the first one
@@ -67,7 +67,7 @@ public class ParamsHelper {
      * @param spaceSeparatedList A string containing several space separated values (eg "one two three")
      * @return A list of all non-blank non-empty values, in order they were found in the source string
      */
-    public static List<String> spaceSeparatedList(String spaceSeparatedList){
+    public static List<String> spaceSeparatedList(String spaceSeparatedList) {
 
         return Stream.of(spaceSeparatedList.split(" "))
                 .map(String::trim)

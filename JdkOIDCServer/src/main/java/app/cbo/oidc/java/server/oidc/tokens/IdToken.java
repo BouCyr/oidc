@@ -27,8 +27,8 @@ import java.util.Optional;
  *                  BUT if there is only one allowed client id 'aud', 'azp' will be assumed as equal to this client id and may be omitted
  *                  BUT if there is both 'azp' and 'aud', and if 'aud' contains one and only one clientId that is not equal to 'azp', then 'azp' should be considered as part of 'aud' anyway
  *                  <p>
- *
- *
+ *                  <p>
+ *                  <p>
  *                  ID Tokens MAY contain other Claims. Any Claims used that are not understood MUST be ignored. See Sections 3.1.3.6, 3.3.2.11, 5.1, and 7.4 for additional Claims defined by this specification.
  */
 public record IdToken(

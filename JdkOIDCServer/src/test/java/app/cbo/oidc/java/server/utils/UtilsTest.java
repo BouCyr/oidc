@@ -55,10 +55,10 @@ class UtilsTest {
         assertThat(Utils.isEmpty(nullC)).isTrue();
         assertThat(Utils.isEmpty(Collections.emptyList())).isTrue();
         assertThat(Utils.isEmpty(List.of(""))).isFalse();
-        assertThat(Utils.isEmpty(List.of("",""))).isFalse();
-        assertThat(Utils.isEmpty(List.of("","",""))).isFalse();
-        assertThat(Utils.isEmpty(List.of("","a",""))).isFalse();
-        assertThat(Utils.isEmpty(List.of(""," ",""))).isFalse();
+        assertThat(Utils.isEmpty(List.of("", ""))).isFalse();
+        assertThat(Utils.isEmpty(List.of("", "", ""))).isFalse();
+        assertThat(Utils.isEmpty(List.of("", "a", ""))).isFalse();
+        assertThat(Utils.isEmpty(List.of("", " ", ""))).isFalse();
 
     }
 
@@ -68,9 +68,9 @@ class UtilsTest {
         assertThat(Utils.isBlank(nullC)).isTrue();
         assertThat(Utils.isBlank(Collections.emptyList())).isTrue();
         assertThat(Utils.isBlank(List.of(""))).isTrue();
-        assertThat(Utils.isBlank(List.of("",""))).isTrue();
-        assertThat(Utils.isBlank(List.of("","",""))).isTrue();
-        assertThat(Utils.isBlank(List.of("","a",""))).isFalse();
-        assertThat(Utils.isBlank(List.of(""," ",""))).isTrue();
+        assertThat(Utils.isBlank(List.of("", ""))).isTrue();
+        assertThat(Utils.isBlank(List.of("", "", ""))).isTrue();
+        assertThat(Utils.isBlank(List.of("", "a", ""))).isFalse();
+        assertThat(Utils.isBlank(List.of("", " ", ""))).isTrue();
     }
 }
