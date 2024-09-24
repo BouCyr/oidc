@@ -8,13 +8,11 @@ import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
 import app.cbo.oidc.java.server.scan.Injectable;
-import app.cbo.oidc.java.server.utils.Utils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+
+import static app.cbo.oidc.java.server.utils.Utils.isBlank;
+import static app.cbo.oidc.java.server.utils.Utils.isEmpty;
 
 /**
  * This class represents an in-memory storage for OIDC codes.
@@ -54,7 +52,7 @@ public class MemCodes implements Codes {
                           @NotNull List<String> scopes,
                           @Nullable String nonce) {
 
-        if (userId.id() == null || clientId.id() == null || Utils.isBlank(redirectUri)) {
+        if (isEmpty(userId) || isBlank(clientId) || isBlank(redirectUri)) {
             throw new NullPointerException("Input cannot be null");
         }
 
@@ -81,7 +79,7 @@ public class MemCodes implements Codes {
     @NotNull
     public Optional<CodeData> consume(@NotNull Code code, @NotNull ClientId clientId, @NotNull String redirectUri) {
 
-        if (code.code() == null || clientId.id() == null || Utils.isBlank(redirectUri)) {
+        if (isEmpty(code) || isBlank(clientId) || isBlank(redirectUri)) {
             return Optional.empty();
         }
 

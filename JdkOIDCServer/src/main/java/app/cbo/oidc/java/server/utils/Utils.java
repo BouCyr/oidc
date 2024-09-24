@@ -9,12 +9,17 @@ public class Utils {
     public static boolean isEmpty(String s){
         return s == null || s.isEmpty();
     }
+
+    public static boolean isEmpty(Supplier<String> s) {
+        return s == null || isEmpty(s.get());
+    }
+
     public static boolean isBlank(String s){
         return isEmpty(s) || s.isBlank();
     }
 
     public static boolean isBlank(Supplier<String> s){
-        return s!= null && isBlank(s.get());
+        return s == null || isBlank(s.get());
     }
 
     public static boolean isEmpty(Optional<String> s){

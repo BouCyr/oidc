@@ -6,17 +6,15 @@ class Data {
         throw new IllegalAccessException("Static class");
     }
 
-    static final String FAVICO =
-            """
-                    <svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-                      <defs></defs>
-                      <ellipse style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0);" cx="25" cy="25" rx="15" ry="20"></ellipse>
-                    </svg>
-                                        """;
+    static final String FAVICO = """
+            <svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+              <defs></defs>
+              <ellipse style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0);" cx="25" cy="25" rx="15" ry="20"></ellipse>
+            </svg>
+            """;
 
 
     static final String CSS = """
-
             html {
                 height: 100%;
             }

@@ -3,6 +3,7 @@ package app.cbo.oidc.java.server.http.consent;
 import app.cbo.oidc.java.server.TestHttpExchange;
 import app.cbo.oidc.java.server.backends.sessions.Sessions;
 import app.cbo.oidc.java.server.credentials.AuthenticationMode;
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
@@ -145,7 +146,7 @@ class ConsentHandlerTest {
         return new AuthorizeParams(
                 List.of("scope1", "scope2"),
                 List.of("RESPONSE_TYPE"),
-                Optional.of("CLIENT"),
+                Optional.of(ClientId.of("CLIENT")),
                 Optional.of("http://clinet.cbo.app"),
                 Optional.of("STATE"),
                 Optional.of("RESPONSE_MODE"),

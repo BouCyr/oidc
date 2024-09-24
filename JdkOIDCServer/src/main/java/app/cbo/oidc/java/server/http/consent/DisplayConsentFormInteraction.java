@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.http.consent;
 
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.http.authorize.AuthorizeParams;
@@ -66,9 +67,9 @@ public class DisplayConsentFormInteraction implements Interaction {
                         """.formatted(ConsentHandler.CONSENT_ENDPOINT,
                         ConsentParams.ONGOING, ongoingAuthId.id(),
                         ConsentParams.BACK,
-                        authorizeParams.clientId().orElse("?"),
+                        authorizeParams.clientId().map(ClientId::get).orElse("?"),
                         notYetGiven,
-                        authorizeParams.clientId().orElse("?"),
+                        authorizeParams.clientId().map(ClientId::get).orElse("?"),
                         alreadyGiven);
 
 

@@ -10,14 +10,16 @@ import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
 import app.cbo.oidc.java.server.scan.Injectable;
-import app.cbo.oidc.java.server.utils.Utils;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static app.cbo.oidc.java.server.utils.Utils.isBlank;
 
 
 /**
@@ -44,6 +46,15 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
     @NotNull
     @Override
     public Optional<CodeData> consume(@NotNull Code code, @NotNull ClientId clientId, @NotNull String redirectUri) {
+
+        if (isBlank(code)) {
+            LOGGER.log(Level.FINE, "Code is empty");
+            return Optional.empty();
+        }
+        if (isBlank(clientId)) {
+            LOGGER.log(Level.FINE, "ClientId is empty");
+            return Optional.empty();
+        }
 
         var file = FileSpecifications.in("codes", clientId.get())
                 .fileName(code.code());
@@ -99,7 +110,10 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
                           @NotNull String redirectUri,
                           @NotNull List<String> scopes,
                           @Nullable String nonce) {
-        if (userId.id() == null || clientId.id() == null || Utils.isBlank(redirectUri)) {
+        if (isBlank(userId)
+            || isBlank(sessionId)
+            || isBlank(clientId)
+            || isBlank(redirectUri)) {
             throw new NullPointerException("Input cannot be null");
         }
 

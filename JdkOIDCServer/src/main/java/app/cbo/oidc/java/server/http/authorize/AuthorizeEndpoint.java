@@ -24,18 +24,8 @@ import app.cbo.oidc.java.server.oidc.tokens.IdToken;
 import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.time.*;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -167,7 +157,7 @@ public class AuthorizeEndpoint {
 
         var notYetConsentedTo = params.scopes()
                 .stream()
-                .filter(scope -> !user.hasConsentedTo(params.clientId().orElse("..."), scope)) //TODO [20/03/2023] handle orElse(...) in User
+                .filter(scope -> !user.hasConsentedTo(params.clientId().orElse(null), scope)) //TODO [20/03/2023] handle orElse(...) in User
                 .collect(Collectors.toSet());
 
         if (notYetConsentedTo.isEmpty()) {
@@ -211,7 +201,7 @@ public class AuthorizeEndpoint {
     private AuthorizationFlowSuccessInteraction authorizationFlowSuccess(User user, AuthorizeParams originalParams, Session session) {
         Code authCode = this.codeSupplier.createFor(
                 user.getId(),
-                ClientId.of(originalParams.clientId().get()),
+                originalParams.clientId().orElse(null),
                 new SessionId(session.id()),
                 originalParams.redirectUri().get(),
                 originalParams.scopes(),
@@ -226,14 +216,14 @@ public class AuthorizeEndpoint {
         var idToken = new IdToken(
                 user.sub(),
                 this.myself.getIssuerId(),
-                List.of(originalParams.clientId().get()),
+                List.of(originalParams.clientId().map(ClientId::id).orElseThrow()),
                 Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
                 Instant.now(clock).getEpochSecond(),
                 session.authTime().toEpochSecond(ZoneOffset.UTC),
                 originalParams.nonce(),
                 new AuthenticationLevel(session.authentications()).name(),
                 session.authentications().stream().map(Enum::name).toList(),
-                originalParams.clientId(),
+                originalParams.clientId().map(ClientId::id),
                 new HashMap<>());
 
         var currentPrivateKeyId = this.keySet.current();

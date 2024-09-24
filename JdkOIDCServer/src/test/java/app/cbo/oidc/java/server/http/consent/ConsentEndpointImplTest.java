@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.http.consent;
 
 import app.cbo.oidc.java.server.credentials.AuthenticationMode;
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.datastored.user.User;
@@ -29,7 +30,7 @@ class ConsentEndpointImplTest {
                 new ConsentParams(
                         Set.of("my_perso_info"),
                         true,
-                        "CLIENT",
+                        ClientId.of("CLIENT"),
                         new AuthorizeParams(Map.of("scope", List.of("my_perso_info"))),
                         true
                 ));
@@ -56,7 +57,7 @@ class ConsentEndpointImplTest {
                 new ConsentParams(
                         Set.of("my_perso_info"),
                         true,
-                        "CLIENT",
+                        ClientId.of("CLIENT"),
                         new AuthorizeParams(Map.of("scope", List.of("my_perso_info", "my_very_perso_info"))),
                         true
                 ));

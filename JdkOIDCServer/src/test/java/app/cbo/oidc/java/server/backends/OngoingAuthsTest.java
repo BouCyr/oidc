@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.backends;
 
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuths;
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.http.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.oidc.OIDCDisplayValues;
@@ -76,7 +77,7 @@ class OngoingAuthsTest {
 
                 List.of("openid"),   //List<String> scopes,
                 List.of("rs"),  //List<String> responseTypes,
-                Optional.of("clientId"),  //Optional<String> clientId,
+                Optional.of(ClientId.of("clientId")),  //Optional<String> clientId,
                 Optional.of("redirectUri"),  //Optional<String> redirectUri,
                 Optional.of("state"),//Optional<String> state,
                 Optional.of("responseMode"),//Optional<String> responseMode,

@@ -1,5 +1,7 @@
 package app.cbo.oidc.java.server.http.token;
 
+import app.cbo.oidc.java.server.datastored.ClientId;
+import app.cbo.oidc.java.server.datastored.Code;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 
 import java.util.Collection;
@@ -8,7 +10,7 @@ import java.util.Map;
 import static app.cbo.oidc.java.server.utils.ParamsHelper.singleParam;
 
 //3.1.3.1.  Token Request
-public record TokenParams(String grantType, String code, String redirectUri, String clientId) {
+public record TokenParams(String grantType, Code code, String redirectUri, ClientId clientId) {
     //rfc6749 Oauth2 #section-4.1.3
     // grant_type REQUIRED.  Value MUST be set to "authorization_code".
     public final static String GRANT_TYPE = "grant_type";
@@ -25,8 +27,8 @@ public record TokenParams(String grantType, String code, String redirectUri, Str
     public TokenParams(@NotNull Map<String, Collection<String>> params) {
         this(
                 singleParam(params.get(GRANT_TYPE)).orElse(null),
-                singleParam(params.get(CODE)).orElse(null),
+                singleParam(params.get(CODE)).map(Code::of).orElse(null),
                 singleParam(params.get(REDIRECT_URI)).orElse(null),
-                singleParam(params.get(CLIENT_ID)).orElse(null));
+                singleParam(params.get(CLIENT_ID)).map(ClientId::of).orElse(null));
     }
 }

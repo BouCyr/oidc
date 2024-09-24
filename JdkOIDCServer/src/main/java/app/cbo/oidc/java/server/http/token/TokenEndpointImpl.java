@@ -7,7 +7,6 @@ import app.cbo.oidc.java.server.backends.sessions.SessionFinder;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.AuthenticationLevel;
 import app.cbo.oidc.java.server.datastored.ClientId;
-import app.cbo.oidc.java.server.datastored.Code;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.json.JSON;
@@ -101,7 +100,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
 
         //the clientId may be found in credentials OR in the params.
         //we already check that we have at least one, and if two that they match
-        var clientId = authClientId != null ? authClientId : ClientId.of(params.clientId());
+        var clientId = authClientId != null ? authClientId : params.clientId();
 
 
         if (Utils.isEmpty(params.redirectUri())) {
@@ -115,7 +114,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
         }
 
 
-        var codeData = this.codeConsumer.consume(Code.of(params.code()), clientId, URLDecoder.decode(params.redirectUri(), StandardCharsets.UTF_8));
+        var codeData = this.codeConsumer.consume(params.code(), clientId, URLDecoder.decode(params.redirectUri(), StandardCharsets.UTF_8));
         if (codeData.isEmpty()) {
             return new JsonError(AuthErrorInteraction.Code.access_denied.name());
         }

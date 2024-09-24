@@ -4,10 +4,7 @@ import app.cbo.oidc.java.server.TestHttpExchange;
 import app.cbo.oidc.java.server.backends.clients.ClientAuthenticator;
 import app.cbo.oidc.java.server.backends.keys.MemKeySet;
 import app.cbo.oidc.java.server.credentials.AuthenticationMode;
-import app.cbo.oidc.java.server.datastored.ClientId;
-import app.cbo.oidc.java.server.datastored.CodeData;
-import app.cbo.oidc.java.server.datastored.Session;
-import app.cbo.oidc.java.server.datastored.SessionId;
+import app.cbo.oidc.java.server.datastored.*;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
@@ -43,7 +40,7 @@ class TokenEndpointImplTest {
         );
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code", "code", "http://client.cbo.app", "CLIENT"),
+                new TokenParams("authorization_code", Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -97,7 +94,7 @@ class TokenEndpointImplTest {
         );
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code", "code", "http://client.cbo.app", "CLIENT"),
+                new TokenParams("authorization_code", Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "wrong_wrong_wrong" //WRONG !!!
         );
@@ -123,7 +120,7 @@ class TokenEndpointImplTest {
         );
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code", "code", "", "CLIENT"),
+                new TokenParams("authorization_code", Code.of("code"), "", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -149,7 +146,7 @@ class TokenEndpointImplTest {
         );
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code", "code", null, "CLIENT"),
+                new TokenParams("authorization_code", Code.of("code"), null, ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -176,7 +173,7 @@ class TokenEndpointImplTest {
 
         var interaction = tested.treatRequest(
                 new TokenParams("",//!!!!
-                        "code", "http://client.cbo.app", "CLIENT"),
+                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -203,7 +200,7 @@ class TokenEndpointImplTest {
 
         var interaction = tested.treatRequest(
                 new TokenParams(null,//!!!!
-                        "code", "http://client.cbo.app", "CLIENT"),
+                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -230,7 +227,7 @@ class TokenEndpointImplTest {
 
         var interaction = tested.treatRequest(
                 new TokenParams("INVALID",//!!!!
-                        "code", "http://client.cbo.app", "CLIENT"),
+                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -257,7 +254,7 @@ class TokenEndpointImplTest {
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code",
-                        "code", "http://client.cbo.app", "CLIENT"),
+                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -284,7 +281,7 @@ class TokenEndpointImplTest {
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code",
-                        "code", "http://client.cbo.app", "CLIENT"),
+                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -310,8 +307,9 @@ class TokenEndpointImplTest {
         );
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code",
-                        "code", "http://client.cbo.app", "CLIENT"),
+                new TokenParams(
+                        "authorization_code",
+                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );

@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.http.authorize;
 
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.oidc.OIDCDisplayValues;
 import app.cbo.oidc.java.server.oidc.OIDCFlow;
@@ -8,11 +9,7 @@ import app.cbo.oidc.java.server.utils.EnumValuesHelper;
 import app.cbo.oidc.java.server.utils.QueryStringBuilder;
 import app.cbo.oidc.java.server.utils.Utils;
 
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static app.cbo.oidc.java.server.utils.ParamsHelper.singleParam;
 import static app.cbo.oidc.java.server.utils.ParamsHelper.spaceSeparatedList;
@@ -20,7 +17,7 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.spaceSeparatedList;
 public record AuthorizeParams(
         List<String> scopes,
         List<String> responseTypes,
-        Optional<String> clientId,
+        Optional<ClientId> clientId,
         Optional<String> redirectUri,
         Optional<String> state,
         Optional<String> responseMode,
@@ -42,7 +39,7 @@ public record AuthorizeParams(
         this(
                 spaceSeparatedList(singleParam(params.get("scope")).orElse("")),
                 spaceSeparatedList(singleParam(params.get("response_type")).orElse("")),
-                singleParam(params.get("client_id")),
+                singleParam(params.get("client_id")).map(ClientId::of),
                 singleParam(params.get("redirect_uri")),
                 singleParam(params.get("state")),
                 singleParam(params.get("response_mode")),
@@ -82,7 +79,7 @@ public record AuthorizeParams(
         if (Utils.isBlank(p.responseTypes())) {
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.unsupported_response_type, "'response_type' param is REQUIRED'", p);
         }
-        if(Utils.isBlank(p.clientId())){
+        if (Utils.isBlank(p.clientId().orElse(ClientId.of("")))) {
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'client_id' param is REQUIRED'",p);
         }
         if(Utils.isBlank(p.redirectUri())){
@@ -136,7 +133,7 @@ public record AuthorizeParams(
         return new QueryStringBuilder()
                 .add(toSpaceSeparated("scope", scopes()))
                 .add(toSpaceSeparated("response_type", responseTypes()))
-                .add(toSingle("client_id", clientId()))
+                .add(toSingle("client_id", clientId().map(ClientId::id)))
                 .add(toSingle("redirect_uri", redirectUri()))
                 .add(toSingle("state", state()))
                 .add(toSingle("response_mode", responseMode()))

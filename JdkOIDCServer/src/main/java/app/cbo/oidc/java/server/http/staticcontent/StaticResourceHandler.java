@@ -9,7 +9,7 @@ import java.io.IOException;
 @Injectable
 public class StaticResourceHandler implements HttpHandlerWithPath {
 
-    public static final String STATIC = "/sc/";
+    public static final String STATIC_CONTENT = "/sc/";
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -18,6 +18,6 @@ public class StaticResourceHandler implements HttpHandlerWithPath {
 
     @Override
     public String path() {
-        return STATIC;
+        return STATIC_CONTENT;
     }
 }
