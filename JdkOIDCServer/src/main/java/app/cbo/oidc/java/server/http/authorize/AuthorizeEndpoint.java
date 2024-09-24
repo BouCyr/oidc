@@ -192,6 +192,7 @@ public class AuthorizeEndpoint {
                 originalParams.clientId().orElse(null),
                 new SessionId(session.id()),
                 originalParams.redirectUri().get(),
+                originalParams.resource().orElse(null),
                 originalParams.scopes(),
                 originalParams.nonce().orElse(null));
 
@@ -241,7 +242,9 @@ public class AuthorizeEndpoint {
             // (which is the case for the response_type value id_token), the resulting Claims are returned in the ID Token.
 
             LOGGER.info("Implicit flow without access_token ; claims are added to the id_token");
-            var claims = this.claimsResolver.claimsFor(user.getId(), Set.copyOf(originalParams.scopes()));
+            //TODO [24/09/2024] RFC 9068 / if resource is in params, use it as aud ; if not use clientId
+            var aud = originalParams.resource().isPresent() ? originalParams.resource().get() : originalParams.clientId().map(ClientId::id).orElseThrow();
+            var claims = this.claimsResolver.claimsFor(user.getId(), aud, Set.copyOf(originalParams.scopes()));
             claims.forEach((claim, val) -> idToken.extranodes().put(claim, val));
 
             var itWrapped = JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey);

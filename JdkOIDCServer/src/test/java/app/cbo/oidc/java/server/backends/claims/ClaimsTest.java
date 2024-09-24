@@ -16,7 +16,7 @@ public class ClaimsTest {
         tested.store(new Phone(user, "monumero", true));
         tested.store(new Mail(user, "monemail", false));
 
-        var retrieved = tested.claimsFor(user, Set.of("phone", "email"));
+        var retrieved = tested.claimsFor(user, "aud", Set.of("phone", "email"));
 
         Assertions.assertThat(retrieved)
                 .isNotEmpty()
@@ -56,13 +56,13 @@ public class ClaimsTest {
                         421L
                 ));
 
-        retrieved = tested.claimsFor(user, Set.of("phone", "profile"));
+        retrieved = tested.claimsFor(user, "aud", Set.of("phone", "profile"));
         Assertions.assertThat(retrieved).extractingByKey("phone").isEqualTo("monumero");
         Assertions.assertThat(retrieved).extractingByKey("phone_verified").isEqualTo(true);
         Assertions.assertThat(retrieved).extractingByKey("given_name").isEqualTo("Robert");
         Assertions.assertThat(retrieved).extractingByKey("updated_at").isEqualTo(421L);
 
-        retrieved = tested.claimsFor(user, Set.of("phone", "profile", "email", "address"));
+        retrieved = tested.claimsFor(user, "aud", Set.of("phone", "profile", "email", "address"));
         Assertions.assertThat(retrieved).extractingByKey("phone").isEqualTo("monumero");
         Assertions.assertThat(retrieved).extractingByKey("phone_verified").isEqualTo(true);
         Assertions.assertThat(retrieved).extractingByKey("given_name").isEqualTo("Robert");

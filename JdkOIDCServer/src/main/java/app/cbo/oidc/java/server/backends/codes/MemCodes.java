@@ -49,6 +49,7 @@ public class MemCodes implements Codes {
                           @NotNull ClientId clientId,
                           @NotNull SessionId sessionId,
                           @NotNull String redirectUri,
+                          @Nullable String resource,
                           @NotNull List<String> scopes,
                           @Nullable String nonce) {
 
@@ -58,7 +59,7 @@ public class MemCodes implements Codes {
 
         Code code = Code.of(UUID.randomUUID().toString());
 
-        store.put(this.computeKey(code, clientId, redirectUri), new CodeData(userId, sessionId, scopes, nonce));
+        store.put(this.computeKey(code, clientId, redirectUri), new CodeData(userId, sessionId, resource, scopes, nonce));
 
         return code;
 

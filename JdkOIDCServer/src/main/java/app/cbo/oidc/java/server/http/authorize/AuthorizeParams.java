@@ -15,6 +15,7 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.singleParam;
 import static app.cbo.oidc.java.server.utils.ParamsHelper.spaceSeparatedList;
 
 public record AuthorizeParams(
+        Optional<String> resource,
         List<String> scopes,
         List<String> responseTypes,
         Optional<ClientId> clientId,
@@ -37,6 +38,7 @@ public record AuthorizeParams(
 
     public AuthorizeParams(Map<String, Collection<String>> params) {
         this(
+                singleParam(params.get("resource")),
                 spaceSeparatedList(singleParam(params.get("scope")).orElse("")),
                 spaceSeparatedList(singleParam(params.get("response_type")).orElse("")),
                 singleParam(params.get("client_id")).map(ClientId::of),

@@ -4,6 +4,7 @@ import app.cbo.oidc.java.server.backends.clients.ClientAuthenticator;
 import app.cbo.oidc.java.server.backends.codes.CodeConsumer;
 import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.backends.sessions.SessionFinder;
+import app.cbo.oidc.java.server.backends.tokens.AccessTokenGenerator;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.AuthenticationLevel;
 import app.cbo.oidc.java.server.datastored.ClientId;
@@ -44,7 +45,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
     private final KeySet keySet;
     private final IdTokenCustomizer idTokenCustomizer;
     private final ClientAuthenticator clientAuthenticator;
-
+    private final AccessTokenGenerator accessTokenGenerator;
 
     @BuildWith
     public TokenEndpointImpl(
@@ -54,7 +55,8 @@ public class TokenEndpointImpl implements TokenEndpoint {
             SessionFinder sessionFinder,
             KeySet keySet,
             IdTokenCustomizer idTokenCustomizer,
-            ClientAuthenticator clientAuthenticator) {
+            ClientAuthenticator clientAuthenticator,
+            AccessTokenGenerator accessTokenGenerator) {
         this.myself = myself;
         this.codeConsumer = codeConsumer;
         this.userFinder = userFinder;
@@ -62,6 +64,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
         this.keySet = keySet;
         this.idTokenCustomizer = idTokenCustomizer;
         this.clientAuthenticator = clientAuthenticator;
+        this.accessTokenGenerator = accessTokenGenerator;
 
     }
 
@@ -156,12 +159,13 @@ public class TokenEndpointImpl implements TokenEndpoint {
 
         //access and refresh tokens will be transmitted as JWS, so we do not have to store them
         //any token received will be valid if signature is OK.
-        var accessToken = new AccessOrRefreshToken(
-                this.myself.getIssuerId(),
-                AccessOrRefreshToken.TYPE_ACCESS,
-                user.get().sub(),
-                Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
-                codeData.get().scopes());
+        var accessToken = this.accessTokenGenerator.generate(
+                clientId,
+                session.get(),
+                codeData.get().resource()
+        );
+
+
         var refreshToken = new AccessOrRefreshToken(
                 this.myself.getIssuerId(),
                 AccessOrRefreshToken.TYPE_REFRESH,
@@ -173,7 +177,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
         var currentPrivateKey = this.keySet.privateKey(currentPrivateKeyId)
                 .orElseThrow(() -> new RuntimeException("No current private key found (?)"));
         var response = new TokenResponse(
-                JWS.jwsWrap(JWA.RS256, accessToken, currentPrivateKeyId, currentPrivateKey),
+                accessToken,
                 JWS.jwsWrap(JWA.RS256, refreshToken, currentPrivateKeyId, currentPrivateKey),
                 JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey),
                 Duration.ofMinutes(5L),

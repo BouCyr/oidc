@@ -1,6 +1,8 @@
 package app.cbo.oidc.java.server.http.userinfo;
 
 import app.cbo.oidc.java.server.backends.claims.ClaimsResolver;
+import app.cbo.oidc.java.server.backends.tokens.AccessTokenData;
+import app.cbo.oidc.java.server.backends.tokens.AccessTokenValidator;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.scan.Injectable;
@@ -35,8 +37,10 @@ public class UserInfoEndpointImpl implements UserInfoEndpoint {
         }
         LOGGER.info("Token is valid");
 
-        LOGGER.info("Retrieving claims of users for agreed scopes");
-        var userInfo = claimsResolver.claimsFor(decodedPayload.sub(), decodedPayload.scopes());
+        LOGGER.info("Retrieving claims of users for agreed scopes and audience");
+
+
+        var userInfo = claimsResolver.claimsFor(decodedPayload.sub(), decodedPayload.aud(), decodedPayload.scopes());
 
         //5.3.2 > The sub (subject) Claim MUST always be returned in the UserInfo Response.
 

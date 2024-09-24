@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.net.CookieHandler;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -52,7 +51,8 @@ public class AuthFlowIntegrationTest {
 
         JWKSet jwkSet;
         try {
-            jwkSet = JWKSet.load(new URL(ROOT(PORT) + JWKSHandler.JWKS_ENDPOINT));
+
+            jwkSet = JWKSet.load(new URI(ROOT(PORT) + JWKSHandler.JWKS_ENDPOINT).toURL());
         } catch (Exception e) {
             fail("cannot load JKWSet");
             throw new RuntimeException("wnh");

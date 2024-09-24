@@ -75,6 +75,7 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
         var codeData = new CodeData(
                 UserId.of(contents.get("userId")),
                 new SessionId(contents.get("sessionId")),
+                contents.getOrDefault("resource", ""),
                 List.of(contents.get("scopes").split(";")),
                 contents.get("nonce")
         );
@@ -108,6 +109,7 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
                           @NotNull ClientId clientId,
                           @NotNull SessionId sessionId,
                           @NotNull String redirectUri,
+                          @Nullable String resource,
                           @NotNull List<String> scopes,
                           @Nullable String nonce) {
         if (isBlank(userId)
@@ -129,6 +131,7 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
                             "redirectUri", redirectUri,
                             "sessionId", sessionId.id(),
                             "nonce", nonce == null ? "" : nonce,
+                            "resource", resource == null ? "" : resource,
                             "scopes", String.join(";", scopes)
                     ));
         } catch (IOException e) {

@@ -31,7 +31,7 @@ public record FSClaims(FileStorage fsUserStorage) implements Claims {
 
 
     @Override
-    public Map<String, Object> claimsFor(UserId userId, Set<String> requestedScopes) {
+    public Map<String, Object> claimsFor(UserId userId, String aud, Set<String> requestedScopes) {
 
         final Map<String, Object> result = new HashMap<>();
 

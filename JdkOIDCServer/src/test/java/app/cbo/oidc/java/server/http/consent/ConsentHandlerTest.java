@@ -144,6 +144,7 @@ class ConsentHandlerTest {
 
     private AuthorizeParams testAuthParams() {
         return new AuthorizeParams(
+                Optional.of("resource"),
                 List.of("scope1", "scope2"),
                 List.of("RESPONSE_TYPE"),
                 Optional.of(ClientId.of("CLIENT")),

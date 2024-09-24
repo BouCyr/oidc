@@ -44,18 +44,26 @@ public class JWS {
 
     }
 
-
     public static String jwsWrap(@NotNull JWA algo,
                                  @NotNull Object payload,
                                  @Nullable KeyId keyId,
                                  @Nullable PrivateKey key) {
+        return jwsWrap(algo, payload, keyId, key, "JWT");
+    }
+
+
+    public static String jwsWrap(@NotNull JWA algo,
+                                 @NotNull Object payload,
+                                 @Nullable KeyId keyId,
+                                 @Nullable PrivateKey key,
+                                 @NotNull String headerType) {
 
         if (algo != JWA.NONE && (keyId == null || key == null)) {
             throw new NullPointerException("Key & keyId must be provided if alg is not 'none'");
         }
 
 
-        JWSHeader header = new JWSHeader(algo.rfcName(), "JWT", keyId != null ? keyId.id() : null);
+        JWSHeader header = new JWSHeader(algo.rfcName(), headerType, keyId != null ? keyId.id() : null);
 
         String signedPart = toJWSPart(header) + "." + toJWSPart(payload);
 

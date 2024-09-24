@@ -72,7 +72,7 @@ class OngoingAuthsTest {
 
     private AuthorizeParams createParams() {
         return new AuthorizeParams(
-
+                Optional.of("resource"),
                 List.of("openid"),   //List<String> scopes,
                 List.of("rs"),  //List<String> responseTypes,
                 Optional.of(ClientId.of("clientId")),  //Optional<String> clientId,

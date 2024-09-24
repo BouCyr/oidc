@@ -1,10 +1,11 @@
 package app.cbo.oidc.java.server.http.userinfo;
 
 import app.cbo.oidc.java.server.backends.keys.MemKeySet;
+import app.cbo.oidc.java.server.backends.tokens.JWTAccessToken;
+import app.cbo.oidc.java.server.backends.tokens.JWTAccessTokenValidator;
 import app.cbo.oidc.java.server.jwt.JWA;
 import app.cbo.oidc.java.server.jwt.JWS;
 import app.cbo.oidc.java.server.oidc.Issuer;
-import app.cbo.oidc.java.server.oidc.tokens.AccessOrRefreshToken;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -24,11 +25,11 @@ class JWTAccessTokenValidatorTest {
         var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
 
         var clock = Clock.systemUTC();
-        var jwtAccessToken = new AccessOrRefreshToken(
+        var jwtAccessToken = new JWTAccessToken(
                 "http://oidc.cbo.app",
-                AccessOrRefreshToken.TYPE_ACCESS,
                 "userID",
                 Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
+                "aud",
                 List.of("scope1", "scope2"));
 
         var signed = JWS.jwsWrap(JWA.RS256, jwtAccessToken, keyset.current(), keyset.privateKey(keyset.current()).get());
@@ -61,33 +62,6 @@ class JWTAccessTokenValidatorTest {
         fail("Should have thrown ForbiddenException");
     }
 
-    @Test
-    void wrong_typ() {
-
-        var keyset = new MemKeySet();
-        var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
-
-        var clock = Clock.systemUTC();
-        var jwtAccessToken = new AccessOrRefreshToken(
-                "http://oidc.cbo.app",
-                "anytthins", //not the right typ !
-                "userID",
-                Instant.now(clock).plus(Duration.ofMinutes(55L)).getEpochSecond(),
-                List.of("scope1", "scope2"));
-
-        var signed = JWS.jwsWrap(JWA.RS256, jwtAccessToken, keyset.current(), keyset.privateKey(keyset.current()).get());
-        try {
-            tested.validateAccessToken(signed);
-        } catch (ForbiddenResponse e) {
-            assertThat(e).isInstanceOf(ForbiddenResponse.class);
-            assertThat(e.getInternalReason()).isEqualTo(ForbiddenResponse.InternalReason.WRONG_TYPE);
-            return;
-        } catch (RuntimeException e) {
-            fail("Should have thrown ForbiddenException");
-        }
-        fail("Should have thrown ForbiddenException");
-
-    }
 
     @Test
     void expired_jwt() {
@@ -96,11 +70,11 @@ class JWTAccessTokenValidatorTest {
         var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
 
         var clock = Clock.systemUTC();
-        var jwtAccessToken = new AccessOrRefreshToken(
+        var jwtAccessToken = new JWTAccessToken(
                 "http://oidc.cbo.app",
-                AccessOrRefreshToken.TYPE_ACCESS,
                 "userID",
                 Instant.now(clock).minus(Duration.ofMinutes(55L)).getEpochSecond(),//!!!in the past
+                "aud",
                 List.of("scope1", "scope2"));
 
         var signed = JWS.jwsWrap(JWA.RS256, jwtAccessToken, keyset.current(), keyset.privateKey(keyset.current()).get());
@@ -125,11 +99,11 @@ class JWTAccessTokenValidatorTest {
         var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
 
         var clock = Clock.systemUTC();
-        var jwtAccessToken = new AccessOrRefreshToken(
+        var jwtAccessToken = new JWTAccessToken(
                 "http://OTHER.cbo.app", //OTHER issuer !!!
-                AccessOrRefreshToken.TYPE_ACCESS,
                 "userID",
                 Instant.now(clock).plus(Duration.ofMinutes(55L)).getEpochSecond(),
+                "aud",
                 List.of("scope1", "scope2"));
 
         var signed = JWS.jwsWrap(JWA.RS256, jwtAccessToken, keyset.current(), keyset.privateKey(keyset.current()).get());
@@ -153,11 +127,11 @@ class JWTAccessTokenValidatorTest {
         var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
 
         var clock = Clock.systemUTC();
-        var jwtAccessToken = new AccessOrRefreshToken(
+        var jwtAccessToken = new JWTAccessToken(
                 "http://oidc.cbo.app",
-                AccessOrRefreshToken.TYPE_ACCESS,
                 "userID",
                 Instant.now(clock).plus(Duration.ofMinutes(55L)).getEpochSecond(),
+                "aud",
                 List.of("scope1", "scope2"));
 
         var signed = JWS.jwsWrap(JWA.RS256, jwtAccessToken, keyset.current(), keyset.privateKey(keyset.current()).get());

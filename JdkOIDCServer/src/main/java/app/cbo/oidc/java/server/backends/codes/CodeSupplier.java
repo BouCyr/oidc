@@ -30,6 +30,7 @@ public interface CodeSupplier {
                    @NotNull ClientId clientId,
                    @NotNull SessionId sessionId,
                    @NotNull String redirectUri,
+                   @Nullable String resource,
                    @NotNull List<String> scopes,
                    @Nullable String nonce);
 }
