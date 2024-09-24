@@ -62,18 +62,8 @@ public class AuthorizeEndpoint {
     @NotNull
     public Interaction treatRequest(
             @NotNull Optional<Session> session,
-            @NotNull Map<String, Collection<String>> rawParams) throws AuthErrorInteraction {
+            @NotNull AuthorizeParams params) throws AuthErrorInteraction {
 
-
-        //put params in the dedicated record
-        AuthorizeParams params = new AuthorizeParams(rawParams);
-
-
-        //3.1.2.2.  Authentication Request Validation
-        //The Authorization Server MUST validate all the OAuth 2.0 parameters according to the OAuth 2.0 specification.
-        //check their validity
-        AuthorizeParams.checkParams(params);
-        LOGGER.info("Request params are valid");
         //deduce the requested flow from response types
         OIDCFlow flow = OIDCFlow.fromResponseType(params.responseTypes(), params);
         LOGGER.info("Selected OIDC flow is "+flow.name());
