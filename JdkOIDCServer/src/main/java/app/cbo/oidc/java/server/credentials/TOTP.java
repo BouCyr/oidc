@@ -1,7 +1,7 @@
 package app.cbo.oidc.java.server.credentials;
 
 
-/**
+/*
  * Copyright (c) 2011 IETF Trust and the persons identified as
  * authors of the code. All rights reserved.
  * <p>
@@ -146,8 +146,7 @@ public class TOTP {
 
         // Copy all the REAL bytes, not the "first"
         byte[] ret = new byte[bArray.length - 1];
-        for (int i = 0; i < ret.length; i++)
-            ret[i] = bArray[i + 1];
+        System.arraycopy(bArray, 1, ret, 0, ret.length);
         return ret;
     }
 

@@ -200,7 +200,7 @@ public class AuthorizeEndpoint {
 
     private ImplicitFlowSuccessInteraction implicitFlowSuccess(User user, AuthorizeParams originalParams, Session session) {
         var clock = Clock.systemUTC();
-        //TODO [26/05/2023] extract idToken generation, clock handling and keyset mgt in a dedicated service (done twice here & code endpoint)
+        //TODO [26/05/2023] extract idToken generation, clock handling and keySet mgt in a dedicated service (done twice here & code endpoint)
         var idToken = new IdToken(
                 user.sub(),
                 this.myself.getIssuerId(),

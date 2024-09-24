@@ -56,7 +56,7 @@ public class AuthenticateEndpointImpl implements AuthenticateEndpoint {
 
 
         if (Utils.isBlank(params.login())) {
-            LOGGER.info("No login found in params, dispaying the login form");
+            LOGGER.info("No login found in params, displaying the login form");
             return new DisplayLoginFormInteraction(params.ongoing());
         } else {
 

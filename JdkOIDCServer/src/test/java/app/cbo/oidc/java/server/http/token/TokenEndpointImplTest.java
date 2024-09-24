@@ -7,7 +7,6 @@ import app.cbo.oidc.java.server.credentials.AuthenticationMode;
 import app.cbo.oidc.java.server.datastored.*;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.datastored.user.UserId;
-import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +27,7 @@ class TokenEndpointImplTest {
     private final ClientAuthenticator clientPwdIsClientId = (id, secret) -> id != null && id.id() != null && id.id().equals(secret);
 
     @Test
-    void nominal() throws ForbiddenResponse, JsonError, IOException {
+    void nominal() throws IOException {
 
         var tested = new TokenEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
@@ -83,7 +82,7 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void invalid_client_credentials() throws ForbiddenResponse, JsonError, IOException {
+    void invalid_client_credentials() throws IOException {
         var tested = new TokenEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
@@ -109,7 +108,7 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void no_redirect_uri() throws ForbiddenResponse, JsonError, IOException {
+    void no_redirect_uri() throws IOException {
         var tested = new TokenEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
@@ -135,7 +134,7 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void null_redirect_uri() throws ForbiddenResponse, JsonError, IOException {
+    void null_redirect_uri() throws IOException {
         var tested = new TokenEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
@@ -161,7 +160,7 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void no_grant_type() throws ForbiddenResponse, JsonError, IOException {
+    void no_grant_type() throws IOException {
         var tested = new TokenEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
@@ -188,7 +187,7 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void null_grant_type() throws ForbiddenResponse, JsonError, IOException {
+    void null_grant_type() throws IOException {
         var tested = new TokenEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
@@ -215,7 +214,7 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void invalid_grant_type() throws ForbiddenResponse, JsonError, IOException {
+    void invalid_grant_type() throws IOException {
         var tested = new TokenEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
@@ -242,7 +241,7 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void userNotFound() throws ForbiddenResponse, JsonError, IOException {
+    void userNotFound() throws IOException {
         var tested = new TokenEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
@@ -269,7 +268,7 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void codeNotFound() throws ForbiddenResponse, JsonError, IOException {
+    void codeNotFound() throws IOException {
         var tested = new TokenEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.empty(),
@@ -296,7 +295,7 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void sessionNotFound() throws ForbiddenResponse, JsonError, IOException {
+    void sessionNotFound() throws IOException {
         var tested = new TokenEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),

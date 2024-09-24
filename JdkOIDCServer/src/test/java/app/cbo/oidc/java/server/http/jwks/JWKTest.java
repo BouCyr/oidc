@@ -44,11 +44,12 @@ class JWKTest {
                 .keyUse(KeyUse.SIGNATURE)
                 .keyID(kid.id()).build();
 
-        String theirsAsJson = theirs.toJSONObject().toJSONString();
+
+        var theirsAsJson = theirs.toJSONObject();
         //give it to jackson to do proper indent
-        var readByJackson = new ObjectMapper().reader().readTree(theirsAsJson);
         System.out.println("AS COMPUTED BY EXTERNAL (nimbus):");
-        System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(readByJackson));
+
+        System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(theirsAsJson));
 
         var publicKeyFromNimbus = RSAKey.parse(theirsAsJson);
 
