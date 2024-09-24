@@ -45,8 +45,6 @@ public class AuthorizeHandler implements HttpHandlerWithPath {
     public void handle(@NotNull HttpExchange exchange) throws IOException {
 
         try {
-
-
             var cookies = Cookies.parseCookies(exchange);
             var sessionId = Cookies.findSessionCookie(cookies);
             Optional<Session> session = sessionId.isEmpty() ? Optional.empty() : this.sessionFinder.find(sessionId.get());
@@ -58,6 +56,7 @@ public class AuthorizeHandler implements HttpHandlerWithPath {
             //The Authorization Server MUST validate all the OAuth 2.0 parameters according to the OAuth 2.0 specification.
             //check their validity
             AuthorizeParams.checkParams(parsedParams);
+
             LOGGER.info("Request params are valid");
 
 
