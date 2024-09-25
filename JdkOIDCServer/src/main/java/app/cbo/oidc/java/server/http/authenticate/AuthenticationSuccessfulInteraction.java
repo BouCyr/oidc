@@ -16,7 +16,7 @@ public record AuthenticationSuccessfulInteraction(SessionId sessionId, Authorize
     @Override
     public void handle(@NotNull HttpExchange exchange) throws IOException {
 
-        exchange.getResponseHeaders().add("Set-Cookie", Sessions.SESSION_ID_COOKIE_NAME + "=" + sessionId.getSessionId() + "; Secure; Path=/");
+        exchange.getResponseHeaders().add("Set-Cookie", Sessions.SESSION_ID_COOKIE_NAME + "=" + sessionId.id() + "; Secure; Path=/");
         exchange.getResponseHeaders().add("Location", AuthorizeHandler.AUTHORIZE_ENDPOINT + "?" + params.toQueryString());
         exchange.sendResponseHeaders(HttpCode.FOUND.code(), 0);
         exchange.getResponseBody().flush();

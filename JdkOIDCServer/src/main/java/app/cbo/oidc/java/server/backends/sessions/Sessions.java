@@ -30,10 +30,10 @@ public class Sessions implements SessionFinder, SessionSupplier {
     @NotNull
     public Optional<Session> find(@NotNull SessionId id) {
 
-        if (id == null || id.getSessionId() == null)
+        if (id == null || id.id() == null)
             return Optional.empty();
 
-        var existing = Optional.ofNullable(this.sessions.get(id.getSessionId()));
+        var existing = Optional.ofNullable(this.sessions.get(id.id()));
         existing.ifPresent(this::refresh);
         return existing;
     }
@@ -41,13 +41,13 @@ public class Sessions implements SessionFinder, SessionSupplier {
     /**
      * @inheritDoc
      */
-    public void addAuthentications(@NotNull SessionId id, @NotNull EnumSet<AuthenticationMode> authenticationModes){
-        if(id == null || id.getSessionId() == null){
+    public void addAuthentications(@NotNull SessionId id, @NotNull EnumSet<AuthenticationMode> authenticationModes) {
+        if (id == null || id.id() == null) {
             throw new NullPointerException("session id cannot be null");
         }
 
         Optional<Session> session = this.find(id);
-        if(!Utils.isEmpty(authenticationModes) && session.isPresent()){
+        if (!Utils.isEmpty(authenticationModes) && session.isPresent()) {
             session.get().authentications().addAll(authenticationModes);
         }
     }
@@ -56,21 +56,20 @@ public class Sessions implements SessionFinder, SessionSupplier {
      * @inheritDoc
      */
     @Override
-    @NotNull public SessionId createSession(@NotNull User user, @NotNull EnumSet<AuthenticationMode> authenticationModes){
+    @NotNull
+    public SessionId createSession(@NotNull User user, @NotNull EnumSet<AuthenticationMode> authenticationModes) {
 
-        var newSession = new Session(user::sub, authenticationModes);
+        var newSession = new Session(user.getId(), authenticationModes);
         this.sessions.put(newSession.id(), newSession);
-        return SessionId.of(newSession.id());
+        return new SessionId(newSession.id());
     }
 
     private void refresh(@NotNull Session session) {
-        if(session == null)
+        if (session == null)
             throw new NullPointerException("session cannot be null");
         var updated = Session.refreshed(session);
         this.sessions.put(session.id(), updated);
     }
-
-
 
 
 }

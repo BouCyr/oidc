@@ -10,7 +10,8 @@ import java.util.UUID;
  * This class is a sample of how to customize the id token.
  * Put @Injectable("someProfile") and startup the server to see the result.
  */
-public class SampleTokenIdCutomizer implements IdTokenCustomizer{
+@Deprecated(forRemoval = true)
+public class SampleTokenIdCutomizer implements IdTokenCustomizer {
 
 
     @Override

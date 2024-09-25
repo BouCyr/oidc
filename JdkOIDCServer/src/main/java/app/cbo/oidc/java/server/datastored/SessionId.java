@@ -2,26 +2,19 @@ package app.cbo.oidc.java.server.datastored;
 
 import java.util.function.Supplier;
 
-@FunctionalInterface
-public interface SessionId extends Supplier<String> {
 
-    default String getSessionId(){
-        return this.get();
+public record SessionId(String id) implements Supplier<String> {
+    public static SessionId of(String id) {
+        return new SessionId(id);
     }
 
-    /**
-     * Returns a basic impl of SessionId
-     */
-    static SessionId of(String value){
-            return new Simple(value);
+    @Override
+    public String get() {
+        return id();
     }
-    /**
-     * Basic impl
-     */
-    record Simple(String value) implements SessionId{
-        @Override
-        public String get() {
-            return value();
-        }
+
+    @Override
+    public String toString() {
+        return id();
     }
 }

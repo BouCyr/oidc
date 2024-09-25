@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.http.authorize;
 
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.http.consent.ConsentHandler;
@@ -12,11 +13,11 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 
-public record RedirectToConsentInteraction(OngoingAuthId ongoingAuthId, String clientId,
+public record RedirectToConsentInteraction(OngoingAuthId ongoingAuthId, ClientId clientId,
                                            Set<String> scopes) implements Interaction {
 
 
-    public RedirectToConsentInteraction(OngoingAuthId ongoingAuthId, String clientId, Collection<String> scopes) {
+    public RedirectToConsentInteraction(OngoingAuthId ongoingAuthId, ClientId clientId, Collection<String> scopes) {
         this(ongoingAuthId, clientId, Set.copyOf(scopes));
     }
 
@@ -26,9 +27,9 @@ public record RedirectToConsentInteraction(OngoingAuthId ongoingAuthId, String c
 
 
         exchange.getResponseHeaders().add("Location", ConsentHandler.CONSENT_ENDPOINT
-                + "?" + ConsentParams.ONGOING + "=" + ongoingAuthId().getOngoingAuthId()
+                + "?" + ConsentParams.ONGOING + "=" + ongoingAuthId().id()
                 + "&" + ConsentParams.SCOPES_REQUESTED + "=" + String.join(" ", this.scopes)
-                + "&" + ConsentParams.CLIENT_ID + "=" + clientId()
+                + "&" + ConsentParams.CLIENT_ID + "=" + clientId().id()
         );
         exchange.sendResponseHeaders(HttpCode.FOUND.code(), 0);
         exchange.getResponseBody().flush();

@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.http.authorize;
 
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.oidc.OIDCDisplayValues;
 import app.cbo.oidc.java.server.oidc.OIDCFlow;
@@ -8,19 +9,16 @@ import app.cbo.oidc.java.server.utils.EnumValuesHelper;
 import app.cbo.oidc.java.server.utils.QueryStringBuilder;
 import app.cbo.oidc.java.server.utils.Utils;
 
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static app.cbo.oidc.java.server.utils.ParamsHelper.singleParam;
 import static app.cbo.oidc.java.server.utils.ParamsHelper.spaceSeparatedList;
 
 public record AuthorizeParams(
+        Optional<String> resource,
         List<String> scopes,
         List<String> responseTypes,
-        Optional<String> clientId,
+        Optional<ClientId> clientId,
         Optional<String> redirectUri,
         Optional<String> state,
         Optional<String> responseMode,
@@ -35,14 +33,15 @@ public record AuthorizeParams(
 
         //TODO [17/03/2023] cf 5.5 'claims'
         //TODO [17/03/2023] cf 6  "Passing Request Parameters as JWTs" - this will be another nightmare
-){
+) {
 
 
-    public AuthorizeParams(Map<String, Collection<String>> params){
+    public AuthorizeParams(Map<String, Collection<String>> params) {
         this(
+                singleParam(params.get("resource")),
                 spaceSeparatedList(singleParam(params.get("scope")).orElse("")),
                 spaceSeparatedList(singleParam(params.get("response_type")).orElse("")),
-                singleParam(params.get("client_id")),
+                singleParam(params.get("client_id")).map(ClientId::of),
                 singleParam(params.get("redirect_uri")),
                 singleParam(params.get("state")),
                 singleParam(params.get("response_mode")),
@@ -69,7 +68,7 @@ public record AuthorizeParams(
      * @throws AuthErrorInteraction if some params were invalid
      */
     public static void checkParams(AuthorizeParams p) throws AuthErrorInteraction {
-        if(p == null){
+        if (p == null) {
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "Invalid request");
         }
 
@@ -82,25 +81,26 @@ public record AuthorizeParams(
         if (Utils.isBlank(p.responseTypes())) {
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.unsupported_response_type, "'response_type' param is REQUIRED'", p);
         }
-        if(Utils.isBlank(p.clientId())){
-            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'client_id' param is REQUIRED'",p);
+        if (Utils.isBlank(p.clientId().orElse(ClientId.of("")))) {
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "'client_id' param is REQUIRED'", p);
         }
-        if(Utils.isBlank(p.redirectUri())){
+        if (Utils.isBlank(p.redirectUri())) {
 
-            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'redirect_uri' param is REQUIRED'",p);
+            throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "'redirect_uri' param is REQUIRED'", p);
         }
-        if(p.maxAge().isPresent()) {
+        if (p.maxAge().isPresent()) {
             try {
                 Long.parseLong(p.maxAge().get());
-            }catch (NumberFormatException e){
-                throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request , "'max_age' param must be an integer value'", p);
+            } catch (NumberFormatException e) {
+                throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "'max_age' param must be an integer value'", p);
             }
         }
     }
 
     /**
      * Checks whether the params were correctly filled by the client FOR THIS PARTICULAR FLOW
-     * @param flow the requested flow
+     *
+     * @param flow   the requested flow
      * @param params the authentication request params
      * @throws AuthErrorInteraction if some params were invalid
      */
@@ -136,7 +136,7 @@ public record AuthorizeParams(
         return new QueryStringBuilder()
                 .add(toSpaceSeparated("scope", scopes()))
                 .add(toSpaceSeparated("response_type", responseTypes()))
-                .add(toSingle("client_id", clientId()))
+                .add(toSingle("client_id", clientId().map(ClientId::id)))
                 .add(toSingle("redirect_uri", redirectUri()))
                 .add(toSingle("state", state()))
                 .add(toSingle("response_mode", responseMode()))
@@ -156,13 +156,13 @@ public record AuthorizeParams(
     //TODO [03/04/2023] in .utils ?
     private String toSingle(String key, Optional<String> value) {
 
-        return value.map(v -> key+"="+v).orElse("");
+        return value.map(v -> key + "=" + v).orElse("");
     }
 
     //TODO [03/04/2023] in .utils ?
     private String toSpaceSeparated(String key, List<String> values) {
         StringBuilder builder = new StringBuilder();
-        if(!Utils.isEmpty(values)){
+        if (!Utils.isEmpty(values)) {
             builder
                     .append(key)
                     .append("=")

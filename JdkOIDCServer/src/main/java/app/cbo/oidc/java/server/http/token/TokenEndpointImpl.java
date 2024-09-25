@@ -4,10 +4,10 @@ import app.cbo.oidc.java.server.backends.clients.ClientAuthenticator;
 import app.cbo.oidc.java.server.backends.codes.CodeConsumer;
 import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.backends.sessions.SessionFinder;
+import app.cbo.oidc.java.server.backends.tokens.AccessTokenGenerator;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.AuthenticationLevel;
 import app.cbo.oidc.java.server.datastored.ClientId;
-import app.cbo.oidc.java.server.datastored.Code;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.json.JSON;
@@ -45,8 +45,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
     private final KeySet keySet;
     private final IdTokenCustomizer idTokenCustomizer;
     private final ClientAuthenticator clientAuthenticator;
-
-
+    private final AccessTokenGenerator accessTokenGenerator;
 
     @BuildWith
     public TokenEndpointImpl(
@@ -56,7 +55,8 @@ public class TokenEndpointImpl implements TokenEndpoint {
             SessionFinder sessionFinder,
             KeySet keySet,
             IdTokenCustomizer idTokenCustomizer,
-            ClientAuthenticator clientAuthenticator) {
+            ClientAuthenticator clientAuthenticator,
+            AccessTokenGenerator accessTokenGenerator) {
         this.myself = myself;
         this.codeConsumer = codeConsumer;
         this.userFinder = userFinder;
@@ -64,12 +64,13 @@ public class TokenEndpointImpl implements TokenEndpoint {
         this.keySet = keySet;
         this.idTokenCustomizer = idTokenCustomizer;
         this.clientAuthenticator = clientAuthenticator;
+        this.accessTokenGenerator = accessTokenGenerator;
 
     }
 
     @Override
     @NotNull
-    public Interaction treatRequest(@NotNull TokenParams params, @Nullable String authClientId, @Nullable String clientSecret) {
+    public Interaction treatRequest(@NotNull TokenParams params, @Nullable ClientId authClientId, @Nullable String clientSecret) {
         /*
         The Authorization Server MUST validate the Token Request as follows:
 
@@ -81,7 +82,9 @@ public class TokenEndpointImpl implements TokenEndpoint {
         Verify that the Authorization Code used was issued in response to an OpenID Connect Authentication Request (so that an ID Token will be returned from the Token Endpoint).
         */
 
-        LOGGER.info(("'" + (!Utils.isEmpty(authClientId) ? authClientId : "?") + "' tries to consume a code"));
+        if (authClientId != null) {
+            LOGGER.info(("'" + (!Utils.isEmpty(authClientId.get()) ? authClientId : "?") + "' tries to consume a code"));
+        }
 
         //Are the client credentials OK ? (none would be OK for the moment)
         if (!this.clientAuthenticator.authenticate(authClientId, clientSecret)) {
@@ -99,7 +102,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
 
         //the clientId may be found in credentials OR in the params.
         //we already check that we have at least one, and if two that they match
-        var clientId = ClientId.of(authClientId != null ? authClientId : params.clientId());
+        var clientId = authClientId != null ? authClientId : params.clientId();
 
 
         if (Utils.isEmpty(params.redirectUri())) {
@@ -113,7 +116,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
         }
 
 
-        var codeData = this.codeConsumer.consume(Code.of(params.code()), clientId, URLDecoder.decode(params.redirectUri(), StandardCharsets.UTF_8));
+        var codeData = this.codeConsumer.consume(params.code(), clientId, URLDecoder.decode(params.redirectUri(), StandardCharsets.UTF_8));
         if (codeData.isEmpty()) {
             return new JsonError(AuthErrorInteraction.Code.access_denied.name());
         }
@@ -139,14 +142,14 @@ public class TokenEndpointImpl implements TokenEndpoint {
         var idToken = new IdToken(
                 user.get().sub(),
                 this.myself.getIssuerId(),
-                List.of(clientId.getClientId()),
+                List.of(clientId.id()),
                 Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
                 Instant.now(clock).getEpochSecond(),
                 session.get().authTime().toEpochSecond(ZoneOffset.UTC),
                 Optional.ofNullable(codeData.get().nonce()),
                 new AuthenticationLevel(session.get().authentications()).name(),
                 session.get().authentications().stream().map(Enum::name).toList(),
-                Optional.of(clientId.getClientId()),
+                Optional.of(clientId.id()),
                 new HashMap<>());
         idToken.extranodes().put("at_hash", "rooooo"); //TODO [25/04/2023] at_hash management
 
@@ -156,12 +159,13 @@ public class TokenEndpointImpl implements TokenEndpoint {
 
         //access and refresh tokens will be transmitted as JWS, so we do not have to store them
         //any token received will be valid if signature is OK.
-        var accessToken = new AccessOrRefreshToken(
-                this.myself.getIssuerId(),
-                AccessOrRefreshToken.TYPE_ACCESS,
-                user.get().sub(),
-                Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
-                codeData.get().scopes());
+        var accessToken = this.accessTokenGenerator.generate(
+                clientId,
+                session.get(),
+                codeData.get().resource()
+        );
+
+
         var refreshToken = new AccessOrRefreshToken(
                 this.myself.getIssuerId(),
                 AccessOrRefreshToken.TYPE_REFRESH,
@@ -173,7 +177,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
         var currentPrivateKey = this.keySet.privateKey(currentPrivateKeyId)
                 .orElseThrow(() -> new RuntimeException("No current private key found (?)"));
         var response = new TokenResponse(
-                JWS.jwsWrap(JWA.RS256, accessToken, currentPrivateKeyId, currentPrivateKey),
+                accessToken,
                 JWS.jwsWrap(JWA.RS256, refreshToken, currentPrivateKeyId, currentPrivateKey),
                 JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey),
                 Duration.ofMinutes(5L),

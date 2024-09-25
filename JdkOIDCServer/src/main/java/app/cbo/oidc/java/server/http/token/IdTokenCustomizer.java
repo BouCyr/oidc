@@ -9,7 +9,7 @@ public interface IdTokenCustomizer {
     IdToken customize(IdToken source);
 
     @Injectable
-    class Noop implements IdTokenCustomizer{
+    class Noop implements IdTokenCustomizer {
         @Override
         public IdToken customize(IdToken source) {
             return source;

@@ -1,14 +1,16 @@
 package app.cbo.oidc.java.server.http.token;
 
 import app.cbo.oidc.java.server.TestHttpExchange;
+import app.cbo.oidc.java.server.backends.clients.ClientAuthenticator;
+import app.cbo.oidc.java.server.backends.codes.CodeConsumer;
+import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.backends.keys.MemKeySet;
+import app.cbo.oidc.java.server.backends.tokens.AccessTokenGenerator;
+import app.cbo.oidc.java.server.backends.tokens.JWTAccessTokenGenerator;
 import app.cbo.oidc.java.server.credentials.AuthenticationMode;
-import app.cbo.oidc.java.server.datastored.CodeData;
-import app.cbo.oidc.java.server.datastored.Session;
-import app.cbo.oidc.java.server.datastored.SessionId;
+import app.cbo.oidc.java.server.datastored.*;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.datastored.user.UserId;
-import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,22 +27,41 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 class TokenEndpointImplTest {
 
-    @Test
-    void nominal() throws ForbiddenResponse, JsonError, IOException {
+    public static final String USER_ID = "userA";
+    private final Issuer issuer = Issuer.of("http://oidc.cbo.app");
+    private final ClientAuthenticator clientPwdIsClientId = (id, secret) -> id != null && id.id() != null && id.id().equals(secret);
+    private final KeySet keySet = new MemKeySet();
+    private final CodeConsumer codeConsuer =
+            (code, clientId, redirectUri) -> Optional.of(
+                    new CodeData(
+                            UserId.of(USER_ID),
+                            SessionId.of("session"),
+                            "resource",
+                            List.of("s1", "s2", "s3"),
+                            "nonceZ"));
+    private final AccessTokenGenerator accessTokenGenerator = new JWTAccessTokenGenerator(issuer, keySet);
 
-        var tested = new TokenEndpointImpl(
-                Issuer.of("http://oidc.cbo.app"),
-                (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
-                x -> Optional.of(new User("userA", "", "")),
-                id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet(),
+
+    private TokenEndpointImpl buildTested() {
+        return new TokenEndpointImpl(issuer,
+                codeConsuer,
+                x -> Optional.of(new User(USER_ID, "", "")),
+                id -> Optional.of(new Session(UserId.of(USER_ID), EnumSet.of(AuthenticationMode.DECLARATIVE))),
+                keySet,
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId,
+                accessTokenGenerator
         );
+    }
+
+    @Test
+    void nominal() throws IOException {
+
+        var tested = buildTested();
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code", "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                new TokenParams("authorization_code", Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -59,7 +80,7 @@ class TokenEndpointImplTest {
 
 
         var idToken = JWT.decode(tokenResponse.id_token());
-        assertThat(idToken.getSubject()).isEqualTo("userA");
+        assertThat(idToken.getSubject()).isEqualTo(USER_ID);
         assertThat(idToken.getIssuer()).isEqualTo("http://oidc.cbo.app");
         assertThat(idToken.getAudience()).containsExactlyInAnyOrder("CLIENT");
 
@@ -81,20 +102,12 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void invalid_client_credentials() throws ForbiddenResponse, JsonError, IOException {
-        var tested = new TokenEndpointImpl(
-                Issuer.of("http://oidc.cbo.app"),
-                (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
-                x -> Optional.of(new User("userA", "", "")),
-                id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet(),
-                new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
-        );
+    void invalid_client_credentials() throws IOException {
+        var tested = buildTested();
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code", "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                new TokenParams("authorization_code", Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                ClientId.of("CLIENT"),
                 "wrong_wrong_wrong" //WRONG !!!
         );
 
@@ -107,20 +120,12 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void no_redirect_uri() throws ForbiddenResponse, JsonError, IOException {
-        var tested = new TokenEndpointImpl(
-                Issuer.of("http://oidc.cbo.app"),
-                (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
-                x -> Optional.of(new User("userA", "", "")),
-                id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet(),
-                new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
-        );
+    void no_redirect_uri() throws IOException {
+        var tested = buildTested();
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code", "code", "", "CLIENT"),
-                "CLIENT",
+                new TokenParams("authorization_code", Code.of("code"), "", ClientId.of("CLIENT")),
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -133,20 +138,12 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void null_redirect_uri() throws ForbiddenResponse, JsonError, IOException {
-        var tested = new TokenEndpointImpl(
-                Issuer.of("http://oidc.cbo.app"),
-                (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
-                x -> Optional.of(new User("userA", "", "")),
-                id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet(),
-                new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
-        );
+    void null_redirect_uri() throws IOException {
+        var tested = buildTested();
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code", "code", null, "CLIENT"),
-                "CLIENT",
+                new TokenParams("authorization_code", Code.of("code"), null, ClientId.of("CLIENT")),
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -159,21 +156,13 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void no_grant_type() throws ForbiddenResponse, JsonError, IOException {
-        var tested = new TokenEndpointImpl(
-                Issuer.of("http://oidc.cbo.app"),
-                (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
-                x -> Optional.of(new User("userA", "", "")),
-                id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet(),
-                new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
-        );
+    void no_grant_type() throws IOException {
+        var tested = buildTested();
 
         var interaction = tested.treatRequest(
                 new TokenParams("",//!!!!
-                        "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -186,21 +175,13 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void null_grant_type() throws ForbiddenResponse, JsonError, IOException {
-        var tested = new TokenEndpointImpl(
-                Issuer.of("http://oidc.cbo.app"),
-                (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
-                x -> Optional.of(new User("userA", "", "")),
-                id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet(),
-                new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
-        );
+    void null_grant_type() throws IOException {
+        var tested = buildTested();
 
         var interaction = tested.treatRequest(
                 new TokenParams(null,//!!!!
-                        "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -213,21 +194,13 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void invalid_grant_type() throws ForbiddenResponse, JsonError, IOException {
-        var tested = new TokenEndpointImpl(
-                Issuer.of("http://oidc.cbo.app"),
-                (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
-                x -> Optional.of(new User("userA", "", "")),
-                id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet(),
-                new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
-        );
+    void invalid_grant_type() throws IOException {
+        var tested = buildTested();
 
         var interaction = tested.treatRequest(
                 new TokenParams("INVALID",//!!!!
-                        "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -240,21 +213,21 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void userNotFound() throws ForbiddenResponse, JsonError, IOException {
-        var tested = new TokenEndpointImpl(
-                Issuer.of("http://oidc.cbo.app"),
-                (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
+    void userNotFound() throws IOException {
+        var tested = new TokenEndpointImpl(issuer,
+                codeConsuer,
                 x -> Optional.empty(),
-                id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
-                new MemKeySet(),
+                id -> Optional.of(new Session(UserId.of(USER_ID), EnumSet.of(AuthenticationMode.DECLARATIVE))),
+                keySet,
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId,
+                accessTokenGenerator
         );
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code",
-                        "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -267,21 +240,22 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void codeNotFound() throws ForbiddenResponse, JsonError, IOException {
+    void codeNotFound() throws IOException {
         var tested = new TokenEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.empty(),
-                x -> Optional.of(new User("userA", "", "")),
-                id -> Optional.of(new Session(UserId.of("userA"), EnumSet.of(AuthenticationMode.DECLARATIVE))),
+                x -> Optional.of(new User(USER_ID, "", "")),
+                id -> Optional.of(new Session(UserId.of(USER_ID), EnumSet.of(AuthenticationMode.DECLARATIVE))),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId,
+                this.accessTokenGenerator
         );
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code",
-                        "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 
@@ -294,21 +268,23 @@ class TokenEndpointImplTest {
     }
 
     @Test
-    void sessionNotFound() throws ForbiddenResponse, JsonError, IOException {
+    void sessionNotFound() throws IOException {
         var tested = new TokenEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
-                (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of("userA"), SessionId.of("session"), List.of("s1", "s2", "s3"), "nonceZ")),
-                x -> Optional.of(new User("userA", "", "")),
+                (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of(USER_ID), SessionId.of("session"), "aud", List.of("s1", "s2", "s3"), "nonceZ")),
+                x -> Optional.of(new User(USER_ID, "", "")),
                 id -> Optional.empty(),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
-                (id, secret) -> id != null && id.equals(secret)
+                clientPwdIsClientId,
+                this.accessTokenGenerator
         );
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code",
-                        "code", "http://client.cbo.app", "CLIENT"),
-                "CLIENT",
+                new TokenParams(
+                        "authorization_code",
+                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                ClientId.of("CLIENT"),
                 "CLIENT"
         );
 

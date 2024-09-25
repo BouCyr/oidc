@@ -30,76 +30,6 @@ public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder
     private static final String TOTP_K = "totp";
     private static final String CONSENTS_K = "consents";
 
-
-    @Override
-    public UserId create(@NotNull String login, @Nullable String clearPwd, @Nullable String totpKey) {
-        LOGGER.info("Checking if a user with this id is stored before creation");
-        if (this.find(UserId.of(login)).isPresent()) {
-            throw new RuntimeException(LOGIN_ALREADY_EXISTS);
-        }
-        if (Utils.isBlank(login)) {
-            throw new IllegalArgumentException("Login is required.");
-        }
-
-        User newUser = new User(
-                login,
-                clearPwd != null ? this.passwordEncoder().encode(clearPwd) : null,
-                totpKey);
-
-        LOGGER.info("Writing credentials of new user '" + login + "' on disk");
-        return writeUSer(newUser);
-    }
-
-    private UserId writeUSer(User newUser) {
-        try (var writer = this.fsUserStorage.writer(this.fileOf(newUser.getUserId()))) {
-            for (var dataLine : userToStrings(newUser)) {
-                writer.write(dataLine);
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            LOGGER.severe("IOException while writing user. This is not normal. " + e.getMessage());
-            throw new RuntimeException(e);
-        }
-        return newUser.getUserId();
-    }
-
-    @NotNull
-    @Override
-    public Optional<User> find(@NotNull UserId userId) {
-        LOGGER.info("Reading user data of #" + userId.get());
-
-        try {
-            var findFile = this.fsUserStorage.reader(this.fileOf(userId));
-            if (findFile.isEmpty()) {
-                return Optional.empty();
-            }
-
-            try (var reader = findFile.get()) {
-                return userFromStrings(reader.lines().toList());
-            }
-
-        } catch (IOException e) {
-            LOGGER.severe("IOException while reading user. This is not normal. " + e.getMessage());
-            return Optional.empty();
-        }
-
-    }
-
-    @Override
-    public boolean update(@NotNull User user) {
-        if (this.find(user.getUserId()).isEmpty()) {
-            return false;
-        }
-        try {
-            this.writeUSer(user);
-            return true;
-        } catch (Exception e) {
-            LOGGER.severe("IOException while updating user. This is not normal. " + e.getMessage());
-            return false;
-        }
-    }
-
-
     public static Collection<String> userToStrings(@NotNull User user) {
         return List.of(
                 toLine(SUB_K, user.sub()),
@@ -164,6 +94,74 @@ public record FSUsers(FileStorage fsUserStorage, PasswordEncoder passwordEncoder
             return map;
         } catch (RuntimeException e) {
             throw new IllegalArgumentException("Invalid consent string : '" + val + "'", e);
+        }
+    }
+
+    @Override
+    public UserId create(@NotNull String login, @Nullable String clearPwd, @Nullable String totpKey) {
+        LOGGER.info("Checking if a user with this id is stored before creation");
+        if (this.find(UserId.of(login)).isPresent()) {
+            throw new RuntimeException(LOGIN_ALREADY_EXISTS);
+        }
+        if (Utils.isBlank(login)) {
+            throw new IllegalArgumentException("Login is required.");
+        }
+
+        User newUser = new User(
+                login,
+                clearPwd != null ? this.passwordEncoder().encode(clearPwd) : null,
+                totpKey);
+
+        LOGGER.info("Writing credentials of new user '" + login + "' on disk");
+        return writeUSer(newUser);
+    }
+
+    private UserId writeUSer(User newUser) {
+        try (var writer = this.fsUserStorage.writer(this.fileOf(newUser.getId()))) {
+            for (var dataLine : userToStrings(newUser)) {
+                writer.write(dataLine);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            LOGGER.severe("IOException while writing user. This is not normal. " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+        return newUser.getId();
+    }
+
+    @NotNull
+    @Override
+    public Optional<User> find(@NotNull UserId userId) {
+        LOGGER.info("Reading user data of #" + userId.get());
+
+        try {
+            var findFile = this.fsUserStorage.reader(this.fileOf(userId));
+            if (findFile.isEmpty()) {
+                return Optional.empty();
+            }
+
+            try (var reader = findFile.get()) {
+                return userFromStrings(reader.lines().toList());
+            }
+
+        } catch (IOException e) {
+            LOGGER.severe("IOException while reading user. This is not normal. " + e.getMessage());
+            return Optional.empty();
+        }
+
+    }
+
+    @Override
+    public boolean update(@NotNull User user) {
+        if (this.find(user.getId()).isEmpty()) {
+            return false;
+        }
+        try {
+            this.writeUSer(user);
+            return true;
+        } catch (Exception e) {
+            LOGGER.severe("IOException while updating user. This is not normal. " + e.getMessage());
+            return false;
         }
     }
 

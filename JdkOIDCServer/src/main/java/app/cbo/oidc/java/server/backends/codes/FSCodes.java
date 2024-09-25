@@ -10,14 +10,16 @@ import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
 import app.cbo.oidc.java.server.scan.Injectable;
-import app.cbo.oidc.java.server.utils.Utils;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static app.cbo.oidc.java.server.utils.Utils.isBlank;
 
 
 /**
@@ -39,19 +41,28 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
      * @param code        The code being received by the server for validation.
      * @param clientId    The client ID that sent the code back.
      * @param redirectUri The redirect URI sent with the validation.
-     * @return            The data stored server-side for this code at generation (userId, sessionId, scopes requested and nonce) ; EMPTY if the code is invalid, or not recognized by the server.
+     * @return The data stored server-side for this code at generation (userId, sessionId, scopes requested and nonce) ; EMPTY if the code is invalid, or not recognized by the server.
      */
     @NotNull
     @Override
     public Optional<CodeData> consume(@NotNull Code code, @NotNull ClientId clientId, @NotNull String redirectUri) {
 
+        if (isBlank(code)) {
+            LOGGER.log(Level.FINE, "Code is empty");
+            return Optional.empty();
+        }
+        if (isBlank(clientId)) {
+            LOGGER.log(Level.FINE, "ClientId is empty");
+            return Optional.empty();
+        }
+
         var file = FileSpecifications.in("codes", clientId.get())
-                .fileName(code.getCode());
+                .fileName(code.code());
         Map<String, String> contents;
         try {
             contents = this.userDataFileStorage().readMap(file).orElseThrow(() -> new IOException("File not found"));
         } catch (IOException e) {
-            LOGGER.info("File not found for code "+code.getCode());
+            LOGGER.info("File not found for code " + code.code());
             return Optional.empty();
         }
 
@@ -63,7 +74,8 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
 
         var codeData = new CodeData(
                 UserId.of(contents.get("userId")),
-                SessionId.of(contents.get("sessionId")),
+                new SessionId(contents.get("sessionId")),
+                contents.getOrDefault("resource", ""),
                 List.of(contents.get("scopes").split(";")),
                 contents.get("nonce")
         );
@@ -88,7 +100,7 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
      * @param redirectUri The redirect URI to be associated with the code.
      * @param scopes      The scopes requested by the client.
      * @param nonce       A nonce that can be used to associate a client session with an ID token and to mitigate replay attacks.
-     * @return            The newly created code.
+     * @return The newly created code.
      * @throws NullPointerException if userId, clientId, or redirectUri is null or blank.
      */
     @NotNull
@@ -97,24 +109,29 @@ public record FSCodes(FileStorage userDataFileStorage) implements Codes {
                           @NotNull ClientId clientId,
                           @NotNull SessionId sessionId,
                           @NotNull String redirectUri,
+                          @Nullable String resource,
                           @NotNull List<String> scopes,
                           @Nullable String nonce) {
-        if (userId.getUserId() == null || clientId.getClientId() == null || Utils.isBlank(redirectUri)) {
+        if (isBlank(userId)
+                || isBlank(sessionId)
+                || isBlank(clientId)
+                || isBlank(redirectUri)) {
             throw new NullPointerException("Input cannot be null");
         }
 
         Code code = Code.of(UUID.randomUUID().toString());
 
         var file = FileSpecifications.in("codes", clientId.get())
-                .fileName(code.getCode());
+                .fileName(code.code());
 
         try {
             this.userDataFileStorage().writeMap(file,
                     Map.of(
-                            "userId", userId.getUserId(),
+                            "userId", userId.id(),
                             "redirectUri", redirectUri,
-                            "sessionId", sessionId.getSessionId(),
+                            "sessionId", sessionId.id(),
                             "nonce", nonce == null ? "" : nonce,
+                            "resource", resource == null ? "" : resource,
                             "scopes", String.join(";", scopes)
                     ));
         } catch (IOException e) {

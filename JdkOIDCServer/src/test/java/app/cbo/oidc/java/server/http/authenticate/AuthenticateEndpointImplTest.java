@@ -10,11 +10,7 @@ import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.authorize.AuthorizeParams;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,13 +18,31 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AuthenticateEndpointImplTest {
 
+    private static AuthenticateEndpointImpl createAuthEndpoint(AtomicReference<User> loggedIn, EnumSet<AuthenticationMode> modes) {
+        var memUSers = new MemUsers(p -> p);
+        AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
+                key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
+                //user finder
+                memUSers,
+                //user creator
+                memUSers,
+                (user, authenticationModes) -> {
+                    loggedIn.set(user);
+                    modes.addAll(authenticationModes);
+                    return SessionId.of("sessionId");
+                },
+                (provided, storedEncoded) -> true
+        );
+        return tested;
+    }
+
     @Test
     void no_session() throws AuthErrorInteraction {
         AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
                 key -> Optional.empty(),
                 userId -> Optional.empty(),
                 (x, y, z) -> UserId.of(x),
-                (user, authenticationModes) -> new SessionId.Simple("sessionId"),
+                (user, authenticationModes) -> SessionId.of("sessionId"),
                 (provided, storedEncoded) -> true
         );
 
@@ -49,30 +63,12 @@ class AuthenticateEndpointImplTest {
         tested.treatRequest(Map.of("login", List.of("bob")));
 
         assertThat(loggedIn)
-                .hasValueMatching(u -> u.getUserId().equals(UserId.of("bob")));
+                .hasValueMatching(u -> u.getId().equals(UserId.of("bob")));
         assertThat(modes)
                 .isNotEmpty()
                 .containsExactly(AuthenticationMode.DECLARATIVE);
 
 
-    }
-
-    private static AuthenticateEndpointImpl createAuthEndpoint(AtomicReference<User> loggedIn, EnumSet<AuthenticationMode> modes) {
-        var memUSers = new MemUsers(p -> p);
-        AuthenticateEndpointImpl tested = new AuthenticateEndpointImpl(
-                key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
-                //user finder
-                memUSers,
-                //user creator
-                memUSers,
-                (user, authenticationModes) -> {
-                    loggedIn.set(user);
-                    modes.addAll(authenticationModes);
-                    return new SessionId.Simple("sessionId");
-                },
-                (provided, storedEncoded) -> true
-        );
-        return tested;
     }
 
     @Test
@@ -87,7 +83,7 @@ class AuthenticateEndpointImplTest {
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
-                    return new SessionId.Simple("sessionId");
+                    return SessionId.of("sessionId");
                 },
                 (provided, storedEncoded) -> true
         );
@@ -97,7 +93,7 @@ class AuthenticateEndpointImplTest {
                 .isInstanceOf(AuthenticationSuccessfulInteraction.class);
 
         assertThat(loggedIn)
-                .hasValueMatching(u -> u.getUserId().equals(UserId.of("bob")));
+                .hasValueMatching(u -> u.getId().equals(UserId.of("bob")));
         assertThat(modes)
                 .isNotEmpty()
                 .containsExactly(AuthenticationMode.DECLARATIVE, AuthenticationMode.USER_FOUND);
@@ -116,7 +112,7 @@ class AuthenticateEndpointImplTest {
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
-                    return new SessionId.Simple("sessionId");
+                    return SessionId.of("sessionId");
                 },
                 (provided, storedEncoded) -> true
         );
@@ -128,7 +124,7 @@ class AuthenticateEndpointImplTest {
                 .isInstanceOf(AuthenticationSuccessfulInteraction.class);
 
         assertThat(loggedIn)
-                .hasValueMatching(u -> u.getUserId().equals(UserId.of("bob")));
+                .hasValueMatching(u -> u.getId().equals(UserId.of("bob")));
         assertThat(modes)
                 .isNotEmpty()
                 .containsExactly(AuthenticationMode.DECLARATIVE,
@@ -149,7 +145,7 @@ class AuthenticateEndpointImplTest {
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
-                    return new SessionId.Simple("sessionId");
+                    return SessionId.of("sessionId");
                 },
                 (provided, storedEncoded) -> false //FALSE !!!
         );
@@ -175,7 +171,7 @@ class AuthenticateEndpointImplTest {
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
-                    return new SessionId.Simple("sessionId");
+                    return SessionId.of("sessionId");
                 },
                 (provided, storedEncoded) -> true
         );
@@ -202,7 +198,7 @@ class AuthenticateEndpointImplTest {
                 (user, authenticationModes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
-                    return new SessionId.Simple("sessionId");
+                    return SessionId.of("sessionId");
                 },
                 (provided, storedEncoded) -> true
         );
@@ -216,7 +212,7 @@ class AuthenticateEndpointImplTest {
                 .isInstanceOf(AuthenticationSuccessfulInteraction.class);
 
         assertThat(loggedIn)
-                .hasValueMatching(u -> u.getUserId().equals(UserId.of("bob")));
+                .hasValueMatching(u -> u.getId().equals(UserId.of("bob")));
         assertThat(modes)
                 .isNotEmpty()
                 .containsExactly(AuthenticationMode.DECLARATIVE,

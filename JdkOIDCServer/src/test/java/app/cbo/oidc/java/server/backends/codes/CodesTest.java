@@ -16,6 +16,7 @@ public class CodesTest {
 
     public static final String REDIRECT_URI = "http://www.example.com";
     public static final String THE_CLIENT_ID = "the_client_id";
+    public static final String RESOURCE = "anApi";
     public static final String THE_SESSION_ID = "the_client_id";
     public static final String BOB = "bob";
     public static final List<String> SCOPES = List.of("openid", "profile", "email");
@@ -25,6 +26,7 @@ public class CodesTest {
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
                 REDIRECT_URI,
+                RESOURCE,
                 SCOPES,
                 UUID.randomUUID().toString());
 
@@ -33,7 +35,7 @@ public class CodesTest {
         assertThat(userIdFoundBack)
                 .isPresent()
                 .get()
-                .extracting(codeData -> codeData.userId().getUserId())
+                .extracting(codeData -> codeData.userId().id())
                 .isEqualTo(BOB);
     }
 
@@ -42,7 +44,7 @@ public class CodesTest {
         var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
-                REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
+                REDIRECT_URI, RESOURCE, SCOPES, UUID.randomUUID().toString());
 
         var userIdFoundBack = codes.consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(userIdFoundBack)
@@ -58,7 +60,7 @@ public class CodesTest {
         var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
-                REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
+                REDIRECT_URI, RESOURCE, SCOPES, UUID.randomUUID().toString());
 
         var userIdFoundBack = codes.consume(Code.of("WRONG"), ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(userIdFoundBack)
@@ -70,7 +72,7 @@ public class CodesTest {
         var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
-                REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
+                REDIRECT_URI, RESOURCE, SCOPES, UUID.randomUUID().toString());
 
         var userIdFoundBack = codes.consume(code, ClientId.of("ANOTHER_client_id"), REDIRECT_URI);
         assertThat(userIdFoundBack)
@@ -80,7 +82,7 @@ public class CodesTest {
     protected void wrong_redirecturi(Codes codes) {
         var code = codes.createFor(UserId.of(BOB),
                 ClientId.of(THE_CLIENT_ID),
-                SessionId.of(THE_SESSION_ID), REDIRECT_URI, SCOPES, UUID.randomUUID().toString());
+                SessionId.of(THE_SESSION_ID), REDIRECT_URI, RESOURCE, SCOPES, UUID.randomUUID().toString());
 
         var userIdFoundBack = codes.consume(code, ClientId.of(THE_CLIENT_ID), "http://zombiecool.su");
         assertThat(userIdFoundBack)
@@ -89,13 +91,13 @@ public class CodesTest {
 
 
     protected void nullability(Codes codes) {
-        assertThatThrownBy(() -> codes.createFor(null, null, null, null, null, null))
+        assertThatThrownBy(() -> codes.createFor(null, null, null, null, null, null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> codes.createFor(UserId.of(BOB), null, null, null, null, null))
+        assertThatThrownBy(() -> codes.createFor(UserId.of(BOB), null, null, null, null, null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> codes.createFor(null, ClientId.of(THE_CLIENT_ID), null, null, null, null))
+        assertThatThrownBy(() -> codes.createFor(null, ClientId.of(THE_CLIENT_ID), null, null, null, null, null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> codes.createFor(null, null, null, REDIRECT_URI, null, null))
+        assertThatThrownBy(() -> codes.createFor(null, null, null, REDIRECT_URI, null, null, null))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -104,17 +106,28 @@ public class CodesTest {
                 ClientId.of(THE_CLIENT_ID),
                 SessionId.of(THE_SESSION_ID),
                 REDIRECT_URI,
+                RESOURCE,
                 SCOPES, UUID.randomUUID().toString());
 
-        assertThatThrownBy(() -> codes.consume(null, null, null))
-                .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> codes.consume(code, null, REDIRECT_URI))
-                .isInstanceOf(NullPointerException.class);
+        assertThat(codes.consume(null, null, null))
+                .isEmpty();
+        assertThat(codes.consume(code, null, REDIRECT_URI))
+                .isEmpty();
 
-        assertThatThrownBy(() -> codes.consume(null, ClientId.of(THE_CLIENT_ID), REDIRECT_URI))
-                .isInstanceOf(NullPointerException.class);
+        assertThat(codes.consume(null, ClientId.of(THE_CLIENT_ID), REDIRECT_URI))
+                .isEmpty();
         assertThat(codes.consume(code, ClientId.of(THE_CLIENT_ID), null))
                 .isEmpty();
+
+        assertThat(codes.consume(Code.of(null), ClientId.of(THE_CLIENT_ID), null))
+                .isEmpty();
+        assertThat(codes.consume(Code.of(null), ClientId.of(THE_CLIENT_ID), REDIRECT_URI))
+                .isEmpty();
+        assertThat(codes.consume(Code.of(null), ClientId.of(null), REDIRECT_URI))
+                .isEmpty();
+        assertThat(codes.consume(Code.of(null), null, REDIRECT_URI))
+                .isEmpty();
+
 
         var userIdFoundBack = codes.consume(code, ClientId.of(THE_CLIENT_ID), REDIRECT_URI);
         assertThat(userIdFoundBack)

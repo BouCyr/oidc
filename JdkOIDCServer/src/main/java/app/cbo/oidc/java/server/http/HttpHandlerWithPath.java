@@ -7,5 +7,4 @@ public interface HttpHandlerWithPath extends HttpHandler {
     String path();
 
 
-
 }

@@ -33,18 +33,18 @@ class ParamsHelperTest {
     }
 
     @AfterAll
-    static void stopServer(){
-        if(server != null) {
+    static void stopServer() {
+        if (server != null) {
             System.out.println("--Stopping http server--");
             server.stop(0);
         }
     }
 
     static URI uri(String path) throws URISyntaxException {
-        if(!path.startsWith("/"))
-            path = "/"+path;
+        if (!path.startsWith("/"))
+            path = "/" + path;
 
-        return new URI( localhost() + path);
+        return new URI(localhost() + path);
     }
 
     private static String localhost() {
@@ -52,13 +52,11 @@ class ParamsHelperTest {
     }
 
 
-
-
     @Test
     public void test() throws Exception {
 
 
-        server.createContext("/test", (hx) ->{
+        server.createContext("/test", (hx) -> {
             try {
                 Map<String, Collection<String>> params;
                 try {
@@ -91,7 +89,7 @@ class ParamsHelperTest {
                 hx.sendResponseHeaders(200, 0);
                 hx.close();
                 System.out.println("Sending response");
-            }catch (AssertionError a){
+            } catch (AssertionError a) {
                 hx.sendResponseHeaders(500, 0);
                 hx.getResponseBody().write(a.getMessage().getBytes(StandardCharsets.UTF_8));
                 hx.close();
@@ -99,65 +97,63 @@ class ParamsHelperTest {
             }
         });
 
-        var c = HttpClient.newHttpClient();
+        try (var c = HttpClient.newHttpClient()) {
 
-        {//GET
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri("/test?singleParam=single&double=one%20two"))
-                    .GET().build();
-            System.out.println("Sending request");
-            var h = c.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println("Checking response");
+            {//GET
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(uri("/test?singleParam=single&double=one%20two"))
+                        .GET().build();
+                System.out.println("Sending request");
+                var h = c.send(request, HttpResponse.BodyHandlers.ofString());
+                System.out.println("Checking response");
 
-            if (h.statusCode() == 500) {
-                Assertions.fail(h.body());
+                if (h.statusCode() == 500) {
+                    Assertions.fail(h.body());
+                }
+                Assertions.assertThat(h.statusCode()).isEqualTo(200);
             }
-            Assertions.assertThat(h.statusCode()).isEqualTo(200);
-        }
 
-        {//POST
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri("/test"))
-                    .header("Content-Type", MimeType.FORM.mimeType())
-                    .POST(HttpRequest.BodyPublishers.ofString("singleParam=single&double=one two")).build();
-            System.out.println("Sending request");
-            var h = c.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println("Checking response");
+            {//POST
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(uri("/test"))
+                        .header("Content-Type", MimeType.FORM.mimeType())
+                        .POST(HttpRequest.BodyPublishers.ofString("singleParam=single&double=one two")).build();
+                System.out.println("Sending request");
+                var h = c.send(request, HttpResponse.BodyHandlers.ofString());
+                System.out.println("Checking response");
 
-            if (h.statusCode() == 500) {
-                Assertions.fail(h.body());
+                if (h.statusCode() == 500) {
+                    Assertions.fail(h.body());
+                }
+                Assertions.assertThat(h.statusCode()).isEqualTo(200);
             }
-            Assertions.assertThat(h.statusCode()).isEqualTo(200);
+
+            {//WRONG Content-Type
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(uri("/test"))
+                        .header("Content-Type", MimeType.TEXT_PLAIN.mimeType())
+                        .POST(HttpRequest.BodyPublishers.ofString("singleParam=single&double=one two")).build();
+                System.out.println("Sending request");
+                var h = c.send(request, HttpResponse.BodyHandlers.ofString());
+                System.out.println("Checking response");
+
+                Assertions.assertThat(h.statusCode()).isEqualTo(500);
+            }
+            {//WRONG VERB
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(uri("/test"))
+                        .header("Content-Type", MimeType.TEXT_PLAIN.mimeType())
+                        .DELETE().build();
+                System.out.println("Sending request");
+                var h = c.send(request, HttpResponse.BodyHandlers.ofString());
+                System.out.println("Checking response");
+
+                Assertions.assertThat(h.statusCode()).isEqualTo(500);
+            }
+
+
         }
-
-        {//WRONG Content-Type
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri("/test"))
-                    .header("Content-Type", MimeType.TEXT_PLAIN.mimeType())
-                    .POST(HttpRequest.BodyPublishers.ofString("singleParam=single&double=one two")).build();
-            System.out.println("Sending request");
-            var h = c.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println("Checking response");
-
-            Assertions.assertThat(h.statusCode()).isEqualTo(500);
-        }
-        {//WRONG VERB
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri("/test"))
-                    .header("Content-Type", MimeType.TEXT_PLAIN.mimeType())
-                    .DELETE().build();
-            System.out.println("Sending request");
-            var h = c.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println("Checking response");
-
-            Assertions.assertThat(h.statusCode()).isEqualTo(500);
-        }
-
-
     }
-
-
-
 
 
 }

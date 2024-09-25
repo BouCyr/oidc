@@ -18,7 +18,7 @@ class StaticResourceHandlerTest {
     @Test
     void path() {
         assertThat(new StaticResourceHandler().path())
-                .isEqualTo(StaticResourceHandler.STATIC);
+                .isEqualTo(StaticResourceHandler.STATIC_CONTENT);
 
         assertThatThrownBy(Data::new)
                 .isInstanceOf(IllegalAccessException.class);

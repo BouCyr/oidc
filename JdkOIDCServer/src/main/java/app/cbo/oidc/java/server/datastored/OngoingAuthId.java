@@ -2,26 +2,20 @@ package app.cbo.oidc.java.server.datastored;
 
 import java.util.function.Supplier;
 
-@FunctionalInterface
-public interface OngoingAuthId extends Supplier<String> {
 
-    default String getOngoingAuthId(){
-        return this.get();
+public record OngoingAuthId(String id) implements Supplier<String> {
+
+    public static OngoingAuthId of(String id) {
+        return new OngoingAuthId(id);
     }
 
-    /**
-     * Returns a basic impl of OngoingAuthId
-     */
-    static OngoingAuthId of(String value){
-        return new Simple(value);
+    @Override
+    public String get() {
+        return id();
     }
-    /**
-     * Basic impl
-     */
-    record Simple(String value) implements OngoingAuthId{
-        @Override
-        public String get() {
-            return value();
-        }
+
+    @Override
+    public String toString() {
+        return id();
     }
 }

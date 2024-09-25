@@ -2,26 +2,18 @@ package app.cbo.oidc.java.server.datastored.user;
 
 import java.util.function.Supplier;
 
-@FunctionalInterface
-public interface UserId extends Supplier<String> {
-
-    default String getUserId(){
-        return this.get();
+public record UserId(String id) implements Supplier<String> {
+    public static UserId of(String id) {
+        return new UserId(id);
     }
 
-    /**
-     * Returns a basic impl of UserId
-     */
-    static UserId of(String value){
-        return new Simple(value);
+    @Override
+    public String get() {
+        return id();
     }
-    /**
-     * Basic impl
-     */
-    record Simple(String value) implements UserId{
-        @Override
-        public String get() {
-            return value();
-        }
+
+    @Override
+    public String toString() {
+        return id();
     }
 }

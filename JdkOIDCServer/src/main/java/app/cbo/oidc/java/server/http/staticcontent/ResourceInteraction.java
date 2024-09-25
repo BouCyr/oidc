@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
+import static app.cbo.oidc.java.server.http.staticcontent.StaticResourceHandler.STATIC_CONTENT;
+
 record ResourceInteraction(String path) implements Interaction {
 
     private static final Logger LOGGER = Logger.getLogger(ResourceInteraction.class.getCanonicalName());
@@ -18,7 +20,7 @@ record ResourceInteraction(String path) implements Interaction {
     @Override
     public void handle(@NotNull HttpExchange exchange) throws IOException {
 
-        var fileName = path.substring("/sc/".length());
+        var fileName = path.substring(STATIC_CONTENT.length());
         LOGGER.fine("Someone reached for static content : " + fileName);
 
 

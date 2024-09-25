@@ -1,14 +1,6 @@
 package app.cbo.oidc.java.server.scan;
 
-import app.cbo.oidc.java.server.scan.exceptions.DownStreamException;
-import app.cbo.oidc.java.server.scan.exceptions.InstanciationFails;
-import app.cbo.oidc.java.server.scan.exceptions.InvalidDepTree;
-import app.cbo.oidc.java.server.scan.exceptions.MissingConfiguration;
-import app.cbo.oidc.java.server.scan.exceptions.NoConstructorFound;
-import app.cbo.oidc.java.server.scan.exceptions.NoImplementationFound;
-import app.cbo.oidc.java.server.scan.exceptions.NoResult;
-import app.cbo.oidc.java.server.scan.exceptions.NoSingleResult;
-import app.cbo.oidc.java.server.scan.exceptions.TooManyResult;
+import app.cbo.oidc.java.server.scan.exceptions.*;
 import app.cbo.oidc.java.server.scan.props.Properties;
 import app.cbo.oidc.java.server.utils.Pair;
 
@@ -21,18 +13,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -57,7 +38,8 @@ public class Scanner {
 
     /**
      * Will prepare dependencies, looking implementations in the provided package and its subpackage
-     * @param profile any class annotated with @Injectable will be considered only if it has the same value as profile
+     *
+     * @param profile     any class annotated with @Injectable will be considered only if it has the same value as profile
      * @param basePackage where the implementations will be searched
      * @throws IOException classLoader issues
      */
@@ -67,8 +49,9 @@ public class Scanner {
 
     /**
      * Will prepare dependencies, looking implementations in the provided package and its subpackage
-     * @param profile any class annotated with @Injectable will be considered only if it has the same value as profile
-     * @param basePackage where the implementations will be searched
+     *
+     * @param profile        any class annotated with @Injectable will be considered only if it has the same value as profile
+     * @param basePackage    where the implementations will be searched
      * @param packageScanner a function that will scan the package and return the classes found
      */
     public Scanner(String profile, String basePackage, Function<String, Set<Class<?>>> packageScanner) {
@@ -79,6 +62,7 @@ public class Scanner {
 
     /**
      * Will prepare dependencies, looking implementations in the provided package and its subpackage. Porifle will be "default"
+     *
      * @param basePackage where the implementations will be searched
      * @throws IOException classLoader issues
      */
@@ -87,22 +71,12 @@ public class Scanner {
     }
 
     /**
-     * Allows to provide properties to the scanner, allowing setting of @Prop arguments
-     * @param properties list of properties (key/value)
-     * @return the scanner
-     */
-    public Scanner withProperties(List<Pair<String, String>> properties) {
-        properties.forEach(pair -> this.properties.add(pair.left(), pair.right()));
-        return this;
-    }
-
-
-    /**
      * Homegrown package scanner
+     *
      * @param packageName where the implementations will be searched
      * @return Set of classes found in the package and its subpackages
      */
-    public static Set<Class<?>> scanPackage(String packageName)  {
+    public static Set<Class<?>> scanPackage(String packageName) {
 
         LOGGER.info("Scanning " + packageName);
 
@@ -141,12 +115,23 @@ public class Scanner {
         }
     }
 
+    /**
+     * Allows to provide properties to the scanner, allowing setting of @Prop arguments
+     *
+     * @param properties list of properties (key/value)
+     * @return the scanner
+     */
+    public Scanner withProperties(List<Pair<String, String>> properties) {
+        properties.forEach(pair -> this.properties.add(pair.left(), pair.right()));
+        return this;
+    }
 
     /**
      * Return the implementation for a class
+     *
      * @param dependency class to be instanciated
+     * @param <T>        type of the dependency
      * @return implementation
-     * @param <T> type of the dependency
      * @throws DownStreamException when a dep of the dep cannot be built
      */
     public <T> T get(Class<T> dependency) throws DownStreamException {
@@ -224,7 +209,8 @@ public class Scanner {
 
         try {
             built = constructor.newInstance(args.toArray());
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
+                 InvocationTargetException e) {
             throw new InstanciationFails(dependency, e);
         }
         this.buildProgress.put(ClassId.of(implementation), BuildStatus.BUILT);
@@ -337,9 +323,10 @@ public class Scanner {
 
     /**
      * Locate the correct constr. to be used to instanciate the implementation
+     *
      * @param implementation class to instanciate
+     * @param <T>            type of the implementation
      * @return instance
-     * @param <T> type of the implementation
      * @throws NoConstructorFound when no constructor is found
      */
     <T> Constructor<T> findConstructor(Class<T> implementation) throws NoConstructorFound {

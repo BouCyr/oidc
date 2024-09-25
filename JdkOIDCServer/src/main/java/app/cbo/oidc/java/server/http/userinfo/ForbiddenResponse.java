@@ -47,7 +47,7 @@ public class ForbiddenResponse extends Exception implements Interaction {
     public static final String NO_AUTH = "";
 
     private final InternalReason internalReason;
-
+    private final HttpCode code;
 
     public ForbiddenResponse(HttpCode code, InternalReason internalReason, String reason) {
         super(reason);
@@ -55,27 +55,8 @@ public class ForbiddenResponse extends Exception implements Interaction {
         this.internalReason = internalReason;
     }
 
-    private final HttpCode code;
-
     public InternalReason getInternalReason() {
         return internalReason;
-    }
-
-    /**
-     * For logging & check reason
-     * <p>(allow us to check in Unit Tests that the orbidden was created for the right reason)</p>
-     */
-    public enum InternalReason {
-        TECHNICAL,
-        MISSING_PARAMS,
-        INVALID_CREDENTIALS,
-        UNREADABLE_TOKEN,
-        NO_TOKEN,
-        WRONG_TYPE,
-        EXPIRED_TOKEN,
-        WRONG_ISSUER,
-        INVALID_SIGNATURE,
-        WRONG_CODE
     }
 
     @Override
@@ -112,5 +93,22 @@ public class ForbiddenResponse extends Exception implements Interaction {
         try (var os = exchange.getResponseBody()) {
             os.flush();
         }
+    }
+
+    /**
+     * For logging & check reason
+     * <p>(allow us to check in Unit Tests that the orbidden was created for the right reason)</p>
+     */
+    public enum InternalReason {
+        TECHNICAL,
+        MISSING_PARAMS,
+        INVALID_CREDENTIALS,
+        UNREADABLE_TOKEN,
+        NO_TOKEN,
+        WRONG_TYPE,
+        EXPIRED_TOKEN,
+        WRONG_ISSUER,
+        INVALID_SIGNATURE,
+        WRONG_CODE
     }
 }

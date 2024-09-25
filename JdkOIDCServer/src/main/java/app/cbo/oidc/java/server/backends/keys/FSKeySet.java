@@ -11,21 +11,13 @@ import app.cbo.oidc.java.server.scan.Injectable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.security.KeyFactory;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.EncodedKeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -51,6 +43,12 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
         }
     }
 
+    private static KeyId findCurrent(List<KeyPair> stored) {
+        return stored.stream()
+                .filter(KeyPair::current)
+                .map(KeyPair::keyId)
+                .findAny().orElseThrow(() -> new RuntimeException("No current key found"));
+    }
 
     /**
      * @inheritDoc
@@ -61,7 +59,7 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
 
         return new JWKSet(
                 this.readKeySet().stream()
-                        .map(kp -> JWK.rsaPublicKey(kp.keyId().getKeyId(), (RSAPublicKey) kp.publicKey()))
+                        .map(kp -> JWK.rsaPublicKey(kp.keyId().id(), (RSAPublicKey) kp.publicKey()))
                         .toList()
         );
     }
@@ -104,7 +102,7 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
     @Override
     public Optional<PrivateKey> privateKey(@NotNull KeyId keyId) {
         return this.readKeySet().stream()
-                .filter(kp -> keyId.getKeyId().equals(kp.keyId().getKeyId()))
+                .filter(kp -> keyId.id().equals(kp.keyId().id()))
                 .map(KeyPair::privateKey)
                 .findAny();
     }
@@ -116,16 +114,9 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
     @Override
     public Optional<PublicKey> publicKey(@NotNull KeyId keyId) {
         return this.readKeySet().stream()
-                .filter(kp -> keyId.getKeyId().equals(kp.keyId().getKeyId()))
+                .filter(kp -> keyId.id().equals(kp.keyId().id()))
                 .map(KeyPair::publicKey)
                 .findAny();
-    }
-
-    private static KeyId findCurrent(List<KeyPair> stored) {
-        return stored.stream()
-                .filter(KeyPair::current)
-                .map(KeyPair::keyId)
-                .findAny().orElseThrow(() -> new RuntimeException("No current key found"));
     }
 
     private void init() {
@@ -149,7 +140,7 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
         kpg.initialize(2048);
         var kp = kpg.generateKeyPair();
         var dur = Duration.ofNanos(System.nanoTime() - start).toMillis();
-        LOGGER.info("Generated new keypair in "+dur+" ms;");
+        LOGGER.info("Generated new keypair in " + dur + " ms;");
         //randomize the kid, so we do not reuse a kid (if we did, a client could store the 'old' key value in some cache)
         return new KeyPair(true, KeyId.of(UUID.randomUUID().toString()), kp.getPrivate(), kp.getPublic());
     }
@@ -168,7 +159,7 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
 
     @NotNull
     private String toLine(@NotNull KeyPair kp) {
-        return kp.keyId().getKeyId()
+        return kp.keyId().id()
                 + ";"
                 + (kp.current() ? "1" : "0")
                 + ";"
@@ -221,11 +212,11 @@ public record FSKeySet(@NotNull FileStorage userDataFileStorage) implements KeyS
     }
 
 
-
     /**
      * This record represents a key pair used for cryptographic operations.
-     * @param current  true if this key is the current one, false otherwise.
-     * @param keyId   the KeyId of the key.
+     *
+     * @param current    true if this key is the current one, false otherwise.
+     * @param keyId      the KeyId of the key.
      * @param privateKey
      * @param publicKey
      */

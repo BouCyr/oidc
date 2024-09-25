@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.http.consent;
 
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsFinder;
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.authorize.AuthorizeParams;
@@ -15,7 +16,7 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.singleParam;
 
 public record ConsentParams(Set<String> scopesRequested,
                             boolean consentGiven,
-                            String clientId,
+                            ClientId clientId,
                             AuthorizeParams ongoing,
                             boolean backFromForm) {
 
@@ -32,8 +33,8 @@ public record ConsentParams(Set<String> scopesRequested,
                         .map(Set::copyOf)
                         .orElse(Set.of("openid")),
                 singleParam(params.get("OK")).map(Boolean::parseBoolean).orElse(false),
-                singleParam(params.get(CLIENT_ID)).orElse(null),
-                finder.find(OngoingAuthId.of(singleParam(params.get(ONGOING)).orElse(null)))
+                singleParam(params.get(CLIENT_ID)).map(ClientId::of).orElse(null),
+                finder.find(new OngoingAuthId(singleParam(params.get(ONGOING)).orElse(null)))
                         .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "unable to retrieve ongoing authentication")),
                 singleParam(params.get(BACK)).map(Boolean::parseBoolean).orElse(false));
 

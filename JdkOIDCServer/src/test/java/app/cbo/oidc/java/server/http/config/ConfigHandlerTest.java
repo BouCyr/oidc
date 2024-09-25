@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ConfigHandlerTest {
 
 
-
     @Test
     void handle() throws IOException {
         var tested = new ConfigHandler(

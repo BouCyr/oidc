@@ -6,7 +6,9 @@ import app.cbo.oidc.java.server.backends.users.UserCreator;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.TOTP;
 import app.cbo.oidc.java.server.credentials.pwds.PasswordChecker;
+import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.datastored.user.User;
+import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.jsr305.NotNull;
@@ -54,14 +56,14 @@ public class AuthenticateEndpointImpl implements AuthenticateEndpoint {
 
 
         if (Utils.isBlank(params.login())) {
-            LOGGER.info("No login found in params, dispaying the login form");
+            LOGGER.info("No login found in params, displaying the login form");
             return new DisplayLoginFormInteraction(params.ongoing());
         } else {
 
             LOGGER.info("We have a login");
             var authentications = EnumSet.of(DECLARATIVE);
 
-            var userFound = this.userFinder.find(params::login);
+            var userFound = this.userFinder.find(UserId.of(params.login()));
 
             User user;
             if (userFound.isPresent()) {
@@ -103,7 +105,7 @@ public class AuthenticateEndpointImpl implements AuthenticateEndpoint {
             // the existing session
             var sessionId = this.sessionSupplier.createSession(user, authentications);
 
-            var originalAuthorizeParams = this.ongoingAuthsFinder.find(params::ongoing);
+            var originalAuthorizeParams = this.ongoingAuthsFinder.find(new OngoingAuthId(params.ongoing()));
             return new AuthenticationSuccessfulInteraction(sessionId, originalAuthorizeParams.orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to retrieve the original authorization request")));
 
         }

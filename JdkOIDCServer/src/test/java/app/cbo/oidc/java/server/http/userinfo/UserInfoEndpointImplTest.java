@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.http.userinfo;
 
 import app.cbo.oidc.java.server.TestHttpExchange;
+import app.cbo.oidc.java.server.backends.tokens.AccessTokenData;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,8 +21,8 @@ class UserInfoEndpointImplTest {
     void treatRequest() throws IOException {
 
         var tested = new UserInfoEndpointImpl(
-                (userId, requestedScopes) -> Map.of("sub", "user", "family_name", "Smith"),
-                accessToken -> new AccessTokenData(UserId.of("user"), Set.of("openid", "profile"))
+                (userId, aud, requestedScopes) -> Map.of("sub", "user", "family_name", "Smith"),
+                accessToken -> new AccessTokenData(UserId.of("user"), "aud", Set.of("openid", "profile"))
         );
 
         var result = tested.treatRequest("accesstoken");
@@ -51,8 +52,8 @@ class UserInfoEndpointImplTest {
     void treatRequest_no_sub_in_claims() throws IOException {
 
         var tested = new UserInfoEndpointImpl(
-                (userId, requestedScopes) -> Map.of("family_name", "Smith"),
-                accessToken -> new AccessTokenData(UserId.of("user"), Set.of("openid", "profile"))
+                (userId, aud, requestedScopes) -> Map.of("family_name", "Smith"),
+                accessToken -> new AccessTokenData(UserId.of("user"), "aud", Set.of("openid", "profile"))
         );
 
         var result = tested.treatRequest("accesstoken");
@@ -82,7 +83,7 @@ class UserInfoEndpointImplTest {
     void invalid_access_token() throws IOException {
 
         var tested = new UserInfoEndpointImpl(
-                (userId, requestedScopes) -> Map.of("family_name", "Smith"),
+                (userId, aud, requestedScopes) -> Map.of("family_name", "Smith"),
                 accessToken -> {
                     throw new ForbiddenResponse(
                             HttpCode.FORBIDDEN, ForbiddenResponse.InternalReason.UNREADABLE_TOKEN, ForbiddenResponse.INVALID_TOKEN);
@@ -104,12 +105,13 @@ class UserInfoEndpointImplTest {
     void treatRequest_sub_differ() {
 
         var tested = new UserInfoEndpointImpl(
-                (userId, requestedScopes) -> Map.of(
+                (userId, aud, requestedScopes) -> Map.of(
                         "sub", "user",
                         "family_name", "Smith"),
                 accessToken -> new AccessTokenData(
-                        UserId.of("user_different"), //DIFFERENT !!
-                        Set.of("openid", "profile"))
+                        UserId.of("user_different"),//DIFFERENT !!
+                        "aud",
+                        Set.of("openid", "aud", "profile"))
         );
 
         assertThatThrownBy(() -> tested.treatRequest("accesstoken"))

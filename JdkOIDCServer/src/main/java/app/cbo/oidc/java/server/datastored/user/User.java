@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.datastored.user;
 
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
 
@@ -29,31 +30,31 @@ public record User(String sub, String pwd, String totpKey, Map<String, Set<Strin
         }
     }
 
-    public UserId getUserId(){
-        return UserId.of(this.sub());
-    }
-
     public User(@NotNull String sub, @Nullable String pwd, @Nullable String totpKey) {
         this(sub, pwd, totpKey, new HashMap<>());
     }
 
-    public boolean hasConsentedTo(String clientId, String scope){
-        return this.consentedTo().getOrDefault(clientId, new HashSet<>()).contains(scope);
+    public UserId getId() {
+        return UserId.of(this.sub());
     }
 
-    public void consentsTo(String clientId, String scope) {
-        this.consentedTo.computeIfAbsent(clientId, c -> new HashSet<>()).add(scope);
+    public boolean hasConsentedTo(@NotNull ClientId clientId, String scope) {
+        return this.consentedTo().getOrDefault(clientId.id(), new HashSet<>()).contains(scope);
     }
 
-    public boolean hasConsentedToAll(String clientId, List<String> scopes) {
-        return this.consentedTo.containsKey(clientId)
-                && this.consentedTo.get(clientId).containsAll(scopes);
+    public void consentsTo(@NotNull ClientId clientId, String scope) {
+        this.consentedTo.computeIfAbsent(clientId.id(), c -> new HashSet<>()).add(scope);
+    }
+
+    public boolean hasConsentedToAll(@NotNull ClientId clientId, List<String> scopes) {
+        return this.consentedTo.containsKey(clientId.id())
+                && this.consentedTo.get(clientId.id()).containsAll(scopes);
     }
 
 
-    public Set<String> scopesConsentedTo(String clientId) {
+    public Set<String> scopesConsentedTo(@NotNull ClientId clientId) {
 
-        var forThisClient = this.consentedTo().get(clientId);
+        var forThisClient = this.consentedTo().get(clientId.id());
         if (forThisClient == null) {
             return Collections.emptySet();
         } else {

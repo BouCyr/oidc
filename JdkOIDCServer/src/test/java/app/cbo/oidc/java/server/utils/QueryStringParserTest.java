@@ -73,9 +73,9 @@ class QueryStringParserTest {
         assertThat(result.get("one"))
                 .hasSize(1);
         assertThat(result.get("one").iterator().next())
-              .isEqualTo("");
+                .isEqualTo("");
         assertThat(result.get("two").iterator().next())
-      .isEqualTo("fizz");
+                .isEqualTo("fizz");
 
 
     }

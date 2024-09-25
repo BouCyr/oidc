@@ -24,10 +24,8 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 @Injectable
 public class ConsentHandler implements HttpHandlerWithPath {
 
-    private final static Logger LOGGER = Logger.getLogger(ConsentHandler.class.getCanonicalName());
-
     public static final String CONSENT_ENDPOINT = "/consent";
-
+    private final static Logger LOGGER = Logger.getLogger(ConsentHandler.class.getCanonicalName());
     private final OngoingAuthsFinder ongoingAuthsFinder;
     private final ConsentEndpoint consentEndpoint;
     private final SessionFinder sessionFinder;
@@ -85,7 +83,7 @@ public class ConsentHandler implements HttpHandlerWithPath {
         var ongoingId = ParamsHelper.singleParam(raw.get(ConsentParams.ONGOING))
                 .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Cannot retrieve current authorization in request"));
 
-        var ongoingRequest = this.ongoingAuthsFinder.find(OngoingAuthId.of(ongoingId))
+        var ongoingRequest = this.ongoingAuthsFinder.find(new OngoingAuthId(ongoingId))
                 .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Cannot retrieve current authorization in storage"));
 
         var requested = Set.copyOf(ongoingRequest.scopes());

@@ -4,12 +4,7 @@ import app.cbo.oidc.java.server.jwt.JWA;
 import org.assertj.core.api.Assertions;
 
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.SignatureException;
+import java.security.*;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,15 +57,15 @@ class KeySetTest {
 
         var newCurrent = keyset.current();
         assertThat(newCurrent).isNotNull();
-        assertThat(newCurrent.getKeyId()).isNotEqualTo(firstCurrent.getKeyId());
+        assertThat(newCurrent.id()).isNotEqualTo(firstCurrent.id());
 
         var jwks = keyset.asJWKSet();
 
         assertThat(jwks.keys())
                 .hasSize(2);
-        assertThat(jwks.keys().stream().filter(kp -> kp.kid().equals(firstCurrent.getKeyId())))
+        assertThat(jwks.keys().stream().filter(kp -> kp.kid().equals(firstCurrent.id())))
                 .hasSize(1);
-        assertThat(jwks.keys().stream().filter(kp -> kp.kid().equals(newCurrent.getKeyId())))
+        assertThat(jwks.keys().stream().filter(kp -> kp.kid().equals(newCurrent.id())))
                 .hasSize(1);
 
     }

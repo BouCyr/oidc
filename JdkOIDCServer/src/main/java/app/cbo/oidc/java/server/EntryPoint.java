@@ -4,6 +4,7 @@ import app.cbo.oidc.java.server.backends.claims.Claims;
 import app.cbo.oidc.java.server.backends.claims.ClaimsStorer;
 import app.cbo.oidc.java.server.backends.clients.ClientRegistry;
 import app.cbo.oidc.java.server.backends.users.Users;
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.datastored.user.claims.Address;
 import app.cbo.oidc.java.server.datastored.user.claims.Mail;
@@ -26,11 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,18 +51,17 @@ public class EntryPoint {
 
         //Read profile from the command line before starting the scanner
         var profile = props.stream()
-                .filter(pair ->pair.left().equals("profile"))
+                .filter(pair -> pair.left().equals("profile"))
                 .map(Pair::right)
                 .findAny().orElse(Injectable.DEFAULT);
 
 
-        LOGGER.info("Using profile "+profile);
-
+        LOGGER.info("Using profile " + profile);
 
 
         //scan the classpath for the server and its dependencies
         var scanner = new app.cbo.oidc.java.server.scan.Scanner(
-                    profile,
+                profile,
                 "app.cbo.oidc.java.server",
                 packageScanner)
                 //default
@@ -79,7 +75,7 @@ public class EntryPoint {
 
         setupUser("Cyrille", scanner.get(Users.class), scanner.get(Claims.class));
         setupUser("Marion", scanner.get(Users.class), scanner.get(Claims.class));
-        setUpClient("sb","sbSecret", scanner.get(ClientRegistry.class));
+        setUpClient("sb", "sbSecret", scanner.get(ClientRegistry.class));
 
         //get root class (server)
         var server = scanner.get(OIDCServer.class);
@@ -88,14 +84,14 @@ public class EntryPoint {
         LOGGER.info("Started in " + Duration.ofNanos(System.nanoTime() - start).toMillis() + "ms");
     }
 
-    private static Function<String, Set<Class<?>>> getScanner(List<Pair<String, String>> props)  {
+    private static Function<String, Set<Class<?>>> getScanner(List<Pair<String, String>> props) {
 
         var override = props.stream()
                 .filter(pair -> pair.left().equals("scanner"))
                 .map(Pair::right)
                 .findAny();
 
-        if(override.isPresent()) {
+        if (override.isPresent()) {
             String scannerName = override.get();
             Class<?> clazz;
             try {
@@ -121,7 +117,7 @@ public class EntryPoint {
             } else {
                 throw new IllegalArgumentException("Class " + scannerName + " does not implement PackageScannerBuilder");
             }
-        }else{
+        } else {
             return Scanner::scanPackage;
         }
 
@@ -135,6 +131,45 @@ public class EntryPoint {
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new LogFormatter());
         mainLogger.addHandler(handler);
+    }
+
+    private static void setUpClient(String clientId, String secret, ClientRegistry clientRegistry) {
+        clientRegistry.setClient(ClientId.of(clientId), secret);
+    }
+
+    private static void setupUser(String firstName, Users users, ClaimsStorer claimsStorer) {
+        var uid = UserId.of(firstName.toLowerCase(Locale.ROOT));
+
+        if (users.find(uid).isPresent()) {
+            return;
+        }
+
+        LOGGER.info("Creating user");
+        users.create(uid.id(), "sesame", "ALBACORE");
+
+        LOGGER.info("Creating user data");
+        Phone phone = new Phone(uid, "0682738532", false);
+        Mail mail = new Mail(uid, firstName.toLowerCase(Locale.ROOT) + "@example.com", false);
+        Address address = new Address(uid, "17 place de la République, 59000 Lille, NORD, FRANCE", "17 place de la République", "LILLE", "NORD", "59000", "FRANCE");
+        Profile profile = new Profile(
+                uid,
+                firstName + " BOUCHER",
+                firstName,
+                "BOUCHER",
+                "Charles",
+                "cbo",
+                "cbo@cbo.app",
+                "https://profile.cbo.app/me", //URL
+                "https://profile.cbo.app/picture", //URL
+                "https://profile.cbo.app/", //URL
+                "mind your business",
+                "1982-11-29",
+                "Europe/Paris",
+                "fr-FR",
+                LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+        );
+        claimsStorer.store(phone, mail, address, profile);
+        LOGGER.info("All data created & stored");
     }
 
     public static class LogFormatter extends SimpleFormatter {
@@ -163,48 +198,8 @@ public class EntryPoint {
                     DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
             return
-                    "["+dtt+"]["+logRecord.getLevel()+"][thread#"+logRecord.getLongThreadID()+"]["+className+"."+logRecord.getSourceMethodName()+"] : "+logRecord.getMessage()+System.lineSeparator();
+                    "[" + dtt + "][" + logRecord.getLevel() + "][thread#" + logRecord.getLongThreadID() + "][" + className + "." + logRecord.getSourceMethodName() + "] : " + logRecord.getMessage() + System.lineSeparator();
 
         }
-    }
-
-
-    private static void setUpClient(String clientId, String secret, ClientRegistry clientRegistry){
-        clientRegistry.setClient(clientId, secret);
-    }
-
-    private static void setupUser(String firstName, Users users, ClaimsStorer claimsStorer) {
-        var uid = UserId.of(firstName.toLowerCase(Locale.ROOT));
-
-        if (users.find(uid).isPresent()) {
-            return;
-        }
-
-        LOGGER.info("Creating user");
-        users.create(uid.getUserId(), "sesame", "ALBACORE");
-
-        LOGGER.info("Creating user data");
-        Phone phone = new Phone(uid, "0682738532", false);
-        Mail mail = new Mail(uid, firstName.toLowerCase(Locale.ROOT) + "@example.com", false);
-        Address address = new Address(uid, "17 place de la République, 59000 Lille, NORD, FRANCE", "17 place de la République", "LILLE", "NORD", "59000", "FRANCE");
-        Profile profile = new Profile(
-                uid,
-                firstName + " BOUCHER",
-                firstName,
-                "BOUCHER",
-                "Charles",
-                "cbo",
-                "cbo@cbo.app",
-                "https://profile.cbo.app/me", //URL
-                "https://profile.cbo.app/picture", //URL
-                "https://profile.cbo.app/", //URL
-                "mind your business",
-                "1982-11-29",
-                "Europe/Paris",
-                "fr-FR",
-                LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-        );
-        claimsStorer.store(phone, mail, address, profile);
-        LOGGER.info("All data created & stored");
     }
 }

@@ -24,18 +24,8 @@ import app.cbo.oidc.java.server.oidc.tokens.IdToken;
 import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.time.*;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -43,6 +33,7 @@ import java.util.stream.Collectors;
 public class AuthorizeEndpoint {
 
 
+    private final static Logger LOGGER = Logger.getLogger(AuthorizeEndpoint.class.getCanonicalName());
     private final Issuer myself;
     private final OngoingAuthsStorer ongoingAuthsStorer;
     private final UserFinder userFinder;
@@ -66,31 +57,18 @@ public class AuthorizeEndpoint {
         this.claimsResolver = claimsResolver;
     }
 
-
-    private final static Logger LOGGER = Logger.getLogger(AuthorizeEndpoint.class.getCanonicalName());
-
     @NotNull
     public Interaction treatRequest(
             @NotNull Optional<Session> session,
-            @NotNull Map<String, Collection<String>> rawParams) throws AuthErrorInteraction {
+            @NotNull AuthorizeParams params) throws AuthErrorInteraction {
 
-
-        //put params in the dedicated record
-        AuthorizeParams params = new AuthorizeParams(rawParams);
-
-
-        //3.1.2.2.  Authentication Request Validation
-        //The Authorization Server MUST validate all the OAuth 2.0 parameters according to the OAuth 2.0 specification.
-        //check their validity
-        AuthorizeParams.checkParams(params);
-        LOGGER.info("Request params are valid");
         //deduce the requested flow from response types
         OIDCFlow flow = OIDCFlow.fromResponseType(params.responseTypes(), params);
-        LOGGER.info("Selected OIDC flow is "+flow.name());
+        LOGGER.info("Selected OIDC flow is " + flow.name());
 
         //additional checks for specific flows
         AuthorizeParams.checkParamsForFlow(params, flow);
-        LOGGER.info("Request params are valid for flow "+flow.name() );
+        LOGGER.info("Request params are valid for flow " + flow.name());
 
         //3.1.2.3.  Authorization Server Authenticates End-User
         return checkIfAuthenticated(session, flow, params);
@@ -103,11 +81,11 @@ public class AuthorizeEndpoint {
                                              AuthorizeParams params) throws AuthErrorInteraction {
 
         LOGGER.info("Checking if userId already has a (valid) session");
-        if(userSession.isEmpty() && params.prompt().contains(OIDCPromptValues.NONE)){
-            LOGGER.info("User has no session and client required no interaction. Sending back with error "+ AuthErrorInteraction.Code.access_denied);
+        if (userSession.isEmpty() && params.prompt().contains(OIDCPromptValues.NONE)) {
+            LOGGER.info("User has no session and client required no interaction. Sending back with error " + AuthErrorInteraction.Code.access_denied);
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.access_denied, "Requested no interaction with no authenticated userId", params);
         }
-        if(userSession.isEmpty() || params.prompt().contains(OIDCPromptValues.LOGIN)){
+        if (userSession.isEmpty() || params.prompt().contains(OIDCPromptValues.LOGIN)) {
             LOGGER.info("User has no session or client required new authentication. Redirect to login page");
             return new RedirectToLoginInteraction(ongoingAuthsStorer.store(params));
         }
@@ -118,11 +96,11 @@ public class AuthorizeEndpoint {
                 .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to find user linked to session"));
 
 
-        if(params.maxAge().isPresent()){
+        if (params.maxAge().isPresent()) {
             final long maxAge;
-            try{
+            try {
                 maxAge = Long.parseLong(params.maxAge().get());
-            }catch(NumberFormatException e){
+            } catch (NumberFormatException e) {
                 throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_request, "max_age should be parsable as a long");
             }
             var sessionAge = Duration.between(session.authTime(), LocalDateTime.now());
@@ -167,7 +145,7 @@ public class AuthorizeEndpoint {
 
         var notYetConsentedTo = params.scopes()
                 .stream()
-                .filter(scope -> !user.hasConsentedTo(params.clientId().orElse("..."), scope)) //TODO [20/03/2023] handle orElse(...) in User
+                .filter(scope -> !user.hasConsentedTo(params.clientId().orElse(null), scope)) //TODO [20/03/2023] handle orElse(...) in User
                 .collect(Collectors.toSet());
 
         if (notYetConsentedTo.isEmpty()) {
@@ -210,10 +188,11 @@ public class AuthorizeEndpoint {
 
     private AuthorizationFlowSuccessInteraction authorizationFlowSuccess(User user, AuthorizeParams originalParams, Session session) {
         Code authCode = this.codeSupplier.createFor(
-                user.getUserId(),
-                ClientId.of(originalParams.clientId().get()),
-                SessionId.of(session.id()),
+                user.getId(),
+                originalParams.clientId().orElse(null),
+                new SessionId(session.id()),
                 originalParams.redirectUri().get(),
+                originalParams.resource().orElse(null),
                 originalParams.scopes(),
                 originalParams.nonce().orElse(null));
 
@@ -222,18 +201,18 @@ public class AuthorizeEndpoint {
 
     private ImplicitFlowSuccessInteraction implicitFlowSuccess(User user, AuthorizeParams originalParams, Session session) {
         var clock = Clock.systemUTC();
-        //TODO [26/05/2023] extract idToken generation, clock handling and keyset mgt in a dedicated service (done twice here & code endpoint)
+        //TODO [26/05/2023] extract idToken generation, clock handling and keySet mgt in a dedicated service (done twice here & code endpoint)
         var idToken = new IdToken(
                 user.sub(),
                 this.myself.getIssuerId(),
-                List.of(originalParams.clientId().get()),
+                List.of(originalParams.clientId().map(ClientId::id).orElseThrow()),
                 Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
                 Instant.now(clock).getEpochSecond(),
                 session.authTime().toEpochSecond(ZoneOffset.UTC),
                 originalParams.nonce(),
                 new AuthenticationLevel(session.authentications()).name(),
                 session.authentications().stream().map(Enum::name).toList(),
-                originalParams.clientId(),
+                originalParams.clientId().map(ClientId::id),
                 new HashMap<>());
 
         var currentPrivateKeyId = this.keySet.current();
@@ -263,7 +242,9 @@ public class AuthorizeEndpoint {
             // (which is the case for the response_type value id_token), the resulting Claims are returned in the ID Token.
 
             LOGGER.info("Implicit flow without access_token ; claims are added to the id_token");
-            var claims = this.claimsResolver.claimsFor(user.getUserId(), Set.copyOf(originalParams.scopes()));
+            //TODO [24/09/2024] RFC 9068 / if resource is in params, use it as aud ; if not use clientId
+            var aud = originalParams.resource().isPresent() ? originalParams.resource().get() : originalParams.clientId().map(ClientId::id).orElseThrow();
+            var claims = this.claimsResolver.claimsFor(user.getId(), aud, Set.copyOf(originalParams.scopes()));
             claims.forEach((claim, val) -> idToken.extranodes().put(claim, val));
 
             var itWrapped = JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey);

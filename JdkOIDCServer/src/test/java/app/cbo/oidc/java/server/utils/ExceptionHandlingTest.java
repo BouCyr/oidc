@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test;
 class ExceptionHandlingTest {
 
     @Test
-    void testIt(){
+    void testIt() {
 
-        try{
+        try {
             this.thrower();
-        }catch(Exception e) {
+        } catch (Exception e) {
             var stack = ExceptionHandling.getStackTrace(e);
             var lines = stack.lines().toList();
             /*

@@ -20,7 +20,7 @@ class OneTimePasswordAlgorithmTest {
     }
 
     @Test
-    public void test_rfc(){
+    public void test_rfc() {
 
         /*The test token shared secret uses the ASCII string value
         "12345678901234567890".  With Time Step X = 30, and the Unix epoch as
@@ -39,12 +39,10 @@ class OneTimePasswordAlgorithmTest {
         var utf8 = "12345678901234567890".getBytes(StandardCharsets.UTF_8);
 
         var hexEncoded = Hex.encodeHexString(ascii);
-        String totp = TOTP.generateTOTP(hexEncoded, "1", "8" );
+        String totp = TOTP.generateTOTP(hexEncoded, "1", "8");
 
         Assertions.assertThat(totp)
                 .isEqualTo("94287082");
-
-
 
 
     }
@@ -58,15 +56,13 @@ class OneTimePasswordAlgorithmTest {
         var asb32 = "ALBACORE";
 
         int cpt = 100;
-        while(cpt > 0){
+        while (cpt > 0) {
 
-            System.out.println(String.join(" -> ",TOTP.get(asb32,1,1)));
+            System.out.println(String.join(" -> ", TOTP.get(asb32, 1, 1)));
             Thread.sleep(10_000L);
             cpt--;
         }
     }
-
-
 
 
 }

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 class QueryStringBuilderTest {
 
     @Test
-    void test(){
+    void test() {
 
         var tested = new QueryStringBuilder()
                 .add("one")
@@ -17,7 +17,6 @@ class QueryStringBuilderTest {
 
         Assertions.assertThat(tested)
                 .isEqualTo("one&two=deux&three=trois&four");
-
 
 
     }

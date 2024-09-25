@@ -7,7 +7,7 @@ class TOTPTest {
 
 
     @Test
-    void nominal(){
+    void nominal() {
         var one = TOTP.get("ALBACORE");
         var check = TOTP.confront(one, "ALBACORE");
 

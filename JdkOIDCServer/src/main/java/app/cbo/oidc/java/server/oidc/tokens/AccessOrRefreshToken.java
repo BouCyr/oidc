@@ -29,8 +29,8 @@ public record AccessOrRefreshToken(String iss, String typ, String sub, long exp,
             Stream.of("iss", "typ", "sub", "scopes", "exp")
                     .filter(k -> !json.contains(k))
                     .findAny().ifPresent(k -> {
-                throw new JsonProcessingException(new IllegalArgumentException("Key '" + k + "' not present"));
-            });
+                        throw new JsonProcessingException(new IllegalArgumentException("Key '" + k + "' not present"));
+                    });
 
             var issBegin = json.indexOf("\"iss\":") + "\"iss\":".length();
             var issEnd = Stream.of(json.indexOf(",", issBegin), json.indexOf("}", issBegin)).filter(i -> i != -1).mapToInt(i -> i).min().orElseThrow(() -> new JsonProcessingException(new IllegalArgumentException("no iss key")));

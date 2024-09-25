@@ -6,11 +6,7 @@ import app.cbo.oidc.java.server.jwt.JWK;
 import app.cbo.oidc.java.server.jwt.JWKSet;
 import app.cbo.oidc.java.server.scan.Injectable;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.util.HashMap;
@@ -23,10 +19,8 @@ import java.util.logging.Logger;
 public class MemKeySet implements KeySet {
 
     private final static Logger LOGGER = Logger.getLogger(MemKeySet.class.getCanonicalName());
-
-
-    private KeyId currentKp;
     private final Map<String, KeyPair> pairs = new HashMap<>();
+    private KeyId currentKp;
 
     public MemKeySet() {
         newCurrent();
@@ -48,7 +42,7 @@ public class MemKeySet implements KeySet {
             this.pairs.put(currentKp.get(), kp);
 
         } catch (NoSuchAlgorithmException e) {
-            LOGGER.severe("NoSuchAlgorithmException when building keyset : "+e.getMessage());
+            LOGGER.severe("NoSuchAlgorithmException when building keyset : " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -79,13 +73,13 @@ public class MemKeySet implements KeySet {
     @Override
     @NotNull
     public Optional<PrivateKey> privateKey(@NotNull KeyId keyId) {
-        return Optional.ofNullable(pairs.get(keyId.getKeyId())).map(KeyPair::getPrivate);
+        return Optional.ofNullable(pairs.get(keyId.id())).map(KeyPair::getPrivate);
     }
 
     @Override
     @NotNull
     public Optional<PublicKey> publicKey(@NotNull KeyId keyId) {
-        return Optional.ofNullable(pairs.get(keyId.getKeyId())).map(KeyPair::getPublic);
+        return Optional.ofNullable(pairs.get(keyId.id())).map(KeyPair::getPublic);
     }
 
 }

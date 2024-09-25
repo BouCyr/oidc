@@ -9,8 +9,8 @@ public class ExceptionHandling {
 
     private final static Logger LOGGER = Logger.getLogger(ExceptionHandling.class.getCanonicalName());
 
-    public static String getStackTrace(Throwable e){
-        try(
+    public static String getStackTrace(Throwable e) {
+        try (
                 var os = new ByteArrayOutputStream();
                 var w = new PrintWriter(os)
         ) {

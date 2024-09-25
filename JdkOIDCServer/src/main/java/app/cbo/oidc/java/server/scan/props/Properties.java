@@ -4,11 +4,7 @@ import app.cbo.oidc.java.server.scan.ClassId;
 import app.cbo.oidc.java.server.scan.exceptions.UnknownPropertyType;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -66,11 +62,11 @@ public class Properties {
     private record Mapper<U>(ClassId<U> clss, Function<String, U> converter) {
 
         public ClassId<U> getTargetClass() {
-                return clss;
-            }
-
-            public U convert(String value) {
-                return this.converter.apply(value);
-            }
+            return clss;
         }
+
+        public U convert(String value) {
+            return this.converter.apply(value);
+        }
+    }
 }

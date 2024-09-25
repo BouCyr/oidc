@@ -1,30 +1,20 @@
 package app.cbo.oidc.java.server.datastored;
 
-import app.cbo.oidc.java.server.jsr305.NotNull;
-
 import java.util.function.Supplier;
 
-public interface KeyId extends Supplier<String> {
+public record KeyId(String id) implements Supplier<String> {
 
-    /**
-     * Returns a basic impl of ClientId
-     */
-    static KeyId of(@NotNull String value) {
-        return new Simple(value);
+    public static KeyId of(String id) {
+        return new KeyId(id);
     }
 
-    @NotNull
-    default String getKeyId() {
-        return this.get();
+    @Override
+    public String get() {
+        return id();
     }
 
-    /**
-     * Basic impl
-     */
-    record Simple(@NotNull String value) implements KeyId {
-        @Override
-        public String get() {
-            return value();
-        }
+    @Override
+    public String toString() {
+        return id();
     }
 }

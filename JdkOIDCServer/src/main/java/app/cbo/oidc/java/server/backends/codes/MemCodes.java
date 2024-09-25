@@ -8,13 +8,11 @@ import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
 import app.cbo.oidc.java.server.scan.Injectable;
-import app.cbo.oidc.java.server.utils.Utils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+
+import static app.cbo.oidc.java.server.utils.Utils.isBlank;
+import static app.cbo.oidc.java.server.utils.Utils.isEmpty;
 
 /**
  * This class represents an in-memory storage for OIDC codes.
@@ -42,7 +40,7 @@ public class MemCodes implements Codes {
      * @param redirectUri The redirect URI to be associated with the code.
      * @param scopes      The scopes requested by the client.
      * @param nonce       A nonce that can be used to associate a client session with an ID token and to mitigate replay attacks.
-     * @return            The newly created code.
+     * @return The newly created code.
      * @throws NullPointerException if userId, clientId, or redirectUri is null or blank.
      */
     @Override
@@ -51,16 +49,17 @@ public class MemCodes implements Codes {
                           @NotNull ClientId clientId,
                           @NotNull SessionId sessionId,
                           @NotNull String redirectUri,
+                          @Nullable String resource,
                           @NotNull List<String> scopes,
                           @Nullable String nonce) {
 
-        if (userId.getUserId() == null || clientId.getClientId() == null || Utils.isBlank(redirectUri)) {
+        if (isEmpty(userId) || isBlank(clientId) || isBlank(redirectUri)) {
             throw new NullPointerException("Input cannot be null");
         }
 
         Code code = Code.of(UUID.randomUUID().toString());
 
-        store.put(this.computeKey(code, clientId, redirectUri), new CodeData(userId, sessionId, scopes, nonce));
+        store.put(this.computeKey(code, clientId, redirectUri), new CodeData(userId, sessionId, resource, scopes, nonce));
 
         return code;
 
@@ -75,13 +74,13 @@ public class MemCodes implements Codes {
      * @param code        The code being received by the server for validation.
      * @param clientId    The client ID that sent the code back.
      * @param redirectUri The redirect URI sent with the validation.
-     * @return            The data stored server-side for this code at generation (userId, sessionId, scopes requested and nonce) ; EMPTY if the code is invalid, or not recognized by the server.
+     * @return The data stored server-side for this code at generation (userId, sessionId, scopes requested and nonce) ; EMPTY if the code is invalid, or not recognized by the server.
      */
     @Override
     @NotNull
     public Optional<CodeData> consume(@NotNull Code code, @NotNull ClientId clientId, @NotNull String redirectUri) {
 
-        if (code.getCode() == null || clientId.getClientId() == null || Utils.isBlank(redirectUri)) {
+        if (isEmpty(code) || isBlank(clientId) || isBlank(redirectUri)) {
             return Optional.empty();
         }
 
@@ -95,7 +94,7 @@ public class MemCodes implements Codes {
      * @param code        The code being received by the server for validation.
      * @param clientId    The client ID that sent the code back.
      * @param redirectUri The redirect URI sent with the validation.
-     * @return            A unique key computed from the code, client ID, and redirect URI.
+     * @return A unique key computed from the code, client ID, and redirect URI.
      */
     @NotNull
     private String computeKey(
@@ -103,6 +102,6 @@ public class MemCodes implements Codes {
             @NotNull ClientId clientId,
             @NotNull String redirectUri) {
 
-        return code.getCode() + "_by_" + clientId.getClientId() + "_for_" + redirectUri;
+        return code.code() + "_by_" + clientId.id() + "_for_" + redirectUri;
     }
 }

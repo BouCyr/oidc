@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.http.token;
 
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
@@ -16,10 +17,8 @@ import static app.cbo.oidc.java.server.utils.ParamsHelper.extractParams;
 @Injectable
 public class TokenHandler implements HttpHandlerWithPath {
 
-    private final static Logger LOGGER = Logger.getLogger(TokenHandler.class.getCanonicalName());
-
     public static final String TOKEN_ENDPOINT = "/token";
-
+    private final static Logger LOGGER = Logger.getLogger(TokenHandler.class.getCanonicalName());
     private final TokenEndpoint tokenEndpoint;
 
     public TokenHandler(TokenEndpoint tokenEndpoint) {
@@ -57,7 +56,10 @@ public class TokenHandler implements HttpHandlerWithPath {
             }
 
             this.tokenEndpoint
-                    .treatRequest(param, clientId, clientSecret)
+                    .treatRequest(
+                            param,
+                            clientId != null ? ClientId.of(clientId) : null,
+                            clientSecret)
                     .handle(exchange);
 
 

@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.backends;
 
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuths;
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.OngoingAuthId;
 import app.cbo.oidc.java.server.http.authorize.AuthorizeParams;
 import app.cbo.oidc.java.server.oidc.OIDCDisplayValues;
@@ -52,12 +53,10 @@ class OngoingAuthsTest {
         var auths = new OngoingAuths();
         var code = auths.store(this.createParams());
 
-        var foundBack = auths.find(() -> "??");
+        var foundBack = auths.find(OngoingAuthId.of("??"));
         assertThat(foundBack)
                 .isEmpty();
     }
-
-
 
 
     @Test
@@ -73,10 +72,10 @@ class OngoingAuthsTest {
 
     private AuthorizeParams createParams() {
         return new AuthorizeParams(
-
+                Optional.of("resource"),
                 List.of("openid"),   //List<String> scopes,
                 List.of("rs"),  //List<String> responseTypes,
-                Optional.of("clientId"),  //Optional<String> clientId,
+                Optional.of(ClientId.of("clientId")),  //Optional<String> clientId,
                 Optional.of("redirectUri"),  //Optional<String> redirectUri,
                 Optional.of("state"),//Optional<String> state,
                 Optional.of("responseMode"),//Optional<String> responseMode,

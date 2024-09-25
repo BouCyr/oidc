@@ -107,7 +107,7 @@ public class FileSpecifications {
          * @return FS targeting ./userId/fileName
          */
         public FileSpecification apply(String fileName) {
-            return full(fileName, userId.getUserId());
+            return full(fileName, userId.id());
         }
 
         /**
@@ -117,7 +117,7 @@ public class FileSpecifications {
          */
         public FileNamer in(String... subFolders) {
             List<String> folders = new ArrayList<>();
-            folders.add(userId.getUserId());
+            folders.add(userId.id());
             folders.addAll(Arrays.asList(subFolders));
             return fileName -> full(fileName, folders);
 

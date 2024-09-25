@@ -4,39 +4,20 @@ import app.cbo.oidc.java.server.backends.sessions.Sessions;
 import app.cbo.oidc.java.server.datastored.SessionId;
 import com.sun.net.httpserver.HttpExchange;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class Cookies {
 
     /**
-     * A cookie and its value
-     * A COOKIE WITH NO VALUE WILL HAVE THE EMPTY STRING AS VALUE
-     */
-    public record Cookie(String name, String value){
-
-        public Cookie(String key) {
-            this(key, null);
-        }
-        public Cookie(String name, String value) {
-            this.name = name.trim();
-            this.value = value != null ? value.trim():"";
-        }
-
-    }
-
-    /**
      * Find the first cookie with name "sessionId" and a filled value in the given list
+     *
      * @param cookies a list aof cookie
      * @return the value of the cookie if found, empty if not
      */
-    public static Optional<SessionId> findSessionCookie(Collection<Cookie> cookies){
-        for(Cookie e : cookies){
-            if(Sessions.SESSION_ID_COOKIE_NAME.equals(e.name()) && !Utils.isBlank(e.value())){
-                return Optional.of(e::value);
+    public static Optional<SessionId> findSessionCookie(Collection<Cookie> cookies) {
+        for (Cookie cookie : cookies) {
+            if (Sessions.SESSION_ID_COOKIE_NAME.equals(cookie.name()) && !Utils.isBlank(cookie.value())) {
+                return Optional.of(new SessionId(cookie.value()));
             }
         }
         return Optional.empty();
@@ -44,21 +25,23 @@ public class Cookies {
 
     /**
      * Read the content of the "Cookie" header and returns its content as a list of cookies
+     *
      * @param exchange inbound http request
      * @return list of cookie sent with the request
      */
     public static Collection<Cookie> parseCookies(HttpExchange exchange) {
-        return parseCookies( exchange.getRequestHeaders().get("Cookie"));
+        return parseCookies(exchange.getRequestHeaders().get("Cookie"));
 
     }
 
     /**
      * Transforms the content of the Cookie Header to a list of cookie
+     *
      * @param cookieStrings all values of the Cookie Header. I don't think we will ever have more than one...
      * @return list of cookie sent with the request
      */
     static List<Cookie> parseCookies(List<String> cookieStrings) {
-        if(cookieStrings == null)
+        if (cookieStrings == null)
             return Collections.emptyList();
 
         List<Cookie> all = new ArrayList<>();
@@ -69,13 +52,13 @@ public class Cookies {
         return Collections.unmodifiableList(all);
     }
 
-
     /**
      * Transforms the content of the Cookie Header to a list of cookie
+     *
      * @param cookieString ONE value of the Cookie Header. I don't think we will ever have more than one...
      * @return list of cookie sent with the request
      */
-    static Collection<Cookie> parseCookies(String cookieString)  {
+    static Collection<Cookie> parseCookies(String cookieString) {
 
         var result = new ArrayList<Cookie>();
         String[] cookiePairs = cookieString.split("; ");
@@ -87,6 +70,23 @@ public class Cookies {
                 result.add(new Cookie(cookieValue[0], cookieValue[1]));
         }
         return Collections.unmodifiableList(result);
+    }
+
+    /**
+     * A cookie and its value
+     * A COOKIE WITH NO VALUE WILL HAVE THE EMPTY STRING AS VALUE
+     */
+    public record Cookie(String name, String value) {
+
+        public Cookie(String key) {
+            this(key, null);
+        }
+
+        public Cookie(String name, String value) {
+            this.name = name.trim();
+            this.value = value != null ? value.trim() : "";
+        }
+
     }
 
 

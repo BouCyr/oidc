@@ -24,7 +24,7 @@ public enum OIDCDisplayValues implements EnumValuesHelper.ParamEnum {
         this.paramValue = paramValue;
     }
 
-    public String paramValue(){
+    public String paramValue() {
         return this.paramValue;
     }
 

@@ -7,7 +7,8 @@ import java.nio.charset.StandardCharsets;
 
 public class ExchangeResponseUtils {
 
-    private ExchangeResponseUtils() {}
+    private ExchangeResponseUtils() {
+    }
 
 
     public static void OK(HttpExchange httpExchange, String contentType, String content) throws IOException {
@@ -15,13 +16,13 @@ public class ExchangeResponseUtils {
     }
 
     public static void build(HttpExchange httpExchange, HttpCode code, String contentType, String content) throws IOException {
-        if(contentType != null && !contentType.isBlank()) {
+        if (contentType != null && !contentType.isBlank()) {
             httpExchange.getResponseHeaders().add("Content-Type", contentType);
         }
 
-        if(content == null || content.isBlank()) {
+        if (content == null || content.isBlank()) {
             httpExchange.sendResponseHeaders(code.code(), 0);
-        }else{
+        } else {
             httpExchange.sendResponseHeaders(code.code(), content.getBytes(StandardCharsets.UTF_8).length);
             httpExchange.getResponseBody().write(content.getBytes(StandardCharsets.UTF_8));
         }

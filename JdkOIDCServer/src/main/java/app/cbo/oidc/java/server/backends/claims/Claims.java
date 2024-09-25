@@ -1,10 +1,6 @@
 package app.cbo.oidc.java.server.backends.claims;
 
-import app.cbo.oidc.java.server.datastored.user.claims.Address;
-import app.cbo.oidc.java.server.datastored.user.claims.Mail;
-import app.cbo.oidc.java.server.datastored.user.claims.Phone;
-import app.cbo.oidc.java.server.datastored.user.claims.Profile;
-import app.cbo.oidc.java.server.datastored.user.claims.ScopedClaims;
+import app.cbo.oidc.java.server.datastored.user.claims.*;
 import app.cbo.oidc.java.server.utils.Pair;
 import app.cbo.oidc.java.server.utils.ReflectionUtils;
 
@@ -63,7 +59,7 @@ public interface Claims extends ClaimsResolver, ClaimsStorer {
         try {
             value = nv.getValue().get();
         } catch (Exception e) {
-            LOGGER.info("error while retrieving value of "+name+". Assuming null");
+            LOGGER.info("error while retrieving value of " + name + ". Assuming null");
             value = null;
         }
         return new Pair<>(name, value);
