@@ -4,6 +4,7 @@ import app.cbo.oidc.java.server.backends.claims.ClaimsResolver;
 import app.cbo.oidc.java.server.backends.codes.CodeSupplier;
 import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.backends.ongoingAuths.OngoingAuthsStorer;
+import app.cbo.oidc.java.server.backends.tokens.AccessTokenGenerator;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.AuthenticationLevel;
 import app.cbo.oidc.java.server.datastored.ClientId;
@@ -19,7 +20,6 @@ import app.cbo.oidc.java.server.jwt.JWS;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import app.cbo.oidc.java.server.oidc.OIDCFlow;
 import app.cbo.oidc.java.server.oidc.OIDCPromptValues;
-import app.cbo.oidc.java.server.oidc.tokens.AccessOrRefreshToken;
 import app.cbo.oidc.java.server.oidc.tokens.IdToken;
 import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
@@ -41,6 +41,8 @@ public class AuthorizeEndpoint {
     private final KeySet keySet;
     private final ClaimsResolver claimsResolver;
 
+    private final AccessTokenGenerator accessTokenGenerator;
+
 
     public AuthorizeEndpoint(
             Issuer myself,
@@ -48,13 +50,14 @@ public class AuthorizeEndpoint {
             UserFinder userFinder,
             CodeSupplier codeSupplier,
             KeySet keySet,
-            ClaimsResolver claimsResolver) {
+            ClaimsResolver claimsResolver, AccessTokenGenerator accessTokenGenerator) {
         this.myself = myself;
         this.ongoingAuthsStorer = ongoingAuthsStorer;
         this.userFinder = userFinder;
         this.codeSupplier = codeSupplier;
         this.keySet = keySet;
         this.claimsResolver = claimsResolver;
+        this.accessTokenGenerator = accessTokenGenerator;
     }
 
     @NotNull
@@ -223,13 +226,13 @@ public class AuthorizeEndpoint {
         boolean withAccessToken = originalParams.responseTypes().contains("token");
         if (withAccessToken) {
             var ttl = Duration.ofMinutes(5L);
-            var accessToken = new AccessOrRefreshToken(
-                    this.myself.getIssuerId(),
-                    AccessOrRefreshToken.TYPE_ACCESS,
-                    user.sub(),
-                    Instant.now(clock).plus(ttl).getEpochSecond(),
-                    originalParams.scopes());
-            var atWrapped = JWS.jwsWrap(JWA.RS256, accessToken, currentPrivateKeyId, currentPrivateKey);
+
+            var atWrapped = this.accessTokenGenerator.generate(
+                    originalParams.clientId().get(),
+                    session,
+                    originalParams.resource().orElse(null)
+
+            );
 
             LOGGER.info("Implicit flow with access_token ; claims are NOT added to the id_token, and should be retrieved from userInfo endpoint using the provided access_token");
             var itWrapped = JWS.jwsWrap(JWA.RS256, idToken, currentPrivateKeyId, currentPrivateKey);

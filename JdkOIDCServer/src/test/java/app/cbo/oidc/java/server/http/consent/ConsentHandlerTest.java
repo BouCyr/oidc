@@ -17,8 +17,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ConsentHandlerTest {
@@ -42,7 +47,7 @@ class ConsentHandlerTest {
 
                     return exchange -> exchange.sendResponseHeaders(200, 0);
                 },
-                id -> Optional.of(new Session(UserId.of("user"), EnumSet.of(AuthenticationMode.DECLARATIVE)))
+                id -> Optional.of(new Session(UserId.of("user"), EnumSet.of(AuthenticationMode.DECLARATIVE), emptySet()))
         );
 
         var req = new TestHttpExchange("GET", new URI("http://oidc.cbo.app/consent?ongoing=toto"), new ByteArrayInputStream(new byte[]{}));
@@ -64,7 +69,7 @@ class ConsentHandlerTest {
 
                     return exchange -> exchange.sendResponseHeaders(200, 0);
                 },
-                id -> Optional.of(new Session(UserId.of("user"), EnumSet.of(AuthenticationMode.DECLARATIVE)))
+                id -> Optional.of(new Session(UserId.of("user"), EnumSet.of(AuthenticationMode.DECLARATIVE), emptySet()))
         );
 
         var req = new TestHttpExchange("GET", new URI("http://oidc.cbo.app/consent?ongoing=toto&" + ConsentParams.BACK + "=back"), new ByteArrayInputStream(new byte[]{}));
@@ -102,7 +107,7 @@ class ConsentHandlerTest {
                 (maybeSession, someParams) -> {
                     throw new AuthErrorInteraction(AuthErrorInteraction.Code.invalid_grant, "this should be returned");
                 },
-                id -> Optional.of(new Session(UserId.of("user"), EnumSet.of(AuthenticationMode.DECLARATIVE)))
+                id -> Optional.of(new Session(UserId.of("user"), EnumSet.of(AuthenticationMode.DECLARATIVE), emptySet()))
         );
 
         var req = new TestHttpExchange("GET", new URI("http://oidc.cbo.app/consent?ongoing=toto"), new ByteArrayInputStream(new byte[]{}));
@@ -127,7 +132,7 @@ class ConsentHandlerTest {
                 (maybeSession, someParams) -> {
                     throw new RuntimeException("this could be returned");
                 },
-                id -> Optional.of(new Session(UserId.of("user"), EnumSet.of(AuthenticationMode.DECLARATIVE)))
+                id -> Optional.of(new Session(UserId.of("user"), EnumSet.of(AuthenticationMode.DECLARATIVE), emptySet()))
         );
 
         var req = new TestHttpExchange("GET", new URI("http://oidc.cbo.app/consent?ongoing=toto"), new ByteArrayInputStream(new byte[]{}));
@@ -158,7 +163,7 @@ class ConsentHandlerTest {
                 List.of("FR-fr"),
                 Optional.empty(),
                 Optional.empty(),
-                Collections.emptyList()
+                emptyList()
         );
     }
 }

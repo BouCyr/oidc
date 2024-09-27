@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+import static java.util.Collections.emptySet;
+
 class ConsentEndpointImplTest {
 
     @Test
@@ -25,7 +27,7 @@ class ConsentEndpointImplTest {
         );
 
         //client asked for "my_perso_info", consent is given
-        Session session = new Session(UserId.of("user"), EnumSet.of(AuthenticationMode.DECLARATIVE));
+        Session session = new Session(UserId.of("user"), EnumSet.of(AuthenticationMode.DECLARATIVE), emptySet());
         var interaction = tested.treatRequest(Optional.of(session),
                 new ConsentParams(
                         Set.of("my_perso_info"),
@@ -50,7 +52,7 @@ class ConsentEndpointImplTest {
                 user -> true
         );
 
-        Session session = new Session(UserId.of("user"), EnumSet.of(AuthenticationMode.DECLARATIVE));
+        Session session = new Session(UserId.of("user"), EnumSet.of(AuthenticationMode.DECLARATIVE), emptySet());
 
         //client asked for "my_perso_info" & "my_very_perso_info", consent is given only for my_perso_info""
         var interaction = tested.treatRequest(Optional.of(session),

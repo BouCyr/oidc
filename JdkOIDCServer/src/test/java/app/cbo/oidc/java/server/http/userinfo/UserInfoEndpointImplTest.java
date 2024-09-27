@@ -2,15 +2,19 @@ package app.cbo.oidc.java.server.http.userinfo;
 
 import app.cbo.oidc.java.server.TestHttpExchange;
 import app.cbo.oidc.java.server.backends.tokens.AccessTokenData;
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.user.UserId;
+import app.cbo.oidc.java.server.oidc.Issuer;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -22,7 +26,19 @@ class UserInfoEndpointImplTest {
 
         var tested = new UserInfoEndpointImpl(
                 (userId, aud, requestedScopes) -> Map.of("sub", "user", "family_name", "Smith"),
-                accessToken -> new AccessTokenData(UserId.of("user"), "aud", Set.of("openid", "profile"))
+                accessToken -> new AccessTokenData(
+                        true,
+                        Set.of("openid", "profile"),
+                        ClientId.of("someClient"),
+                        UserId.of("user"),
+                        "Bearer",
+                        Instant.now().plusSeconds(51).getEpochSecond(),
+                        Instant.now().minusSeconds(51).getEpochSecond(),
+                        Instant.now().minusSeconds(51).getEpochSecond(),
+                        "aud",
+                        Issuer.of("myself"),
+                        UUID.randomUUID().toString()
+                )
         );
 
         var result = tested.treatRequest("accesstoken");
@@ -53,7 +69,19 @@ class UserInfoEndpointImplTest {
 
         var tested = new UserInfoEndpointImpl(
                 (userId, aud, requestedScopes) -> Map.of("family_name", "Smith"),
-                accessToken -> new AccessTokenData(UserId.of("user"), "aud", Set.of("openid", "profile"))
+                accessToken -> new AccessTokenData(
+                        true,
+                        Set.of("openid", "profile"),
+                        ClientId.of("someClient"),
+                        UserId.of("user"),
+                        "Bearer",
+                        Instant.now().plusSeconds(51).getEpochSecond(),
+                        Instant.now().minusSeconds(51).getEpochSecond(),
+                        Instant.now().minusSeconds(51).getEpochSecond(),
+                        "aud",
+                        Issuer.of("myself"),
+                        UUID.randomUUID().toString()
+                )
         );
 
         var result = tested.treatRequest("accesstoken");
@@ -109,9 +137,18 @@ class UserInfoEndpointImplTest {
                         "sub", "user",
                         "family_name", "Smith"),
                 accessToken -> new AccessTokenData(
-                        UserId.of("user_different"),//DIFFERENT !!
+                        true,
+                        Set.of("openid", "profile"),
+                        ClientId.of("someClient"),
+                        UserId.of("anotherUser"), //different !!!
+                        "Bearer",
+                        Instant.now().plusSeconds(51).getEpochSecond(),
+                        Instant.now().minusSeconds(51).getEpochSecond(),
+                        Instant.now().minusSeconds(51).getEpochSecond(),
                         "aud",
-                        Set.of("openid", "aud", "profile"))
+                        Issuer.of("myself"),
+                        UUID.randomUUID().toString()
+                )
         );
 
         assertThatThrownBy(() -> tested.treatRequest("accesstoken"))

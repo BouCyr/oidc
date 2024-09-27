@@ -100,13 +100,13 @@ public class AuthenticateEndpointImpl implements AuthenticateEndpoint {
                 }
             }
 
-            //Note : once a login form is validated, a new session WILL be created and WILL erase any previous existing sessions
-            //this could happen if a client sent an authorization request with a required acr above the one linked to
-            // the existing session
-            var sessionId = this.sessionSupplier.createSession(user, authentications);
+            var originalAuthorizeParams = this.ongoingAuthsFinder.find(new OngoingAuthId(params.ongoing()))
+                    .orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to retrieve the original authorization request"));
+            var sessionId = this.sessionSupplier.createSession(user,
+                    authentications,
+                    originalAuthorizeParams.scopes());
 
-            var originalAuthorizeParams = this.ongoingAuthsFinder.find(new OngoingAuthId(params.ongoing()));
-            return new AuthenticationSuccessfulInteraction(sessionId, originalAuthorizeParams.orElseThrow(() -> new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "Unable to retrieve the original authorization request")));
+            return new AuthenticationSuccessfulInteraction(sessionId, originalAuthorizeParams);
 
         }
 

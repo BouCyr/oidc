@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,6 +26,23 @@ class JSONTest {
         assertThat(validation).isNotNull();
         assertThat(validation.integer()).isEqualTo(5);
         assertThat(validation.myString()).isEqualTo("aString");
+
+    }
+
+    @Test
+    void testSupplier() throws IOException {
+        var json = JSON.jsonify(new SupplierRecord(5, "aString", () -> "supplied", () -> 14L));
+        System.out.println("FLAT");
+        System.out.println(json);
+        System.out.println();
+
+        ObjectMapper jackson = new ObjectMapper();
+        var validation = jackson.reader().readValue(json, Map.class);
+
+        assertThat(validation).isNotNull();
+        assertThat(validation.get("integer")).isEqualTo(5);
+        assertThat(validation.get("sSupplier")).isEqualTo("supplied");
+        assertThat(validation.get("longSupplier")).isEqualTo(14);
 
     }
 
@@ -306,6 +324,10 @@ class JSONTest {
     }
 
     public record FlatRecord(int integer, String myString) {
+    }
+
+    public record SupplierRecord(int integer, String myString, Supplier<String> sSupplier,
+                                 Supplier<Long> longSupplier) {
     }
 
     public record MasterRecord(float integer, String myString, FlatRecord sub) {

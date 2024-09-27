@@ -7,32 +7,44 @@ import app.cbo.oidc.java.server.datastored.Session;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
 import app.cbo.oidc.java.server.oidc.Issuer;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.crypto.RSASSAVerifier;
-import com.nimbusds.jwt.SignedJWT;
 import org.junit.jupiter.api.Test;
 
-import java.security.interfaces.RSAPublicKey;
-import java.text.ParseException;
 import java.util.EnumSet;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+class OpaqueAccessTokensTest {
 
-class JWTAccessTokensTest {
+    public static final String USER_ID = "Cunégonde";
+    public static final ClientId CLIENT_ID = ClientId.of("client_id_XYXY");
+    public static final String RESOURCE = "API_agenda";
+    public static final Issuer ISSUER = Issuer.of("meMyself");
 
-    public static final String USER_ID = "Frédégonde";
-    public static final ClientId CLIENT_ID = ClientId.of("client_id_XXXX");
-    public static final String RESOURCE = "API";
-    public static final Issuer ISSUER = Issuer.of("OIDC_IDP");
+    @Test
+    void emptyInputValidation() throws ForbiddenResponse {
+        var keyset = new MemKeySet();
+        var tested = new OpaqueAccessTokens(ISSUER, keyset);
+
+        assertThatThrownBy(() -> tested.validateAccessToken("")).isInstanceOf(ForbiddenResponse.class);
+
+    }
+
+    @Test
+    void garbageInputValidation() throws ForbiddenResponse {
+        var keyset = new MemKeySet();
+        var tested = new OpaqueAccessTokens(ISSUER, keyset);
+
+        assertThatThrownBy(() -> tested.validateAccessToken("dsf**/xc$$$")).isInstanceOf(ForbiddenResponse.class);
+
+    }
 
     @Test
     void withoutScopes() throws ForbiddenResponse {
         var keyset = new MemKeySet();
-        var tested = new JWTAccessTokens(ISSUER, keyset);
+        var tested = new OpaqueAccessTokens(ISSUER, keyset);
 
         var output = tested.generate(
                 CLIENT_ID,
@@ -55,7 +67,7 @@ class JWTAccessTokensTest {
     @Test
     void withScopes() throws ForbiddenResponse {
         var keyset = new MemKeySet();
-        var tested = new JWTAccessTokens(ISSUER, keyset);
+        var tested = new OpaqueAccessTokens(ISSUER, keyset);
 
         var output = tested.generate(
                 CLIENT_ID,
@@ -76,26 +88,4 @@ class JWTAccessTokensTest {
                 .containsExactlyInAnyOrder("aa", "bbb", "ccc");
     }
 
-    @Test
-        //check the generated JWT using an external off the shelf lib (here nimbus)
-    void checkJWTValidity() throws ParseException, JOSEException {
-
-        var keyset = new MemKeySet();
-        var keyId = keyset.current();
-        var tested = new JWTAccessTokens(ISSUER, keyset);
-
-        var output = tested.generate(
-                CLIENT_ID,
-                new Session(UserId.of(USER_ID), EnumSet.of(AuthenticationMode.USER_FOUND, AuthenticationMode.TOTP_OK), Set.of("aa", "bbb", "ccc")),
-                RESOURCE);
-
-
-        JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) keyset.publicKey(keyId).get());
-
-        SignedJWT usingNimbus = SignedJWT.parse(output);
-
-        assertThat(usingNimbus.verify(verifier)).isTrue();
-        assertThat(usingNimbus.getJWTClaimsSet().getStringClaim("sub")).isEqualTo(USER_ID);
-
-    }
 }

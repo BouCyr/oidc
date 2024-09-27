@@ -10,6 +10,7 @@ import app.cbo.oidc.java.server.credentials.AuthenticationLevel;
 import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.Interaction;
+import app.cbo.oidc.java.server.http.JsonResponse;
 import app.cbo.oidc.java.server.json.JSON;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
@@ -106,12 +107,15 @@ public class TokenEndpointImpl implements TokenEndpoint {
 
 
         if (Utils.isEmpty(params.redirectUri())) {
+            LOGGER.warning("RedirectUri was not present");
             return new JsonError("redirecturi not present");
         }
         if (Utils.isEmpty(params.grantType())) {
+            LOGGER.warning("grantType was not present");
             return new JsonError("grant type not present");
         }
         if (!params.grantType().equals("authorization_code")) {
+            LOGGER.warning("grantType was not authorization_code");
             return new JsonError("invalid grant type");
         }
 

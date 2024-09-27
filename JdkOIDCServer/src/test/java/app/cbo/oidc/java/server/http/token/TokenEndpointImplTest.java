@@ -6,11 +6,12 @@ import app.cbo.oidc.java.server.backends.codes.CodeConsumer;
 import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.backends.keys.MemKeySet;
 import app.cbo.oidc.java.server.backends.tokens.AccessTokenGenerator;
-import app.cbo.oidc.java.server.backends.tokens.JWTAccessTokenGenerator;
+import app.cbo.oidc.java.server.backends.tokens.JWTAccessTokens;
 import app.cbo.oidc.java.server.credentials.AuthenticationMode;
 import app.cbo.oidc.java.server.datastored.*;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.datastored.user.UserId;
+import app.cbo.oidc.java.server.http.JsonResponse;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +23,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
@@ -39,14 +41,14 @@ class TokenEndpointImplTest {
                             "resource",
                             List.of("s1", "s2", "s3"),
                             "nonceZ"));
-    private final AccessTokenGenerator accessTokenGenerator = new JWTAccessTokenGenerator(issuer, keySet);
+    private final AccessTokenGenerator accessTokenGenerator = new JWTAccessTokens(issuer, keySet);
 
 
     private TokenEndpointImpl buildTested() {
         return new TokenEndpointImpl(issuer,
                 codeConsuer,
                 x -> Optional.of(new User(USER_ID, "", "")),
-                id -> Optional.of(new Session(UserId.of(USER_ID), EnumSet.of(AuthenticationMode.DECLARATIVE))),
+                id -> Optional.of(new Session(UserId.of(USER_ID), EnumSet.of(AuthenticationMode.DECLARATIVE), emptySet())),
                 keySet,
                 new IdTokenCustomizer.Noop(),
                 clientPwdIsClientId,
@@ -68,7 +70,11 @@ class TokenEndpointImplTest {
         assertThat(interaction)
                 .isInstanceOf(JsonResponse.class);
         var jsonInteraction = ((JsonResponse) interaction);
-        var tokenResponse = jsonInteraction.response();
+        var response = jsonInteraction.response();
+
+        assertThat(response).isInstanceOf(TokenResponse.class);
+
+        TokenResponse tokenResponse = (TokenResponse) response;
 
         assertThat(tokenResponse).isNotNull();
 
@@ -217,7 +223,7 @@ class TokenEndpointImplTest {
         var tested = new TokenEndpointImpl(issuer,
                 codeConsuer,
                 x -> Optional.empty(),
-                id -> Optional.of(new Session(UserId.of(USER_ID), EnumSet.of(AuthenticationMode.DECLARATIVE))),
+                id -> Optional.of(new Session(UserId.of(USER_ID), EnumSet.of(AuthenticationMode.DECLARATIVE), emptySet())),
                 keySet,
                 new IdTokenCustomizer.Noop(),
                 clientPwdIsClientId,
@@ -245,7 +251,7 @@ class TokenEndpointImplTest {
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.empty(),
                 x -> Optional.of(new User(USER_ID, "", "")),
-                id -> Optional.of(new Session(UserId.of(USER_ID), EnumSet.of(AuthenticationMode.DECLARATIVE))),
+                id -> Optional.of(new Session(UserId.of(USER_ID), EnumSet.of(AuthenticationMode.DECLARATIVE), emptySet())),
                 new MemKeySet(),
                 new IdTokenCustomizer.Noop(),
                 clientPwdIsClientId,

@@ -146,6 +146,7 @@ class JSONWriter {
 
         var result = node.getValue().get();
 
+
         if (result == null) {
             return buffer
                     .append("\"").append(node.name()).append("\"")
@@ -178,6 +179,9 @@ class JSONWriter {
             return "\"" + c + "\"";
         } else if (result instanceof String s) {
             return "\"" + s.replaceAll("\\R", " ") + "\"";
+        } else if (result instanceof Supplier<?> s) {
+            // all our ids and so on
+            return value(s.get(), br);
         } else if (result instanceof Map<?, ?> m) {
             return map(m, br);
 

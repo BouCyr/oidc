@@ -9,7 +9,9 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,7 +23,9 @@ class SessionsTest {
     void nominal() {
 
         var sessions = new Sessions();
-        var session = sessions.createSession(new User("cyrille", null, null), EnumSet.of(AuthenticationMode.PASSWORD_OK));
+        var session = sessions.createSession(new User("cyrille", null, null),
+                EnumSet.of(AuthenticationMode.PASSWORD_OK),
+                Set.of("s1", "s2", "s5"));
 
         sessions.addAuthentications(session, EnumSet.of(AuthenticationMode.PASSWORD_OK, AuthenticationMode.TOTP_OK));
 
@@ -33,17 +37,21 @@ class SessionsTest {
         assertThat(foundBack.get().authentications()).containsExactly(AuthenticationMode.PASSWORD_OK, AuthenticationMode.TOTP_OK);
 
         assertThat(foundBack.get().authTime()).isCloseTo(LocalDateTime.now(), new TemporalUnitWithinOffset(5L, ChronoUnit.SECONDS));
+
+        assertThat(foundBack.get().scopes())
+                .isNotEmpty()
+                .containsExactlyInAnyOrder("s1", "s2", "s5");
     }
 
     @Test
     void nullability() {
         var sessions = new Sessions();
         var usr = new User("cyrille", null, null);
-        assertThatThrownBy(() -> sessions.createSession(null, EnumSet.of(AuthenticationMode.TOTP_OK)))
+        assertThatThrownBy(() -> sessions.createSession(null, EnumSet.of(AuthenticationMode.TOTP_OK), Collections.emptySet()))
                 .isInstanceOf(NullPointerException.class);
 
-        assertDoesNotThrow(() -> sessions.createSession(usr, EnumSet.noneOf(AuthenticationMode.class)));
-        assertDoesNotThrow(() -> sessions.createSession(usr, null));
+        assertDoesNotThrow(() -> sessions.createSession(usr, EnumSet.noneOf(AuthenticationMode.class), Collections.emptySet()));
+        assertDoesNotThrow(() -> sessions.createSession(usr, null, Collections.emptySet()));
 
         assertThat(sessions.find(null)).isEmpty();
         assertThat(sessions.find(SessionId.of(null))).isEmpty();

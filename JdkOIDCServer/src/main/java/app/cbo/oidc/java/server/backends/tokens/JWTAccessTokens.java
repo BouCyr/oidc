@@ -4,20 +4,26 @@ import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.credentials.AuthenticationLevel;
 import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.Session;
+import app.cbo.oidc.java.server.datastored.user.UserId;
+import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
 import app.cbo.oidc.java.server.jwt.JWA;
 import app.cbo.oidc.java.server.jwt.JWS;
+import app.cbo.oidc.java.server.jwt.JWSHeader;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import app.cbo.oidc.java.server.scan.Injectable;
+import app.cbo.oidc.java.server.utils.HttpCode;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 /**
  * Metadata header : 'typ' should be 'at+JWT'
@@ -42,18 +48,76 @@ import java.util.UUID;
  * amr OPTIONAL - as defined in Section 2 of [OpenID.Core].
  */
 @Injectable
-public class JWTAccessTokenGenerator implements AccessTokenGenerator {
+public class JWTAccessTokens implements AccessTokenGenerator, AccessTokenValidator {
 
-    //TODO props+default
+    private final static Logger LOGGER = Logger.getLogger(JWTAccessTokens.class.getCanonicalName());
+
     public static final Duration TTL = Duration.ofMinutes(5L);
     private final Issuer myself;
     private final KeySet keySet;
 
-    public JWTAccessTokenGenerator(Issuer myself, KeySet keySet) {
+    public JWTAccessTokens(Issuer myself, KeySet keySet) {
         this.myself = myself;
         this.keySet = keySet;
     }
 
+    @Override
+    public AccessTokenData validateAccessToken(String accessToken) throws ForbiddenResponse {
+        LOGGER.info("Starting validation of an access_token written as a JWT");
+        //decode accestoken
+        //in OUR server, accesstoken is a JWT. In another OIDC server, it could be anything (random UUID stored in DB with the relevant data,....)
+        var parts = accessToken.split("\\.");
+        if (parts.length != 3) {
+            LOGGER.info("Provided access token is not issued by our server (invalid format)");
+            throw new ForbiddenResponse(HttpCode.FORBIDDEN, ForbiddenResponse.InternalReason.UNREADABLE_TOKEN, ForbiddenResponse.INVALID_TOKEN);
+        }
+
+        var b64Metadata = parts[0];
+        var b64Payload = parts[1];
+        var signature = parts[2];
+
+        // Warning ; b64 encoding is not perfectly standard in the case of JWT/OIDC ( '=' padding was removed )
+        var payloadBytes = JWS.base64urldecode(b64Payload);
+        var payload = new String(payloadBytes);
+        var decodedPayload = JWTAccessToken.fromJson(payload);
+
+        var clock = Clock.systemUTC();
+        var now = Instant.now(clock).getEpochSecond();
+
+        if (decodedPayload.exp() < now) {
+            LOGGER.info("access token is expired (exp : " + decodedPayload.exp() + ", now is " + now);
+            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.InternalReason.EXPIRED_TOKEN, ForbiddenResponse.INVALID_TOKEN);
+        }
+
+        if (!this.myself.getIssuerId().equals(decodedPayload.iss())) {
+            LOGGER.info("provided token has been issued by someone else");
+            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.InternalReason.WRONG_ISSUER, ForbiddenResponse.INVALID_TOKEN);
+        }
+
+        var headerBytes = JWS.base64urldecode(b64Metadata);
+        var headerJson = new String(headerBytes);
+        var header = JWSHeader.fromJson(headerJson);
+
+        if (!JWS.checkSignature(this.keySet, b64Metadata + "." + b64Payload, signature, header)) {
+            LOGGER.info("Token signature invalid");
+            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.InternalReason.INVALID_SIGNATURE, ForbiddenResponse.INVALID_TOKEN);
+        }
+        LOGGER.info("JWT access token is valid");
+        return new AccessTokenData(
+                true,
+                new HashSet<>(decodedPayload.scopes()),
+                ClientId.of(decodedPayload.clientId()),
+                UserId.of(decodedPayload.sub()),
+                "Bearer",
+                decodedPayload.exp(),
+                decodedPayload.iat(),
+                decodedPayload.nbf(),
+                decodedPayload.aud(),
+                Issuer.of(decodedPayload.iss()),
+                decodedPayload.jti()
+
+        );
+    }
 
     @Override
     public String generate(
@@ -72,6 +136,10 @@ public class JWTAccessTokenGenerator implements AccessTokenGenerator {
         jsonKv.put("auth_time", activeSession.authTime().toEpochSecond(ZoneOffset.UTC));
         jsonKv.put("acr", new AuthenticationLevel(activeSession.authentications()).level());
         jsonKv.put("amr", activeSession.authentications().stream().map(Enum::name).toList());
+
+        if (!activeSession.scopes().isEmpty()) {
+            jsonKv.put("scopes", activeSession.scopes());
+        }
 
         var currentPrivateKeyId = this.keySet.current();
         var currentPrivateKey = this.keySet.privateKey(currentPrivateKeyId)

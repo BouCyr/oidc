@@ -76,6 +76,7 @@ public class EntryPoint {
         setupUser("Cyrille", scanner.get(Users.class), scanner.get(Claims.class));
         setupUser("Marion", scanner.get(Users.class), scanner.get(Claims.class));
         setUpClient("sb", "sbSecret", scanner.get(ClientRegistry.class));
+        setUpClient("api", "apiSecret", scanner.get(ClientRegistry.class));
 
         //get root class (server)
         var server = scanner.get(OIDCServer.class);

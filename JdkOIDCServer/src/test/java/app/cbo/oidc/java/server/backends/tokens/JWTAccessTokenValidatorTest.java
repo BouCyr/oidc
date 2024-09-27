@@ -1,8 +1,9 @@
-package app.cbo.oidc.java.server.http.userinfo;
+package app.cbo.oidc.java.server.backends.tokens;
 
 import app.cbo.oidc.java.server.backends.keys.MemKeySet;
-import app.cbo.oidc.java.server.backends.tokens.JWTAccessToken;
-import app.cbo.oidc.java.server.backends.tokens.JWTAccessTokenValidator;
+import app.cbo.oidc.java.server.datastored.ClientId;
+import app.cbo.oidc.java.server.datastored.user.UserId;
+import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
 import app.cbo.oidc.java.server.jwt.JWA;
 import app.cbo.oidc.java.server.jwt.JWS;
 import app.cbo.oidc.java.server.oidc.Issuer;
@@ -22,13 +23,14 @@ class JWTAccessTokenValidatorTest {
     void validateAccessToken() throws ForbiddenResponse {
 
         var keyset = new MemKeySet();
-        var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
+        var tested = new JWTAccessTokens(Issuer.of("http://oidc.cbo.app"), keyset);
 
         var clock = Clock.systemUTC();
         var jwtAccessToken = new JWTAccessToken(
-                "http://oidc.cbo.app",
-                "userID",
-                Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
+                Issuer.of("http://oidc.cbo.app"),
+                ClientId.of("someClient"),
+                UserId.of("userID"),
+                Duration.ofMinutes(5L),
                 "aud",
                 List.of("scope1", "scope2"));
 
@@ -48,7 +50,7 @@ class JWTAccessTokenValidatorTest {
     void invalid_jwt() {
 
         var keyset = new MemKeySet();
-        var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
+        var tested = new JWTAccessTokens(Issuer.of("http://oidc.cbo.app"), keyset);
 
         try {
             tested.validateAccessToken("foo.bar");
@@ -67,14 +69,19 @@ class JWTAccessTokenValidatorTest {
     void expired_jwt() {
 
         var keyset = new MemKeySet();
-        var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
+        var tested = new JWTAccessTokens(Issuer.of("http://oidc.cbo.app"), keyset);
 
         var clock = Clock.systemUTC();
+
         var jwtAccessToken = new JWTAccessToken(
                 "http://oidc.cbo.app",
+                "client",
                 "userID",
+                Instant.now(clock).minus(Duration.ofMinutes(505L)).getEpochSecond(),
+                Instant.now(clock).minus(Duration.ofMinutes(505L)).getEpochSecond(),
                 Instant.now(clock).minus(Duration.ofMinutes(55L)).getEpochSecond(),//!!!in the past
                 "aud",
+                "jti",
                 List.of("scope1", "scope2"));
 
         var signed = JWS.jwsWrap(JWA.RS256, jwtAccessToken, keyset.current(), keyset.privateKey(keyset.current()).get());
@@ -96,13 +103,14 @@ class JWTAccessTokenValidatorTest {
     void wrong_issuer() {
 
         var keyset = new MemKeySet();
-        var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
+        var tested = new JWTAccessTokens(Issuer.of("http://oidc.cbo.app"), keyset);
 
         var clock = Clock.systemUTC();
         var jwtAccessToken = new JWTAccessToken(
-                "http://OTHER.cbo.app", //OTHER issuer !!!
-                "userID",
-                Instant.now(clock).plus(Duration.ofMinutes(55L)).getEpochSecond(),
+                Issuer.of("http://SAML.cbo.app"), //other !
+                ClientId.of("someClient"),
+                UserId.of("userID"),
+                Duration.ofMinutes(5L),
                 "aud",
                 List.of("scope1", "scope2"));
 
@@ -124,13 +132,14 @@ class JWTAccessTokenValidatorTest {
     void wrong_sig() {
 
         var keyset = new MemKeySet();
-        var tested = new JWTAccessTokenValidator(Issuer.of("http://oidc.cbo.app"), keyset);
+        var tested = new JWTAccessTokens(Issuer.of("http://oidc.cbo.app"), keyset);
 
         var clock = Clock.systemUTC();
         var jwtAccessToken = new JWTAccessToken(
-                "http://oidc.cbo.app",
-                "userID",
-                Instant.now(clock).plus(Duration.ofMinutes(55L)).getEpochSecond(),
+                Issuer.of("http://oidc.cbo.app"),
+                ClientId.of("someClient"),
+                UserId.of("userID"),
+                Duration.ofMinutes(5L),
                 "aud",
                 List.of("scope1", "scope2"));
 

@@ -8,6 +8,7 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Logger;
 
 /**
  * 3.1.3.4.  Token Error Response
@@ -27,6 +28,8 @@ import java.nio.charset.StandardCharsets;
  * </p>
  */
 public class JsonError extends Exception implements Interaction {
+
+    private final static Logger LOGGER = Logger.getLogger(JsonError.class.getCanonicalName());
 
     private final String msg;
     private final String json;
@@ -57,7 +60,8 @@ public class JsonError extends Exception implements Interaction {
 
     @Override
     public void handle(@NotNull HttpExchange exchange) throws IOException {
-
+        LOGGER.warning("Returning JsonError");
+        LOGGER.warning("msg : " + msg());
 
         exchange.getResponseHeaders().add("Content-Type", MimeType.JSON.mimeType());
         exchange.getResponseHeaders().add("Cache-Control", "no-store");

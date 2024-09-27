@@ -5,6 +5,7 @@ import app.cbo.oidc.java.server.datastored.SessionId;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 
+import java.util.Collection;
 import java.util.EnumSet;
 
 /**
@@ -18,8 +19,11 @@ public interface SessionSupplier {
      *
      * @param user                The User for whom the session is to be created.
      * @param authenticationModes The set of AuthenticationModes to be used for the session.
+     * @param scopes              The scopes the session was validated for
      * @return The SessionId of the created session.
      */
     @NotNull
-    SessionId createSession(@NotNull User user, @NotNull EnumSet<AuthenticationMode> authenticationModes);
+    SessionId createSession(@NotNull User user,
+                            @NotNull EnumSet<AuthenticationMode> authenticationModes,
+                            @NotNull Collection<String> scopes);
 }

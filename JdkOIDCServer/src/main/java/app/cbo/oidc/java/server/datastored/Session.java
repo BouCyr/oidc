@@ -6,20 +6,34 @@ import app.cbo.oidc.java.server.jsr305.NotNull;
 
 import java.time.LocalDateTime;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.UUID;
 
-public record Session(String id, UserId userId, LocalDateTime authTime, LocalDateTime refreshTime,
-                      EnumSet<AuthenticationMode> authentications) {
+public record Session(@NotNull String id,
+                      @NotNull UserId userId,
+                      @NotNull LocalDateTime authTime,
+                      @NotNull LocalDateTime refreshTime,
+                      @NotNull EnumSet<AuthenticationMode> authentications,
+                      @NotNull Set<String> scopes) {
 
-    public Session(@NotNull UserId user, EnumSet<AuthenticationMode> validatedAuthentication) {
+    public Session(@NotNull UserId user,
+                   @NotNull EnumSet<AuthenticationMode> validatedAuthentication,
+                   @NotNull Set<String> scopes) {
         this(UUID.randomUUID().toString(),
                 user,
                 LocalDateTime.now(),
                 LocalDateTime.now(),
-                validatedAuthentication);
+                validatedAuthentication,
+                scopes);
     }
 
     public static Session refreshed(@NotNull Session original) {
-        return new Session(original.id(), original.userId(), original.authTime(), LocalDateTime.now(), original.authentications());
+        return new Session(
+                original.id(),
+                original.userId(),
+                original.authTime(),
+                LocalDateTime.now(),
+                original.authentications(),
+                original.scopes());
     }
 }

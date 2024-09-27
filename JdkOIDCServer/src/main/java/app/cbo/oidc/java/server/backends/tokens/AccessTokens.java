@@ -1,4 +1,4 @@
 package app.cbo.oidc.java.server.backends.tokens;
 
-public interface AccessTokens extends AccessTokenValidator, AccessTokenGenerator {
+interface AccessTokens extends AccessTokenValidator, AccessTokenGenerator {
 }

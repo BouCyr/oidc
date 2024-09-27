@@ -26,7 +26,7 @@ class AuthenticateEndpointImplTest {
                 memUSers,
                 //user creator
                 memUSers,
-                (user, authenticationModes) -> {
+                (user, authenticationModes, scopes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
                     return SessionId.of("sessionId");
@@ -42,7 +42,7 @@ class AuthenticateEndpointImplTest {
                 key -> Optional.empty(),
                 userId -> Optional.empty(),
                 (x, y, z) -> UserId.of(x),
-                (user, authenticationModes) -> SessionId.of("sessionId"),
+                (user, authenticationModes, scopes) -> SessionId.of("sessionId"),
                 (provided, storedEncoded) -> true
         );
 
@@ -80,7 +80,7 @@ class AuthenticateEndpointImplTest {
                 key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
                 userId -> Optional.of(new User("bob", "pwd", "topt")),
                 (x, y, z) -> UserId.of(x),
-                (user, authenticationModes) -> {
+                (user, authenticationModes, scopes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
                     return SessionId.of("sessionId");
@@ -109,7 +109,7 @@ class AuthenticateEndpointImplTest {
                 key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
                 userId -> Optional.of(new User("bob", "pwd", "topt")),
                 (x, y, z) -> UserId.of(x),
-                (user, authenticationModes) -> {
+                (user, authenticationModes, scopes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
                     return SessionId.of("sessionId");
@@ -142,7 +142,7 @@ class AuthenticateEndpointImplTest {
                 key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
                 userId -> Optional.of(new User("bob", "pwd", "topt")),
                 (x, y, z) -> UserId.of(x),
-                (user, authenticationModes) -> {
+                (user, authenticationModes, scopes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
                     return SessionId.of("sessionId");
@@ -168,7 +168,7 @@ class AuthenticateEndpointImplTest {
                 key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
                 userId -> Optional.of(new User("bob", "pwd", "ALBACORE")),
                 (x, y, z) -> UserId.of(x),
-                (user, authenticationModes) -> {
+                (user, authenticationModes, scopes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
                     return SessionId.of("sessionId");
@@ -195,7 +195,7 @@ class AuthenticateEndpointImplTest {
                 key -> Optional.of(new AuthorizeParams(Collections.emptyMap())),
                 userId -> Optional.of(new User("bob", "pwd", "ALBACORE")),
                 (x, y, z) -> UserId.of(x),
-                (user, authenticationModes) -> {
+                (user, authenticationModes, scopes) -> {
                     loggedIn.set(user);
                     modes.addAll(authenticationModes);
                     return SessionId.of("sessionId");

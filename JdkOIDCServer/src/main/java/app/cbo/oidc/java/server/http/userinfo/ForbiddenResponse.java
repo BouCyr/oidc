@@ -97,7 +97,7 @@ public class ForbiddenResponse extends Exception implements Interaction {
 
     /**
      * For logging & check reason
-     * <p>(allow us to check in Unit Tests that the orbidden was created for the right reason)</p>
+     * <p>(allow us to check in Unit Tests that the forbidden was created for the right reason)</p>
      */
     public enum InternalReason {
         TECHNICAL,

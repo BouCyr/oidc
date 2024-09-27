@@ -1,6 +1,5 @@
-package app.cbo.oidc.java.server.http.token;
+package app.cbo.oidc.java.server.http;
 
-import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.json.JSON;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.utils.HttpCode;
@@ -10,7 +9,7 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public record JsonResponse(TokenResponse response) implements Interaction {
+public record JsonResponse(Object response) implements Interaction {
 
     @Override
     public void handle(@NotNull HttpExchange exchange) throws IOException {

@@ -8,13 +8,13 @@ import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Basic session store. Not a part of OIDC.
+ *
+ * Only works as a memory store, sessions will not be kept on restart
  */
 @Injectable
 public class Sessions implements SessionFinder, SessionSupplier {
@@ -57,9 +57,11 @@ public class Sessions implements SessionFinder, SessionSupplier {
      */
     @Override
     @NotNull
-    public SessionId createSession(@NotNull User user, @NotNull EnumSet<AuthenticationMode> authenticationModes) {
+    public SessionId createSession(@NotNull User user,
+                                   @NotNull EnumSet<AuthenticationMode> authenticationModes,
+                                   @NotNull Collection<String> scopes) {
 
-        var newSession = new Session(user.getId(), authenticationModes);
+        var newSession = new Session(user.getId(), authenticationModes, new HashSet<>(scopes));
         this.sessions.put(newSession.id(), newSession);
         return new SessionId(newSession.id());
     }
