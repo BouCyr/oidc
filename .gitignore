@@ -29,4 +29,5 @@ hs_err_pid*
 # target
 springbootclient/target/** 
 JdkOIDCServer/target/**
-/springbootapi/target/
+springbootapi/target/**
+springBootApiJWT/target/**
