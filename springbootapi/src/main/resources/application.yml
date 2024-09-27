@@ -1,0 +1,12 @@
+server:
+  port: 9453
+spring:
+  application:
+    name: sbapi
+  security:
+    oauth2:
+      resourceserver:
+        opaque-token:
+          introspection-uri: http://localhost:9451/introspect
+          client-id: api
+          client-secret: apiSecret
