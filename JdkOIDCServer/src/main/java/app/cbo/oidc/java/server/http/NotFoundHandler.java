@@ -19,11 +19,10 @@ public class NotFoundHandler implements HttpHandlerWithPath {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handleInternal(HttpExchange exchange) throws IOException {
         LOGGER.info("404 on " + exchange.getRequestURI().toString());
         exchange.sendResponseHeaders(404, 0);
         exchange.getResponseBody().flush();
         exchange.getResponseBody().close();
-        return;
     }
 }

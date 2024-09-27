@@ -1,0 +1,11 @@
+server:
+  port: 9454
+spring:
+  application:
+    name: sbapijwt
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9451
+          jwk-set-uri: http://localhost:9451/jwks

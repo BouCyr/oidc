@@ -29,7 +29,7 @@ public class JWKSHandler implements HttpHandlerWithPath {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handleInternal(HttpExchange exchange) throws IOException {
 
         LOGGER.info("Someone reached for the JsonWebKeySet");
         //no endpoint here, since logic is pretty simple

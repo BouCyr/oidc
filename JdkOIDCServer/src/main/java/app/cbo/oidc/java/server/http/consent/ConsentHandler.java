@@ -46,7 +46,7 @@ public class ConsentHandler implements HttpHandlerWithPath {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handleInternal(HttpExchange exchange) throws IOException {
         try {
             Map<String, Collection<String>> raw = extractParams(exchange);
 
@@ -71,10 +71,8 @@ public class ConsentHandler implements HttpHandlerWithPath {
 
         } catch (AuthErrorInteraction authError) {
             authError.handle(exchange);
-            return;
         } catch (Exception e) {
             new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "?").handle(exchange);
-            return;
         }
     }
 

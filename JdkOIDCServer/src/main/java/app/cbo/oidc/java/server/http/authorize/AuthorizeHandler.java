@@ -40,7 +40,7 @@ public class AuthorizeHandler implements HttpHandlerWithPath {
     }
 
     @Override
-    public void handle(@NotNull HttpExchange exchange) throws IOException {
+    public void handleInternal(@NotNull HttpExchange exchange) throws IOException {
 
         try {
             var cookies = Cookies.parseCookies(exchange);
@@ -60,15 +60,12 @@ public class AuthorizeHandler implements HttpHandlerWithPath {
 
             var result = this.endpoint.treatRequest(session, parsedParams);
             result.handle(exchange);
-            return;
         } catch (AuthErrorInteraction error) {
 
             error.handle(exchange);
-            return;
         } catch (Exception e) {
 
             new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "?").handle(exchange);
-            return;
         }
     }
 

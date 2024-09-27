@@ -54,7 +54,8 @@ public class IntrospectionHandler implements HttpHandlerWithPath {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handleInternal(HttpExchange exchange) throws IOException {
+
 
         LOGGER.info("Someone called the introspection endpoint");
         var clientCreds = exchange.getRequestHeaders().get("Authorization");

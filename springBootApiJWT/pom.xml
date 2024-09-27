@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>app.cbo.oidc.client.springboot</groupId>
-    <artifactId>api</artifactId>
+    <artifactId>apijwt</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>api</name>
+    <name>api-jwt</name>
     <description>Demo project for Spring Boot</description>
     <url/>
     <licenses>

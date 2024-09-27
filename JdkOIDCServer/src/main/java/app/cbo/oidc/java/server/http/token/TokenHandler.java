@@ -31,7 +31,7 @@ public class TokenHandler implements HttpHandlerWithPath {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handleInternal(HttpExchange exchange) throws IOException {
         try {
             Map<String, Collection<String>> raw = extractParams(exchange);
             TokenParams param = new TokenParams(raw);

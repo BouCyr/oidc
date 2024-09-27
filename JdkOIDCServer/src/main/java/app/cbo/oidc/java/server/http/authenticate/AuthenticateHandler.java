@@ -31,22 +31,19 @@ public class AuthenticateHandler implements HttpHandlerWithPath {
     }
 
     @Override
-    public void handle(@NotNull HttpExchange exchange) throws IOException {
+    public void handleInternal(@NotNull HttpExchange exchange) throws IOException {
         //TODO [03/10/2023] I am kind of surprised we do not use the session here ?
         try {
 
             Map<String, Collection<String>> params = extractParams(exchange);
             var result = this.endpoint.treatRequest(params);
             result.handle(exchange);
-            return;
         } catch (AuthErrorInteraction error) {
             error.handle(exchange);
-            return;
         } catch (Exception e) {
             LOGGER.info("unexpected error");
             e.printStackTrace();
             new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "?").handle(exchange);
-            return;
         }
 
     }

@@ -12,7 +12,7 @@ public class StaticResourceHandler implements HttpHandlerWithPath {
     public static final String STATIC_CONTENT = "/sc/";
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handleInternal(HttpExchange exchange) throws IOException {
         new ResourceInteraction(exchange.getRequestURI().getPath()).handle(exchange);
     }
 

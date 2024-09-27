@@ -28,7 +28,7 @@ public class UserInfoHandler implements HttpHandlerWithPath {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handleInternal(HttpExchange exchange) throws IOException {
         var clientCreds = exchange.getRequestHeaders().get("Authorization");
         if (clientCreds == null) {
             clientCreds = Collections.emptyList();
@@ -51,6 +51,5 @@ public class UserInfoHandler implements HttpHandlerWithPath {
             LOGGER.info("NO access token found in Authorization header, retuning 401 status code");
             new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.InternalReason.NO_TOKEN, ForbiddenResponse.NO_AUTH).handle(exchange);
         }
-        return;
     }
 }
