@@ -31,3 +31,4 @@ springbootclient/target/**
 JdkOIDCServer/target/**
 springbootapi/target/**
 springBootApiJWT/target/**
+springBootApiOPAQUE/target/**
