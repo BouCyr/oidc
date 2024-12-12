@@ -1,15 +1,15 @@
 package app.cbo.oidc.java.server.oidc.tokens;
 
 import app.cbo.oidc.java.server.json.JsonProcessingException;
+import app.cbo.oidc.java.server.jwt.JWSPayloadData;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.util.Collection;
 import java.util.stream.Stream;
 
-public record AccessOrRefreshToken(String iss, String typ, String sub, long exp, Collection<String> scopes) {
+public record RefreshToken(String iss, String typ, String sub, String session_id, long exp,
+                           Collection<String> scopes) implements JWSPayloadData {
 
-    //[03/10/2023] no idea right now how KC can tell them apart
-    public static final String TYPE_ACCESS = "Bearer";
     public static final String TYPE_REFRESH = "Bearer";
 
 
@@ -19,14 +19,14 @@ public record AccessOrRefreshToken(String iss, String typ, String sub, long exp,
      * @param json the json string
      * @return the parsed AccessOrRefreshToken
      */
-    public static AccessOrRefreshToken fromJson(String json) {
+    public static RefreshToken fromJson(String json) {
 
         //much quicker to write an ad-hoc parser than a generic json parser.
         //this code is shameful, not reusable, but kind of work
         try {
 
 
-            Stream.of("iss", "typ", "sub", "scopes", "exp")
+            Stream.of("iss", "typ", "sub", "scopes", "exp", "session_id")
                     .filter(k -> !json.contains(k))
                     .findAny().ifPresent(k -> {
                         throw new JsonProcessingException(new IllegalArgumentException("Key '" + k + "' not present"));
@@ -51,7 +51,12 @@ public record AccessOrRefreshToken(String iss, String typ, String sub, long exp,
             var typEnd = Stream.of(json.indexOf(",", typBegin), json.indexOf("}", typBegin)).filter(i -> i != -1).mapToInt(i -> i).min().orElseThrow(() -> new JsonProcessingException(new IllegalArgumentException("no typ key")));
             var typValue = json.substring(typBegin, typEnd).trim();
             var typ = typValue.substring(1, typValue.length() - 1);//remove the '"'
-            // ;
+
+            var sessionIdBegin = json.indexOf("\"typ\":") + "\"typ\":".length();
+            var sessionIdEnd = Stream.of(json.indexOf(",", sessionIdBegin), json.indexOf("}", sessionIdBegin)).filter(i -> i != -1).mapToInt(i -> i).min().orElseThrow(() -> new JsonProcessingException(new IllegalArgumentException("no typ key")));
+            var sessionIdValue = json.substring(sessionIdBegin, sessionIdEnd).trim();
+            var sessionId = sessionIdValue.substring(1, typValue.length() - 1);//remove the '"'
+
             var scopesBegin = json.indexOf("\"scopes\":") + "\"scopes\":".length();
             var scopesEnd = 1 + json.indexOf("]", scopesBegin);
             var scopesValue = json.substring(scopesBegin, scopesEnd).trim();
@@ -63,10 +68,11 @@ public record AccessOrRefreshToken(String iss, String typ, String sub, long exp,
                     .map(s -> s.substring(1, s.length() - 1))//remove the '"'
                     .toList();
 
-            return new AccessOrRefreshToken(
+            return new RefreshToken(
                     iss,
                     typ,
                     sub,
+                    sessionId,
                     exp,
                     scopes);
         } catch (Exception e) {

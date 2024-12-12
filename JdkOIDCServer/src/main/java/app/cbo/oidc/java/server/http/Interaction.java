@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 
+@FunctionalInterface
 public interface Interaction {
 
     void handle(@NotNull HttpExchange exchange) throws IOException;

@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * A code supplier is responsible for generating and storing a code, and returning it to the client
  */
+@FunctionalInterface
 public interface CodeSupplier {
 
     /**

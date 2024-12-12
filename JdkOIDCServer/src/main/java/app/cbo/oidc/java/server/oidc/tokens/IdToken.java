@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.oidc.tokens;
 
 import app.cbo.oidc.java.server.json.WithExtraNode;
+import app.cbo.oidc.java.server.jwt.JWSPayloadData;
 
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public record IdToken(
         List<String> amr,
         Optional<String> azp,
         Map<String, Object> extranodes
-) implements WithExtraNode {
+) implements WithExtraNode, JWSPayloadData {
 
 
 }

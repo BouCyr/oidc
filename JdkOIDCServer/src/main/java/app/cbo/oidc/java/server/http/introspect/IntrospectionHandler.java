@@ -4,6 +4,7 @@ import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.http.token.JsonError;
 import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
+import app.cbo.oidc.java.server.scan.BuildWith;
 import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.MimeType;
 import app.cbo.oidc.java.server.utils.QueryStringParser;
@@ -24,6 +25,7 @@ public class IntrospectionHandler implements HttpHandlerWithPath {
 
     private final IntrospectionEndpoint endpoint;
 
+    @BuildWith
     public IntrospectionHandler(IntrospectionEndpoint endpoint) {
         this.endpoint = endpoint;
     }
@@ -38,12 +40,14 @@ public class IntrospectionHandler implements HttpHandlerWithPath {
                 String result = reader.lines().collect(Collectors.joining("\n"));
                 params = QueryStringParser.from(result);
             } catch (IOException e) {
-                throw new JsonError("invalid_request");
+                LOGGER.warning("IOException while reading request body");
+                LOGGER.warning(e.getLocalizedMessage());
+                throw new JsonError(JsonError.Cause.invalid_request);
             }
 
         } else {
             String msg = "POST request with wrong contentType";
-            throw new JsonError("invalid_request");
+            throw new JsonError(JsonError.Cause.invalid_request, msg);
         }
         return params;
     }

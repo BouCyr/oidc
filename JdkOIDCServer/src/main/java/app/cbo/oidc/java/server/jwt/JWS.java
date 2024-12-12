@@ -2,14 +2,20 @@ package app.cbo.oidc.java.server.jwt;
 
 import app.cbo.oidc.java.server.backends.keys.KeySet;
 import app.cbo.oidc.java.server.datastored.KeyId;
+import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
 import app.cbo.oidc.java.server.json.JSON;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
+import app.cbo.oidc.java.server.oidc.Issuer;
+import app.cbo.oidc.java.server.utils.HttpCode;
 
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.Signature;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Base64;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 public class JWS {
@@ -123,4 +129,54 @@ public class JWS {
         return Base64.getDecoder().decode(s); // Standard base64 decoder
     }
 
+    /**
+     * Parse, validate and format a JWS
+     *
+     * @param myself              my issuerId / the issuerId that is expected to have emitted the JWS
+     * @param myKeys              keyset (containing the signing key)
+     * @param jwsRaw              the raw JWS (meaning the three B64string separated by dots)
+     * @param jsonStringToPayload mapper from the payload JSON string to the expected payload Type
+     * @param <U>                 expected payload type
+     * @return
+     * @throws ForbiddenResponse if something went wrong TODO use a dedicated expection
+     */
+    public static <U extends JWSPayloadData> U validateAndReadJWS(Issuer myself, KeySet myKeys, String jwsRaw, Function<String, U> jsonStringToPayload) throws ForbiddenResponse {
+        var parts = jwsRaw.split("\\.");
+        if (parts.length != 3) {
+            LOGGER.info("Not a JWS (could not split in 3 parts)");
+            throw new ForbiddenResponse(HttpCode.FORBIDDEN, ForbiddenResponse.InternalReason.UNREADABLE_TOKEN, ForbiddenResponse.INVALID_TOKEN);
+        }
+
+        var b64Metadata = parts[0];
+        var b64Payload = parts[1];
+        var signature = parts[2];
+
+        // Warning ; b64 encoding is not perfectly standard in the case of JWT/OIDC ( '=' padding was removed )
+        var payloadBytes = base64urldecode(b64Payload);
+        var payload = new String(payloadBytes);
+        var decodedPayload = jsonStringToPayload.apply(payload);
+
+        var clock = Clock.systemUTC();
+        var now = Instant.now(clock).getEpochSecond();
+
+        if (decodedPayload.exp() < now) {
+            LOGGER.info("JWS is expired (exp : " + decodedPayload.exp() + ", now is " + now);
+            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.InternalReason.EXPIRED_TOKEN, ForbiddenResponse.INVALID_TOKEN);
+        }
+
+        if (!myself.getIssuerId().equals(decodedPayload.iss())) {
+            LOGGER.info("provided JWS has been issued by someone else");
+            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.InternalReason.WRONG_ISSUER, ForbiddenResponse.INVALID_TOKEN);
+        }
+
+        var headerBytes = base64urldecode(b64Metadata);
+        var headerJson = new String(headerBytes);
+        var header = JWSHeader.fromJson(headerJson);
+
+        if (!checkSignature(myKeys, b64Metadata + "." + b64Payload, signature, header)) {
+            LOGGER.info("JWS signature invalid");
+            throw new ForbiddenResponse(HttpCode.UNAUTHORIZED, ForbiddenResponse.InternalReason.INVALID_SIGNATURE, ForbiddenResponse.INVALID_TOKEN);
+        }
+        return decodedPayload;
+    }
 }

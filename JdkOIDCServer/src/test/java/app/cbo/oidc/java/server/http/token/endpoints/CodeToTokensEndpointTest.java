@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.http.token;
+package app.cbo.oidc.java.server.http.token.endpoints;
 
 import app.cbo.oidc.java.server.TestHttpExchange;
 import app.cbo.oidc.java.server.backends.clients.ClientAuthenticator;
@@ -12,6 +12,10 @@ import app.cbo.oidc.java.server.datastored.*;
 import app.cbo.oidc.java.server.datastored.user.User;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.http.JsonResponse;
+import app.cbo.oidc.java.server.http.token.IdTokenCustomizer;
+import app.cbo.oidc.java.server.http.token.JsonError;
+import app.cbo.oidc.java.server.http.token.TokenResponse;
+import app.cbo.oidc.java.server.http.token.params.TokenParams;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +31,7 @@ import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-class TokenEndpointImplTest {
+class CodeToTokensEndpointTest {
 
     public static final String USER_ID = "userA";
     private final Issuer issuer = Issuer.of("http://oidc.cbo.app");
@@ -44,8 +48,8 @@ class TokenEndpointImplTest {
     private final AccessTokenGenerator accessTokenGenerator = new JWTAccessTokens(issuer, keySet);
 
 
-    private TokenEndpointImpl buildTested() {
-        return new TokenEndpointImpl(issuer,
+    private CodeToTokensEndpoint buildTested() {
+        return new CodeToTokensEndpointImpl(issuer,
                 codeConsuer,
                 x -> Optional.of(new User(USER_ID, "", "")),
                 id -> Optional.of(new Session(UserId.of(USER_ID), EnumSet.of(AuthenticationMode.DECLARATIVE), emptySet())),
@@ -62,7 +66,7 @@ class TokenEndpointImplTest {
         var tested = buildTested();
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code", Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                new TokenParams("authorization_code", Code.of("code"), null, "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -112,7 +116,7 @@ class TokenEndpointImplTest {
         var tested = buildTested();
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code", Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                new TokenParams("authorization_code", Code.of("code"), null, "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "wrong_wrong_wrong" //WRONG !!!
         );
@@ -122,7 +126,7 @@ class TokenEndpointImplTest {
         var jsonError = (JsonError) interaction;
         Error error = new ObjectMapper().reader().readValue(jsonError.json(), Error.class);
 
-        assertThat(error.error()).isEqualTo("access_denied");
+        assertThat(error.error()).isEqualTo("invalid_client");
     }
 
     @Test
@@ -130,7 +134,7 @@ class TokenEndpointImplTest {
         var tested = buildTested();
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code", Code.of("code"), "", ClientId.of("CLIENT")),
+                new TokenParams("authorization_code", Code.of("code"), null, "", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -140,7 +144,7 @@ class TokenEndpointImplTest {
         var jsonError = (JsonError) interaction;
         Error error = new ObjectMapper().reader().readValue(jsonError.json(), Error.class);
 
-        assertThat(error.error()).isEqualTo("redirecturi not present");
+        assertThat(error.error()).isEqualTo("invalid_request");
     }
 
     @Test
@@ -148,7 +152,7 @@ class TokenEndpointImplTest {
         var tested = buildTested();
 
         var interaction = tested.treatRequest(
-                new TokenParams("authorization_code", Code.of("code"), null, ClientId.of("CLIENT")),
+                new TokenParams("authorization_code", Code.of("code"), null, null, ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -158,7 +162,7 @@ class TokenEndpointImplTest {
         var jsonError = (JsonError) interaction;
         Error error = new ObjectMapper().reader().readValue(jsonError.json(), Error.class);
 
-        assertThat(error.error()).isEqualTo("redirecturi not present");
+        assertThat(error.error()).isEqualTo("invalid_request");
     }
 
     @Test
@@ -167,7 +171,7 @@ class TokenEndpointImplTest {
 
         var interaction = tested.treatRequest(
                 new TokenParams("",//!!!!
-                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                        Code.of("code"), null, "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -177,7 +181,7 @@ class TokenEndpointImplTest {
         var jsonError = (JsonError) interaction;
         Error error = new ObjectMapper().reader().readValue(jsonError.json(), Error.class);
 
-        assertThat(error.error()).isEqualTo("grant type not present");
+        assertThat(error.error()).isEqualTo("invalid_request");
     }
 
     @Test
@@ -186,7 +190,7 @@ class TokenEndpointImplTest {
 
         var interaction = tested.treatRequest(
                 new TokenParams(null,//!!!!
-                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                        Code.of("code"), null, "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -196,7 +200,7 @@ class TokenEndpointImplTest {
         var jsonError = (JsonError) interaction;
         Error error = new ObjectMapper().reader().readValue(jsonError.json(), Error.class);
 
-        assertThat(error.error()).isEqualTo("grant type not present");
+        assertThat(error.error()).isEqualTo("invalid_request");
     }
 
     @Test
@@ -205,7 +209,7 @@ class TokenEndpointImplTest {
 
         var interaction = tested.treatRequest(
                 new TokenParams("INVALID",//!!!!
-                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                        Code.of("code"), null, "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -215,12 +219,12 @@ class TokenEndpointImplTest {
         var jsonError = (JsonError) interaction;
         Error error = new ObjectMapper().reader().readValue(jsonError.json(), Error.class);
 
-        assertThat(error.error()).isEqualTo("invalid grant type");
+        assertThat(error.error()).isEqualTo("invalid_request");
     }
 
     @Test
     void userNotFound() throws IOException {
-        var tested = new TokenEndpointImpl(issuer,
+        var tested = new CodeToTokensEndpointImpl(issuer,
                 codeConsuer,
                 x -> Optional.empty(),
                 id -> Optional.of(new Session(UserId.of(USER_ID), EnumSet.of(AuthenticationMode.DECLARATIVE), emptySet())),
@@ -232,7 +236,7 @@ class TokenEndpointImplTest {
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code",
-                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                        Code.of("code"), null, "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -242,12 +246,12 @@ class TokenEndpointImplTest {
         var jsonError = (JsonError) interaction;
         Error error = new ObjectMapper().reader().readValue(jsonError.json(), Error.class);
 
-        assertThat(error.error()).isEqualTo("user_not_found");
+        assertThat(error.error()).isEqualTo("invalid_grant");
     }
 
     @Test
     void codeNotFound() throws IOException {
-        var tested = new TokenEndpointImpl(
+        var tested = new CodeToTokensEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.empty(),
                 x -> Optional.of(new User(USER_ID, "", "")),
@@ -260,7 +264,7 @@ class TokenEndpointImplTest {
 
         var interaction = tested.treatRequest(
                 new TokenParams("authorization_code",
-                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                        Code.of("code"), null, "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -270,12 +274,12 @@ class TokenEndpointImplTest {
         var jsonError = (JsonError) interaction;
         Error error = new ObjectMapper().reader().readValue(jsonError.json(), Error.class);
 
-        assertThat(error.error()).isEqualTo("access_denied");
+        assertThat(error.error()).isEqualTo("invalid_grant");
     }
 
     @Test
     void sessionNotFound() throws IOException {
-        var tested = new TokenEndpointImpl(
+        var tested = new CodeToTokensEndpointImpl(
                 Issuer.of("http://oidc.cbo.app"),
                 (x, y, z) -> java.util.Optional.of(new CodeData(UserId.of(USER_ID), SessionId.of("session"), "aud", List.of("s1", "s2", "s3"), "nonceZ")),
                 x -> Optional.of(new User(USER_ID, "", "")),
@@ -289,7 +293,7 @@ class TokenEndpointImplTest {
         var interaction = tested.treatRequest(
                 new TokenParams(
                         "authorization_code",
-                        Code.of("code"), "http://client.cbo.app", ClientId.of("CLIENT")),
+                        Code.of("code"), null, "http://client.cbo.app", ClientId.of("CLIENT")),
                 ClientId.of("CLIENT"),
                 "CLIENT"
         );
@@ -299,9 +303,10 @@ class TokenEndpointImplTest {
         var jsonError = (JsonError) interaction;
         Error error = new ObjectMapper().reader().readValue(jsonError.json(), Error.class);
 
-        assertThat(error.error()).isEqualTo("session_not_found");
+        assertThat(error.error()).isEqualTo("invalid_grant");
     }
 
-    public record Error(String error) {
+    public record Error(String error, String error_description) {
+        //used as a target POJO for error deserialization by jackson
     }
 }

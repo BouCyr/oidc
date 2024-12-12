@@ -1,6 +1,7 @@
 package app.cbo.oidc.java.server.datastored.user.claims;
 
 import app.cbo.oidc.java.server.datastored.user.UserId;
+import app.cbo.oidc.java.server.oidc.Constants;
 
 public record Profile(
         UserId userId,
@@ -22,6 +23,6 @@ public record Profile(
 ) implements ScopedClaims {
     @Override
     public String scopeName() {
-        return "profile";
+        return Constants.Scope.PROFILE;
     }
 }

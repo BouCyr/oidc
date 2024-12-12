@@ -6,7 +6,7 @@ public enum AuthenticationMode {
     PASSWORD_OK,
     TOTP_OK,
     //BIOMETRICS,
-    //CERTIFICATE
+    //CERTIFICATE mTLS
 
 
 }

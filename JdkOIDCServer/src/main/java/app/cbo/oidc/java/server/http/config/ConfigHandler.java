@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
+import static app.cbo.oidc.java.server.oidc.Constants.GrantType;
+
 @Injectable
 public class ConfigHandler implements HttpHandlerWithPath {
 
@@ -93,7 +95,7 @@ public class ConfigHandler implements HttpHandlerWithPath {
         LOGGER.info("Configuration endpoint called");
         //TODO [01/09/2023] subject_types_supported / response_types_supported /id_token_signing_alg_values_supported
         var json = """
-                    {
+                {
                     "issuer": "%s",
                     "authorization_endpoint": "%s",
                     "token_endpoint": "%s",
@@ -101,8 +103,8 @@ public class ConfigHandler implements HttpHandlerWithPath {
                     "end_session_endpoint": "%s",
                     "jwks_uri": "%s",
                     "grant_types_supported": [
-                        "authorization_code",
-                        "refresh_token"
+                        "%s",
+                        "%s"
                     ],
                     "response_types_supported": [
                         "code"
@@ -122,7 +124,9 @@ public class ConfigHandler implements HttpHandlerWithPath {
                 this.tokenPath,
                 this.userinfoPath,
                 this.logoutPath,
-                this.jwksPath);
+                this.jwksPath,
+                GrantType.AUTHORIZATION_CODE,
+                GrantType.REFRESH_TOKEN);
 
 
         final var jsonBytes = json.getBytes(StandardCharsets.UTF_8);

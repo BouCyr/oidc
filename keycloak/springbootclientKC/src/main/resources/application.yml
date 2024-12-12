@@ -1,0 +1,30 @@
+server:
+  port: 1337
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          kc:
+            provider: keycloak
+            client-id: rawidc
+            client-secret: nPrsjoMNmHytfKzPGytSw1u3bFXFJwpt
+            scope: openid,email,profile
+        #          mine:
+        #            provider: oidc
+        #            client-id: sb
+        #            client-secret: sbSecret
+        #            scope: openid,email,profile
+        #          franceConnect:
+        #            provider: fc
+        #            client-id: 211286433e39cce01db448d80181bdfd005554b19cd51b3fe7943f6b3b86ab6e
+        #            client-secret: 2791a731e6a59f56b6b4dd0d08c9b1f593b5f3658b9fd731cb24248e2669af4b
+        #            scope: openid,email,profile
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8021/realms/simple
+#          oidc:
+#            issuer-uri: http://localhost:9451
+#          fc:
+#            issuer-uri: https://fcp-low.integ01.dev-franceconnect.fr/api/v2

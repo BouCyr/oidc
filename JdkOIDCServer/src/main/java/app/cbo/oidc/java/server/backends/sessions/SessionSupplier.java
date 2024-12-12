@@ -11,6 +11,7 @@ import java.util.EnumSet;
 /**
  * This interface provides a method to create a new session for a user with a set of authentication modes.
  */
+@FunctionalInterface
 public interface SessionSupplier {
 
     /**

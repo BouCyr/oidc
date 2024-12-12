@@ -3,6 +3,7 @@ package app.cbo.oidc.java.server.backends.tokens;
 import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.json.JsonProcessingException;
+import app.cbo.oidc.java.server.jwt.JWSPayloadData;
 import app.cbo.oidc.java.server.oidc.Issuer;
 import app.cbo.oidc.java.server.utils.Utils;
 
@@ -24,7 +25,7 @@ public record JWTAccessToken(
         long exp,
         String aud,
         String jti,
-        Collection<String> scopes) {
+        Collection<String> scopes) implements JWSPayloadData {
 
     public JWTAccessToken(Issuer iss,
                           ClientId clientId,

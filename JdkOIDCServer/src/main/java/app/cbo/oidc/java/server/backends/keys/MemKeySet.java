@@ -8,7 +8,6 @@ import app.cbo.oidc.java.server.scan.Injectable;
 
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -35,7 +34,6 @@ public class MemKeySet implements KeySet {
             //rfc7518 : A key of size 2048 bits or larger MUST be used with these algorithms.
             kpg.initialize(2048);
             var kp = kpg.generateKeyPair();
-            var dur = Duration.ofNanos(System.nanoTime() - start).toMillis();
 
             //randomize the kid, so we do not reuse a kid (if we did, a client could store the 'old' key value in some cache)
             this.currentKp = KeyId.of(UUID.randomUUID().toString());

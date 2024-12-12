@@ -12,6 +12,8 @@ import java.util.Optional;
  * It contains a single method, consume, which takes a code, a client ID, and a redirect URI as parameters.
  * The consume method is intended to be implemented to provide the logic for checking and consuming a code, returning the needed data.
  */
+
+@FunctionalInterface
 public interface CodeConsumer {
 
     /**

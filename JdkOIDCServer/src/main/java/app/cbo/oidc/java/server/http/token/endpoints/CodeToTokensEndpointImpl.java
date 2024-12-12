@@ -1,4 +1,4 @@
-package app.cbo.oidc.java.server.http.token;
+package app.cbo.oidc.java.server.http.token.endpoints;
 
 import app.cbo.oidc.java.server.backends.clients.ClientAuthenticator;
 import app.cbo.oidc.java.server.backends.codes.CodeConsumer;
@@ -8,17 +8,20 @@ import app.cbo.oidc.java.server.backends.tokens.AccessTokenGenerator;
 import app.cbo.oidc.java.server.backends.users.UserFinder;
 import app.cbo.oidc.java.server.credentials.AuthenticationLevel;
 import app.cbo.oidc.java.server.datastored.ClientId;
-import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.Interaction;
 import app.cbo.oidc.java.server.http.JsonResponse;
+import app.cbo.oidc.java.server.http.token.IdTokenCustomizer;
+import app.cbo.oidc.java.server.http.token.JsonError;
+import app.cbo.oidc.java.server.http.token.TokenResponse;
+import app.cbo.oidc.java.server.http.token.params.CodeToTokenParams;
 import app.cbo.oidc.java.server.json.JSON;
 import app.cbo.oidc.java.server.jsr305.NotNull;
 import app.cbo.oidc.java.server.jsr305.Nullable;
 import app.cbo.oidc.java.server.jwt.JWA;
 import app.cbo.oidc.java.server.jwt.JWS;
 import app.cbo.oidc.java.server.oidc.Issuer;
-import app.cbo.oidc.java.server.oidc.tokens.AccessOrRefreshToken;
 import app.cbo.oidc.java.server.oidc.tokens.IdToken;
+import app.cbo.oidc.java.server.oidc.tokens.RefreshToken;
 import app.cbo.oidc.java.server.scan.BuildWith;
 import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
@@ -34,10 +37,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-@Injectable
-public class TokenEndpointImpl implements TokenEndpoint {
+import static app.cbo.oidc.java.server.http.token.JsonError.Cause.*;
+import static app.cbo.oidc.java.server.oidc.Constants.GrantType;
 
-    private final static Logger LOGGER = Logger.getLogger(TokenEndpointImpl.class.getCanonicalName());
+@Injectable
+public class CodeToTokensEndpointImpl implements CodeToTokensEndpoint {
+
+    private final static Logger LOGGER = Logger.getLogger(CodeToTokensEndpointImpl.class.getCanonicalName());
+
 
     private final Issuer myself;
     private final CodeConsumer codeConsumer;
@@ -49,7 +56,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
     private final AccessTokenGenerator accessTokenGenerator;
 
     @BuildWith
-    public TokenEndpointImpl(
+    public CodeToTokensEndpointImpl(
             Issuer myself,
             CodeConsumer codeConsumer,
             UserFinder userFinder,
@@ -69,9 +76,9 @@ public class TokenEndpointImpl implements TokenEndpoint {
 
     }
 
-    @Override
     @NotNull
-    public Interaction treatRequest(@NotNull TokenParams params, @Nullable ClientId authClientId, @Nullable String clientSecret) {
+    @Override
+    public Interaction treatRequest(@NotNull CodeToTokenParams params, @Nullable ClientId authClientId, @Nullable String clientSecret) {
         /*
         The Authorization Server MUST validate the Token Request as follows:
 
@@ -90,7 +97,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
         //Are the client credentials OK ? (none would be OK for the moment)
         if (!this.clientAuthenticator.authenticate(authClientId, clientSecret)) {
             LOGGER.info("Invalid client credentials");
-            return new JsonError(AuthErrorInteraction.Code.access_denied.name());
+            return new JsonError(invalid_client);
         }
         LOGGER.info("Client is authenticated");
 
@@ -98,7 +105,7 @@ public class TokenEndpointImpl implements TokenEndpoint {
         //have we at least one clientId somewhere ?
         if (Utils.isBlank(authClientId) && Utils.isEmpty(params.clientId())) {
             LOGGER.info("Client id not present");
-            return new JsonError("clientid not present");
+            return new JsonError(invalid_client);
         }
 
         //the clientId may be found in credentials OR in the params.
@@ -106,36 +113,42 @@ public class TokenEndpointImpl implements TokenEndpoint {
         var clientId = authClientId != null ? authClientId : params.clientId();
 
 
-        if (Utils.isEmpty(params.redirectUri())) {
-            LOGGER.warning("RedirectUri was not present");
-            return new JsonError("redirecturi not present");
-        }
         if (Utils.isEmpty(params.grantType())) {
             LOGGER.warning("grantType was not present");
-            return new JsonError("grant type not present");
+            return new JsonError(invalid_request, "grant type not present");
         }
-        if (!params.grantType().equals("authorization_code")) {
+
+        if (Utils.isEmpty(params.redirectUri())) {
+            LOGGER.warning("RedirectUri was not present");
+            return new JsonError(invalid_request, "redirecturi not present");
+        }
+
+        if (!params.grantType().equals(GrantType.AUTHORIZATION_CODE)) {
             LOGGER.warning("grantType was not authorization_code");
-            return new JsonError("invalid grant type");
+            // warning : this is not WHAT the cause 'invalid_grant' means !
+            return new JsonError(invalid_request, "invalid grant type");
         }
 
 
         var codeData = this.codeConsumer.consume(params.code(), clientId, URLDecoder.decode(params.redirectUri(), StandardCharsets.UTF_8));
         if (codeData.isEmpty()) {
-            return new JsonError(AuthErrorInteraction.Code.access_denied.name());
+            LOGGER.warning("Code could not be retrieved");
+            return new JsonError(invalid_grant);
         }
 
         LOGGER.info("Code is retrieved");
 
         var user = this.userFinder.find(codeData.get().userId());
         if (user.isEmpty()) {
-            return new JsonError(AuthErrorInteraction.Code.user_not_found.name());
+            LOGGER.warning("User could not be retrieved");
+            return new JsonError(invalid_grant);
         }
         LOGGER.info("User is found");
 
         var session = this.sessionFinder.find(codeData.get().sessionId());
         if (session.isEmpty()) {
-            return new JsonError(AuthErrorInteraction.Code.session_not_found.name());
+            LOGGER.warning("User session could not be retrieved");
+            return new JsonError(invalid_grant);
         }
         LOGGER.info("User session the code was generated from is found");
 
@@ -170,10 +183,11 @@ public class TokenEndpointImpl implements TokenEndpoint {
         );
 
 
-        var refreshToken = new AccessOrRefreshToken(
+        var refreshToken = new RefreshToken(
                 this.myself.getIssuerId(),
-                AccessOrRefreshToken.TYPE_REFRESH,
+                RefreshToken.TYPE_REFRESH,
                 user.get().sub(),
+                session.get().id(),
                 Instant.now(clock).plus(Duration.ofMinutes(5L)).getEpochSecond(),
                 codeData.get().scopes());
 

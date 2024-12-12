@@ -1,0 +1,21 @@
+server:
+  port: 4242
+
+oidc:
+  client-id: sb
+  client-secret: d6343570-9499-41e1-ac8d-7fee3f38c3c0
+  base-url: https://localhost:443
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          mine:
+            provider: oidc
+            client-id: sb
+            client-secret: sb
+            scope: openid,email,profile
+        provider:
+          oidc:
+            issuer-uri: https://localhost:443

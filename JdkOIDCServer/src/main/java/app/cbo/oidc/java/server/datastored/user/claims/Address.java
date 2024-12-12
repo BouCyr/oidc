@@ -2,6 +2,7 @@ package app.cbo.oidc.java.server.datastored.user.claims;
 
 import app.cbo.oidc.java.server.datastored.user.UserId;
 import app.cbo.oidc.java.server.json.JSON;
+import app.cbo.oidc.java.server.oidc.Constants;
 
 /**
  * Address claim take the form of "address": [JSON OBJECT]
@@ -21,7 +22,7 @@ public record Address(UserId userId, String address) implements ScopedClaims {
 
     @Override
     public String scopeName() {
-        return "address";
+        return Constants.Scope.ADDRESS;
     }
 
     public record AddressPayload(String formatted,

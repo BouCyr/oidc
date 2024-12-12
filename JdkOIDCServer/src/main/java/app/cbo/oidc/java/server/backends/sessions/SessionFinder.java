@@ -9,6 +9,7 @@ import java.util.Optional;
 /**
  * This interface provides a method to find a session by its SessionId.
  */
+@FunctionalInterface
 public interface SessionFinder {
 
     /**

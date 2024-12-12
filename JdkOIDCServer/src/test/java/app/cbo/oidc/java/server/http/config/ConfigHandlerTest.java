@@ -27,7 +27,7 @@ class ConfigHandlerTest {
                 new PathCustomizer.Noop(),
                 Issuer.of("http://oidc.cbo.app"),
                 new AuthorizeHandler(null, null),
-                new TokenHandler(null),
+                new TokenHandler(null, null),
                 new UserInfoHandler(null),
 //                () -> "http://oidc.cbo.app/logout",
                 new JWKSHandler(new MemKeySet()));

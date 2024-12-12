@@ -10,9 +10,7 @@ import java.util.Set;
 // RFC 7662 Token introspection 2.2
 
 /**
- * @param sub
- * @param aud
- * @param scopes
+
  */
 public record AccessTokenData(
         @NotNull boolean active,

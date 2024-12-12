@@ -85,7 +85,8 @@ class AuthenticateHandlerTest {
 
     @Test
     void managed_exception_with_redirect() throws URISyntaxException, IOException {
-        var msg = UUID.randomUUID().toString();
+        //do not whitespace & co in this, to avoid checking url encoding
+        var msg = "RandomMessage" + UUID.randomUUID();
 
         AuthenticateHandler tested = new AuthenticateHandler(p -> {
             throw new AuthErrorInteraction(AuthErrorInteraction.Code.access_denied, msg, "http://client.cbo.app", "STATE");
