@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server.http.config;
 
+import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.http.PathCustomizer;
 import app.cbo.oidc.java.server.http.authorize.AuthorizeHandler;
@@ -11,10 +12,13 @@ import app.cbo.oidc.java.server.scan.BuildWith;
 import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.HttpCode;
 import app.cbo.oidc.java.server.utils.MimeType;
+import app.cbo.oidc.java.server.utils.ParamsHelper;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import static app.cbo.oidc.java.server.oidc.Constants.GrantType;
@@ -76,11 +80,11 @@ public class ConfigHandler implements HttpHandlerWithPath {
     ) {
         this.pathCustomizer = pathCustomizer;
         this.myself = myself;
-        this.authorizationPath = myself.getIssuerId() + authorizeHandler.path();
-        this.tokenPath = myself.getIssuerId() + tokenHandler.path();
-        this.userinfoPath = myself.getIssuerId() + userInfoHandler.path();
-        this.logoutPath = myself.getIssuerId() + "/logout"; //TODO [24/11/2023] +authorizeHandler.path();
-        this.jwksPath = myself.getIssuerId() + jwksHandler.path();
+        this.authorizationPath = authorizeHandler.path();
+        this.tokenPath = tokenHandler.path();
+        this.userinfoPath = userInfoHandler.path();
+        this.logoutPath = "/logout"; //TODO [24/11/2023] +authorizeHandler.path();
+        this.jwksPath = jwksHandler.path();
     }
 
     @Override
@@ -90,6 +94,22 @@ public class ConfigHandler implements HttpHandlerWithPath {
 
     @Override
     public void handleInternal(HttpExchange exchange) throws IOException {
+
+
+        Map<String, Collection<String>> params;
+        try {
+            params = ParamsHelper.extractParams(exchange);
+        } catch (AuthErrorInteraction e) {
+            LOGGER.warning("Invalid call to config endpoint ");
+            e.handle(exchange);
+            return;
+        }
+
+        //allow host override for configuration
+        //probably a security issue in 'real life', but this is not meant to be used in production
+        //e.g. useful when some code from inside a container must reach the server, when 'localhost' can be amibguous
+        var host = ParamsHelper.singleParam(params.get("hostoverride")).orElse(this.myself.getIssuerId());
+
 
 
         LOGGER.info("Configuration endpoint called");
@@ -119,12 +139,12 @@ public class ConfigHandler implements HttpHandlerWithPath {
                         "query"
                     ]
                 }""".formatted(
-                this.myself.getIssuerId(),
-                this.authorizationPath,
-                this.tokenPath,
-                this.userinfoPath,
-                this.logoutPath,
-                this.jwksPath,
+                host,
+                url(host, this.authorizationPath),
+                url(host, this.tokenPath),
+                url(host, this.userinfoPath),
+                url(host, this.logoutPath),
+                url(host, this.jwksPath),
                 GrantType.AUTHORIZATION_CODE,
                 GrantType.REFRESH_TOKEN);
 
@@ -141,5 +161,9 @@ public class ConfigHandler implements HttpHandlerWithPath {
             os.write(jsonBytes);
             os.flush();
         }
+    }
+
+    String url(String host, String path) {
+        return host + path;
     }
 }
