@@ -1,19 +1,57 @@
 package app.cbo.oidc.java.server.utils;
 
+import app.cbo.oidc.java.server.credentials.client.ClientCreds;
+import app.cbo.oidc.java.server.datastored.ClientId;
 import app.cbo.oidc.java.server.http.AuthErrorInteraction;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ParamsHelper {
+
+
+    private final static Logger LOGGER = Logger.getLogger(ParamsHelper.class.getCanonicalName());
+
+    public static Optional<ClientCreds> findClientCreds(HttpExchange exchange) throws AuthErrorInteraction {
+        Map<String, Collection<String>> raw = extractParams(exchange);
+
+        var authorizationHeader = exchange.getRequestHeaders().get("Authorization");
+        if (authorizationHeader == null)
+            authorizationHeader = Collections.emptyList();
+
+
+        var basicCreds = authorizationHeader.stream()
+                .filter(s -> s.toLowerCase(Locale.ROOT).startsWith("basic "))
+                .map(s -> s.substring("basic ".length()))
+                .map(s -> new String(Base64.getDecoder().decode(s.trim())))
+                .filter(s -> s.contains(":"))
+                .findAny();
+
+        if (basicCreds.isPresent()) {
+            String clientId = basicCreds.get().split(":")[0];
+            String clientSecret = basicCreds.get().split(":")[1];
+            LOGGER.info("Client credentials found in Authorization header (clientId : " + clientId + ")");
+            return Optional.of(new ClientCreds(ClientId.of(clientId), clientSecret));
+        } else {
+            var clientIdFromBody = singleParam(raw.get("client_id"));
+            var clientSecretFromBody = singleParam(raw.get("client_secret"));
+
+            if (clientIdFromBody.isPresent() && clientSecretFromBody.isPresent()) {
+                LOGGER.info("Client credentials found in body header (clientId : " + clientIdFromBody.get() + ")");
+                return Optional.of(new ClientCreds(ClientId.of(clientIdFromBody.get()), clientSecretFromBody.get()));
+            }
+        }
+
+        LOGGER.info("no client creds found");
+        return Optional.empty();
+    }
+
 
 
     public static Map<String, Collection<String>> extractParams(HttpExchange exchange) throws AuthErrorInteraction {
