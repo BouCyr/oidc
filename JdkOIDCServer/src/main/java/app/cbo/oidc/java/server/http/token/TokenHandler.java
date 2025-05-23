@@ -33,8 +33,9 @@ public class TokenHandler implements HttpHandlerWithPath {
     @Override
     public void handleInternal(HttpExchange exchange) throws IOException {
         try {
-            final var creds = findClientCreds(exchange);
-            TokenParams param = new TokenParams(extractParams(exchange));
+            final var params = extractParams(exchange);
+            final var creds = findClientCreds(exchange, params);
+            TokenParams param = new TokenParams(params);
             this.tokenEndpoint
                     .treatRequest(
                             param,
