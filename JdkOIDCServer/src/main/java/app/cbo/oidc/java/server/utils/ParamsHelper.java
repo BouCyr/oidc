@@ -18,8 +18,9 @@ public class ParamsHelper {
 
     private final static Logger LOGGER = Logger.getLogger(ParamsHelper.class.getCanonicalName());
 
-    public static Optional<ClientCreds> findClientCreds(HttpExchange exchange) throws AuthErrorInteraction {
-        Map<String, Collection<String>> raw = extractParams(exchange);
+    public static Optional<ClientCreds> findClientCreds(HttpExchange exchange, Map<String, Collection<String>> rawParams) throws AuthErrorInteraction {
+        // rawParams is now passed as an argument, no need to call extractParams(exchange)
+        // Map<String, Collection<String>> raw = extractParams(exchange); 
 
         var authorizationHeader = exchange.getRequestHeaders().get("Authorization");
         if (authorizationHeader == null)
@@ -39,16 +40,17 @@ public class ParamsHelper {
             LOGGER.info("Client credentials found in Authorization header (clientId : " + clientId + ")");
             return Optional.of(new ClientCreds(ClientId.of(clientId), clientSecret));
         } else {
-            var clientIdFromBody = singleParam(raw.get("client_id"));
-            var clientSecretFromBody = singleParam(raw.get("client_secret"));
+            // Use rawParams here
+            var clientIdFromBody = singleParam(rawParams.get("client_id"));
+            var clientSecretFromBody = singleParam(rawParams.get("client_secret"));
 
             if (clientIdFromBody.isPresent() && clientSecretFromBody.isPresent()) {
-                LOGGER.info("Client credentials found in body header (clientId : " + clientIdFromBody.get() + ")");
+                LOGGER.info("Client credentials found in body parameters (clientId : " + clientIdFromBody.get() + ")");
                 return Optional.of(new ClientCreds(ClientId.of(clientIdFromBody.get()), clientSecretFromBody.get()));
             }
         }
 
-        LOGGER.info("no client creds found");
+        LOGGER.info("no client creds found in Authorization header or body parameters");
         return Optional.empty();
     }
 
