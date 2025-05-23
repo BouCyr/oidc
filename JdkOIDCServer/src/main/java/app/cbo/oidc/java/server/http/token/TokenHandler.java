@@ -2,6 +2,7 @@ package app.cbo.oidc.java.server.http.token;
 
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.http.Interaction;
+import app.cbo.oidc.java.server.http.token.JsonError;
 import app.cbo.oidc.java.server.http.userinfo.ForbiddenResponse;
 import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.HttpCode;
@@ -35,6 +36,11 @@ public class TokenHandler implements HttpHandlerWithPath {
         try {
             final var creds = findClientCreds(exchange);
             TokenParams param = new TokenParams(extractParams(exchange));
+
+            if (param.clientId() != null && creds.isPresent() && !param.clientId().equals(creds.get().clientId())) {
+                throw new JsonError("invalid_request", "client_id in request body does not match authenticated client");
+            }
+
             this.tokenEndpoint
                     .treatRequest(
                             param,
