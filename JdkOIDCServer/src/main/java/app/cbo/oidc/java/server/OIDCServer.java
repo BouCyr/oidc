@@ -1,5 +1,6 @@
 package app.cbo.oidc.java.server;
 
+import app.cbo.oidc.java.server.http.CorsHandler;
 import app.cbo.oidc.java.server.http.HttpHandlerWithPath;
 import app.cbo.oidc.java.server.scan.Prop;
 import com.sun.net.httpserver.HttpServer;
@@ -33,7 +34,7 @@ public class OIDCServer implements Closeable {
         this.httpServer = HttpServer.create(new InetSocketAddress(HOST_NAME, port), 50);
         handlers.forEach(handler -> {
             LOGGER.info("Adding handler '" + handler.getClass().getSimpleName() + "' matching path '" + handler.path() + "'.");
-            httpServer.createContext(handler.path(), handler);
+            httpServer.createContext(handler.path(), new CorsHandler(handler));
         });
 
         // start the server
