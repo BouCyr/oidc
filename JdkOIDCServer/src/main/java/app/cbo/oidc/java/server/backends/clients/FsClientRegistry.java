@@ -77,7 +77,14 @@ public class FsClientRegistry implements ClientRegistry {
         boolean result;
         if (this.configured.containsKey(clientId.id())) {
             LOGGER.info("Client '" + clientId + "' is defined in the registry");
-            result = this.configured.get(clientId.id()).equals(clientSecret);
+
+            var registeredPwd = this.configured.get(clientId.id());
+            if(registeredPwd == null || "null".equals(registeredPwd)) {
+                LOGGER.warning("Client '" + clientId + "' is a public client ; no pwd check.");
+                return true;
+            }
+
+            result = registeredPwd.equals(clientSecret);
         } else {
             LOGGER.info("Client '" + clientId + "' is NOT defined in the registry ; checking if clientId and secret are equals");
             result = !Utils.isEmpty(clientId.id()) && clientId.id().equals(clientSecret);
@@ -95,6 +102,18 @@ public class FsClientRegistry implements ClientRegistry {
     @Override
     public Set<ClientId> getRegisteredClients() {
         return this.configured.keySet().stream().map(ClientId::new).collect(Collectors.toSet());
+    }
+
+
+    /**
+     * This method is used to register a new PUBLIC client or update an existing one.
+     * It adds the provided client ID and client secret to the file system.
+     *
+     * @param clientId     The ID of the client to be registered or updated.
+     */
+    @Override
+    public void setPublicClient(ClientId clientId) {
+        this.setClient(clientId, null);
     }
 
     /**

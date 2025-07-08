@@ -35,4 +35,6 @@ public interface ClientRegistry extends ClientAuthenticator {
      */
     void setClient(ClientId clientId, String clientSecret);
 
+    void setPublicClient(ClientId clientId);
+
 }

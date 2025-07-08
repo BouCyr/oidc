@@ -44,9 +44,11 @@ public class ParamsHelper {
             var clientIdFromBody = singleParam(rawParams.get("client_id"));
             var clientSecretFromBody = singleParam(rawParams.get("client_secret"));
 
-            if (clientIdFromBody.isPresent() && clientSecretFromBody.isPresent()) {
+            if (clientIdFromBody.isPresent() ) {
                 LOGGER.info("Client credentials found in body parameters (clientId : " + clientIdFromBody.get() + ")");
-                return Optional.of(new ClientCreds(ClientId.of(clientIdFromBody.get()), clientSecretFromBody.get()));
+
+
+                return Optional.of(new ClientCreds(ClientId.of(clientIdFromBody.get()), clientSecretFromBody.orElse(null)));
             }
         }
 

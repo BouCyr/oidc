@@ -39,7 +39,15 @@ public class MemClientRegistry implements ClientRegistry {
             LOGGER.info("Cannot authenticate NULL clientId");
             return false;
         }
-        return clients.getOrDefault(clientId.get(), clientId.get()).equals(clientSecret);
+
+
+        var registeredPwd = this.clients.get(clientId.id());
+        if(registeredPwd == null) {
+            LOGGER.warning("Client '" + clientId + "' is a public client ; no pwd check.");
+            return true;
+        }else{
+            return clients.getOrDefault(clientId.get(), clientId.get()).equals(clientSecret);
+        }
     }
 
     /**
@@ -53,6 +61,17 @@ public class MemClientRegistry implements ClientRegistry {
                 .stream()
                 .map(ClientId::new)
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * This method is used to register a new PUBLIC client or update an existing one.
+     * It adds the provided client ID and client secret to the file system.
+     *
+     * @param clientId     The ID of the client to be registered or updated.
+     */
+    @Override
+    public void setPublicClient(ClientId clientId) {
+        this.setClient(clientId, null);
     }
 
     /**
