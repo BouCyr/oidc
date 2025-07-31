@@ -16,6 +16,7 @@ import app.cbo.oidc.java.server.scan.Injectable;
 import app.cbo.oidc.java.server.utils.Utils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -33,24 +34,76 @@ public class AuthenticateEndpointImpl implements AuthenticateEndpoint {
     private final PasswordChecker passwordChecker;
     private final UserCreator userCreator;
 
+    // WebAuthn Interaction dependencies
+    private final WebAuthnRegisterStartInteraction webAuthnRegisterStartInteraction;
+    private final WebAuthnRegisterFinishInteraction webAuthnRegisterFinishInteraction;
+    private final WebAuthnLoginStartInteraction webAuthnLoginStartInteraction;
+    private final WebAuthnLoginFinishInteraction webAuthnLoginFinishInteraction;
+
 
     public AuthenticateEndpointImpl(
             OngoingAuthsFinder ongoingAuthsFinder,
             UserFinder userFinder,
             UserCreator userCreator,
             SessionSupplier sessionSupplier,
-            PasswordChecker passwordChecker) {
+            PasswordChecker passwordChecker,
+            WebAuthnRegisterStartInteraction webAuthnRegisterStartInteraction,
+            WebAuthnRegisterFinishInteraction webAuthnRegisterFinishInteraction,
+            WebAuthnLoginStartInteraction webAuthnLoginStartInteraction,
+            WebAuthnLoginFinishInteraction webAuthnLoginFinishInteraction) {
         this.ongoingAuthsFinder = ongoingAuthsFinder;
         this.userFinder = userFinder;
         this.userCreator = userCreator;
         this.sessionSupplier = sessionSupplier;
         this.passwordChecker = passwordChecker;
+        this.webAuthnRegisterStartInteraction = webAuthnRegisterStartInteraction;
+        this.webAuthnRegisterFinishInteraction = webAuthnRegisterFinishInteraction;
+        this.webAuthnLoginStartInteraction = webAuthnLoginStartInteraction;
+        this.webAuthnLoginFinishInteraction = webAuthnLoginFinishInteraction;
     }
 
     @Override
     @NotNull
     public Interaction treatRequest(
             @NotNull Map<String, Collection<String>> rawParams) throws AuthErrorInteraction {
+
+        // Check for WebAuthn action first
+        String webauthnAction = rawParams.getOrDefault("webauthnAction", Collections.emptyList())
+                                      .stream().findFirst().orElse(null);
+
+        if (webauthnAction != null) {
+            LOGGER.info("WebAuthn action detected: " + webauthnAction);
+            switch (webauthnAction) {
+                case "registerStart":
+                    if (this.webAuthnRegisterStartInteraction == null) { //Defensive check
+                        LOGGER.severe("WebAuthnRegisterStartInteraction is not initialized");
+                        throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "WebAuthn service not configured");
+                    }
+                    return this.webAuthnRegisterStartInteraction;
+                case "registerFinish":
+                    if (this.webAuthnRegisterFinishInteraction == null) { //Defensive check
+                        LOGGER.severe("WebAuthnRegisterFinishInteraction is not initialized");
+                        throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "WebAuthn service not configured");
+                    }
+                    return this.webAuthnRegisterFinishInteraction;
+                case "loginStart":
+                    if (this.webAuthnLoginStartInteraction == null) { //Defensive check
+                        LOGGER.severe("WebAuthnLoginStartInteraction is not initialized");
+                        throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "WebAuthn service not configured");
+                    }
+                    return this.webAuthnLoginStartInteraction;
+                case "loginFinish":
+                     if (this.webAuthnLoginFinishInteraction == null) { //Defensive check
+                        LOGGER.severe("WebAuthnLoginFinishInteraction is not initialized");
+                        throw new AuthErrorInteraction(AuthErrorInteraction.Code.server_error, "WebAuthn service not configured");
+                    }
+                    return this.webAuthnLoginFinishInteraction;
+                default:
+                    LOGGER.warning("Unknown webauthnAction: " + webauthnAction + ". Proceeding to standard authentication.");
+                    // Fall through to standard authentication if action is not recognized
+            }
+        }
+
 
         AuthenticateParams params = new AuthenticateParams(rawParams);
 
